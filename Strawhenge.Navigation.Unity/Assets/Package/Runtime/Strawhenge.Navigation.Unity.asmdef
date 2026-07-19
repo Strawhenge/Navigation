@@ -1,0 +1,14 @@
+{
+    "name": "Strawhenge.Navigation.Unity",
+    "rootNamespace": "Strawhenge.Navigation.Unity",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
