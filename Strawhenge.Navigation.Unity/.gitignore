@@ -75,4 +75,8 @@ crashlytics-build.properties
 /[Aa]ssets/*
 !/[Aa]ssets/Package/
 !/[Aa]ssets/Package.meta
+!/[Aa]ssets/Development/
+!/[Aa]ssets/Development.meta
+/[Aa]ssets/Development/*.fbx
+/[Aa]ssets/Development/*/*.fbx
 
