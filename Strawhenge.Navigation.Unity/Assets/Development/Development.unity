@@ -168,6 +168,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef8d4ccf5f5b9924b9fac041aad6c88e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _player: {fileID: 6692772569148810661}
+  _camera: {fileID: 969177855}
 --- !u!114 &138225317
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -647,7 +649,7 @@ Animator:
   m_Controller: {fileID: 0}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_WarningMessage: 
