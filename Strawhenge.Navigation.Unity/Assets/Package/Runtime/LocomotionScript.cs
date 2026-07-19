@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -16,7 +13,7 @@ namespace Strawhenge.Navigation.Unity
             _direction = direction;
         }
 
-        private void Update()
+        void Update()
         {
             var velocity = _direction * 5;
             _characterController.Move(velocity * Time.deltaTime);

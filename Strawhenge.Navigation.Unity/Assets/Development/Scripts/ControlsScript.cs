@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Strawhenge.Navigation.Unity;
 using UnityEngine;
 using UnityEngine.InputSystem;
