@@ -662,7 +662,7 @@ Animator:
   m_GameObject: {fileID: 6316951164242345758}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: e3079d5027e3d074bacfac2acd99817a, type: 3}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 8220342149e60fb41805410373aac5f4, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -2209,14 +2209,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _characterController: {fileID: 6692772569148810662}
-  maxSpeed: 6
-  acceleration: 20
-  deceleration: 25
-  turnResponsiveness: 10
-  sharpTurnBraking: 8
-  rotationSpeed: 540
-  gravity: -20
-  groundedStickForce: -2
 --- !u!143 &6692772569148810662
 CharacterController:
   m_ObjectHideFlags: 0
