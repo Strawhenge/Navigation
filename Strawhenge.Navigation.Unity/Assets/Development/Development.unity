@@ -2247,6 +2247,7 @@ MonoBehaviour:
   _sprintSpeed: 8
   _acceleration: 10
   _deceleration: 30
+  _turnSpeed: 360
 --- !u!143 &6692772569148810662
 CharacterController:
   m_ObjectHideFlags: 0

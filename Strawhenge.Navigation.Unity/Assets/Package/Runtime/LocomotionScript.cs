@@ -12,8 +12,11 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _acceleration = 10f;
         [SerializeField] float _deceleration = 30f;
 
+        [SerializeField] float _turnSpeed = 360f;
+
         Vector3 _input;
         float _lastSpeed;
+        Quaternion _targetRotation;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -29,10 +32,18 @@ namespace Strawhenge.Navigation.Unity
                 input.Normalize();
 
             _input = input;
+
+            if (_input.sqrMagnitude > 0.001f)
+                _targetRotation = Quaternion.LookRotation(input);
         }
 
         void Update()
         {
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                _targetRotation,
+                _turnSpeed * Time.deltaTime);
+
             var targetSpeed = GetTargetSpeed();
             var acceleration = GetAcceleration(targetSpeed);
 
