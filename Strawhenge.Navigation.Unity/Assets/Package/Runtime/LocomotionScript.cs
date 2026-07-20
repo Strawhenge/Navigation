@@ -74,22 +74,9 @@ namespace Strawhenge.Navigation.Unity
             var verticalSpeed = GetVerticalSpeed();
             var velocity = GetVelocity(speed, verticalSpeed);
 
-            _lastSpeed = speed;
-            _lastVerticalSpeed = verticalSpeed;
-            _jump = false;
-
             var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
 
-            var blocked =
-                (collisionFlags & CollisionFlags.Sides) != 0 &&
-                _input.sqrMagnitude > 0.001f;
-
-            if (blocked)
-            {
-                _lastSpeed = Mathf.Min(
-                    _lastSpeed,
-                    _characterController.velocity.magnitude);
-            }
+            UpdateState(speed, verticalSpeed, collisionFlags);
         }
 
         Vector3 GetVelocity(float speed, float verticalSpeed)
@@ -149,6 +136,24 @@ namespace Strawhenge.Navigation.Unity
             return _lastVerticalSpeed < 0f
                 ? _groundedGravity
                 : _lastVerticalSpeed;
+        }
+
+        void UpdateState(float speed, float verticalSpeed, CollisionFlags collisionFlags)
+        {
+            _lastSpeed = speed;
+            _lastVerticalSpeed = verticalSpeed;
+            _jump = false;
+
+            var blocked =
+                (collisionFlags & CollisionFlags.Sides) != 0 &&
+                _input.sqrMagnitude > 0.001f;
+
+            if (blocked)
+            {
+                _lastSpeed = Mathf.Min(
+                    _lastSpeed,
+                    _characterController.velocity.magnitude);
+            }
         }
     }
 }
