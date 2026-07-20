@@ -66,9 +66,25 @@ namespace Strawhenge.Navigation.Unity
                 targetSpeed,
                 acceleration * Time.deltaTime);
 
+            var angle = Vector3.SignedAngle(
+                _characterController.velocity.normalized,
+                _input.normalized,
+                Vector3.up
+            );
+           
+            if (Mathf.Abs(angle) >= 120f)
+            {
+                speed = Mathf.Min(speed, _walkSpeed);
+            }
+            else if (Mathf.Abs(angle) >= 40f)
+            {
+                speed = Mathf.Min(speed, _runSpeed);
+            }
+
             var verticalSpeed = GetVerticalSpeed();
 
-            var velocity = _input * speed;
+            var direction = _input.magnitude > 0.1f ? _input : transform.forward;
+            var velocity = direction * speed;
             velocity.y = verticalSpeed;
             _lastSpeed = speed;
             var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
@@ -76,7 +92,7 @@ namespace Strawhenge.Navigation.Unity
             var blocked =
                 (collisionFlags & CollisionFlags.Sides) != 0 &&
                 _input.sqrMagnitude > 0.001f;
-            
+
             if (blocked)
             {
                 _lastSpeed = Mathf.Min(
