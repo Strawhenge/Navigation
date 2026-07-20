@@ -40,5 +40,19 @@ namespace Development
 
             _player.Move(moveDirection);
         }
+
+        public void Walk(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                _player.Walk = !_player.Walk;
+        }
+
+        public void Sprint(InputAction.CallbackContext context)
+        {
+            if (context.started)
+                _player.Sprint = true;
+            else if (context.canceled)
+                _player.Sprint = false;
+        }
     }
 }

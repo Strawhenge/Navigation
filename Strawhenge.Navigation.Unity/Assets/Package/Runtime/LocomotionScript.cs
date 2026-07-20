@@ -5,17 +5,30 @@ namespace Strawhenge.Navigation.Unity
     public class LocomotionScript : MonoBehaviour
     {
         [SerializeField] CharacterController _characterController;
+        [SerializeField] float _walkSpeed = 1f;
+        [SerializeField] float _runSpeed = 5f;
+        [SerializeField] float _sprintSpeed = 8f;
 
-        Vector3 _direction;
+        Vector3 _input;
 
-        public void Move(Vector3 direction)
+        public bool Walk { get; set; }
+
+        public bool Sprint { get; set; }
+
+        public void Move(Vector3 input)
         {
-            _direction = direction;
+            _input = input;
         }
 
         void Update()
         {
-            var velocity = _direction * 5;
+            var speed = Sprint
+                ? _sprintSpeed
+                : Walk
+                    ? _walkSpeed
+                    : _runSpeed;
+
+            var velocity = _input * speed;
             _characterController.Move(velocity * Time.deltaTime);
         }
     }

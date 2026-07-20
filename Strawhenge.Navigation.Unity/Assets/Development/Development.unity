@@ -211,6 +211,38 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: a235bdc5-4067-4bf5-ab4f-a9653891cd06
     m_ActionName: Default/Move[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 138225316}
+        m_TargetAssemblyTypeName: Development.ControlsScript, Development
+        m_MethodName: Walk
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: a4042367-1962-47ae-9f12-7ed6148bd2b3
+    m_ActionName: Default/Walk[/Keyboard/tab]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 138225316}
+        m_TargetAssemblyTypeName: Development.ControlsScript, Development
+        m_MethodName: Sprint
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: a9cf3f59-9544-4cf5-b58a-97e481594a92
+    m_ActionName: Default/Sprint[/Keyboard/leftShift]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Default
@@ -2209,6 +2241,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _characterController: {fileID: 6692772569148810662}
+  _walkSpeed: 1
+  _runSpeed: 5
+  _sprintSpeed: 8
 --- !u!143 &6692772569148810662
 CharacterController:
   m_ObjectHideFlags: 0
