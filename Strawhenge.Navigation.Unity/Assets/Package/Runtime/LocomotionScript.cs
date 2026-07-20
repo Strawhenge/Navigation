@@ -5,18 +5,20 @@ namespace Strawhenge.Navigation.Unity
     public class LocomotionScript : MonoBehaviour
     {
         [SerializeField] CharacterController _characterController;
-        
+
         [SerializeField, Header("Speed")] float _walkSpeed = 1f;
         [SerializeField] float _runSpeed = 5f;
         [SerializeField] float _sprintSpeed = 8f;
 
-        [SerializeField, Header("Acceleration")] float _acceleration = 10f;
+        [SerializeField, Header("Acceleration")]
+        float _acceleration = 10f;
+
         [SerializeField] float _deceleration = 30f;
 
         [SerializeField, Header("Turning")] float _turnSpeed = 360f;
 
         [SerializeField, Header("Jumping")] float _jumpHeight = 1.5f;
-        
+
         [SerializeField, Header("Gravity")] float _gravity = -9.81f;
         [SerializeField] float _groundedGravity = -2f;
 
@@ -41,7 +43,7 @@ namespace Strawhenge.Navigation.Unity
 
             _input = input;
 
-            if (_input.sqrMagnitude > 0.001f && _characterController.isGrounded)
+            if (_input.sqrMagnitude > 0.001f)
                 _targetRotation = Quaternion.LookRotation(input);
         }
 
