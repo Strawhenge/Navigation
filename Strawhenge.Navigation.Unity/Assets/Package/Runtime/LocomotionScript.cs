@@ -9,7 +9,11 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _runSpeed = 5f;
         [SerializeField] float _sprintSpeed = 8f;
 
+        [SerializeField] float _acceleration = 10f;
+        [SerializeField] float _deceleration = 30f;
+
         Vector3 _input;
+        float _lastSpeed;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -30,8 +34,15 @@ namespace Strawhenge.Navigation.Unity
         void Update()
         {
             var targetSpeed = GetTargetSpeed();
+            var acceleration = GetAcceleration(targetSpeed);
 
-            var velocity = _input * targetSpeed;
+            var speed = Mathf.MoveTowards(
+                _lastSpeed,
+                targetSpeed,
+                acceleration * Time.deltaTime);
+
+            var velocity = _input * speed;
+            _lastSpeed = speed;
             _characterController.Move(velocity * Time.deltaTime);
         }
 
@@ -44,6 +55,13 @@ namespace Strawhenge.Navigation.Unity
             if (Walk)
                 return _walkSpeed;
             return _runSpeed;
+        }
+
+        float GetAcceleration(float targetSpeed)
+        {
+            return targetSpeed > _lastSpeed
+                ? _acceleration
+                : _deceleration;
         }
     }
 }
