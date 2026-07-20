@@ -60,33 +60,12 @@ namespace Strawhenge.Navigation.Unity
         {
             var targetSpeed = GetTargetSpeed();
             var acceleration = GetAcceleration(targetSpeed);
-
-            var speed = Mathf.MoveTowards(
-                _lastSpeed,
-                targetSpeed,
-                acceleration * Time.deltaTime);
-
-            var angle = Vector3.SignedAngle(
-                _characterController.velocity.normalized,
-                _input.normalized,
-                Vector3.up
-            );
-           
-            if (Mathf.Abs(angle) >= 120f)
-            {
-                speed = Mathf.Min(speed, _walkSpeed);
-            }
-            else if (Mathf.Abs(angle) >= 40f)
-            {
-                speed = Mathf.Min(speed, _runSpeed);
-            }
-
+            var speed = GetSpeed(targetSpeed, acceleration);
             var verticalSpeed = GetVerticalSpeed();
+            var velocity = GetVelocity(speed, verticalSpeed);
 
-            var direction = _input.magnitude > 0.1f ? _input : transform.forward;
-            var velocity = direction * speed;
-            velocity.y = verticalSpeed;
             _lastSpeed = speed;
+            _lastVerticalSpeed = verticalSpeed;
             var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
 
             var blocked =
@@ -99,6 +78,34 @@ namespace Strawhenge.Navigation.Unity
                     _lastSpeed,
                     _characterController.velocity.magnitude);
             }
+        }
+
+        Vector3 GetVelocity(float speed, float verticalSpeed)
+        {
+            var velocity = (_input.magnitude > 0.1f ? _input : transform.forward) * speed;
+            velocity.y = verticalSpeed;
+            return velocity;
+        }
+
+        float GetSpeed(float targetSpeed, float acceleration)
+        {
+            var speed = Mathf.MoveTowards(
+                _lastSpeed,
+                targetSpeed,
+                acceleration * Time.deltaTime);
+
+            var directionChangeAngle = Vector3.SignedAngle(
+                _characterController.velocity.normalized,
+                _input.normalized,
+                Vector3.up
+            );
+
+            if (Mathf.Abs(directionChangeAngle) >= 120f)
+                speed = Mathf.Min(speed, _walkSpeed);
+            else if (Mathf.Abs(directionChangeAngle) >= 40f)
+                speed = Mathf.Min(speed, _runSpeed);
+
+            return speed;
         }
 
         float GetTargetSpeed()
@@ -121,17 +128,12 @@ namespace Strawhenge.Navigation.Unity
 
         float GetVerticalSpeed()
         {
-            if (_characterController.isGrounded)
-            {
-                if (_lastVerticalSpeed < 0f)
-                    _lastVerticalSpeed = _groundedGravity;
-            }
-            else
-            {
-                _lastVerticalSpeed += _gravity * Time.deltaTime;
-            }
+            if (!_characterController.isGrounded)
+                return _lastVerticalSpeed + _gravity * Time.deltaTime;
 
-            return _lastVerticalSpeed;
+            return _lastVerticalSpeed < 0f
+                ? _groundedGravity
+                : _lastVerticalSpeed;
         }
     }
 }
