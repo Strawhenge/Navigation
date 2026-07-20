@@ -37,7 +37,7 @@ namespace Strawhenge.Navigation.Unity
 
             _input = input;
 
-            if (_input.sqrMagnitude > 0.001f)
+            if (_input.sqrMagnitude > 0.001f && _characterController.isGrounded)
                 _targetRotation = Quaternion.LookRotation(input);
         }
 
@@ -49,11 +49,10 @@ namespace Strawhenge.Navigation.Unity
 
         void HandleRotation()
         {
-            if (_characterController.isGrounded)
-                transform.rotation = Quaternion.RotateTowards(
-                    transform.rotation,
-                    _targetRotation,
-                    _turnSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                _targetRotation,
+                _turnSpeed * Time.deltaTime);
         }
 
         void HandleMovement()
