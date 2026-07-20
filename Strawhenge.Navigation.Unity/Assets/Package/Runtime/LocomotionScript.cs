@@ -19,6 +19,8 @@ namespace Strawhenge.Navigation.Unity
 
         public void Move(Vector3 input)
         {
+            input.y = 0;
+            
             if (input.sqrMagnitude > 1f)
                 input.Normalize();
             
