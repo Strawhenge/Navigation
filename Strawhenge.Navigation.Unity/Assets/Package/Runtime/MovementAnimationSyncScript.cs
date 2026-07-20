@@ -7,7 +7,7 @@ namespace Strawhenge.Navigation.Unity
         static readonly int MoveSpeed = Animator.StringToHash("Move Speed");
         [SerializeField] Animator _animator;
         [SerializeField] LocomotionScript _locomotion;
-        [SerializeField] float _dampeningTime = 0.5f;
+        [SerializeField] float _dampeningTime = 0.1f;
 
         void LateUpdate()
         {
