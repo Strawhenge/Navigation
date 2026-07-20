@@ -11,6 +11,8 @@ namespace Strawhenge.Navigation.Unity
 
         Vector3 _input;
 
+        public Vector3 CurrentVelocity => _characterController.velocity;
+
         public bool Walk { get; set; }
 
         public bool Sprint { get; set; }
