@@ -14,8 +14,12 @@ namespace Strawhenge.Navigation.Unity
 
         [SerializeField] float _turnSpeed = 360f;
 
+        [SerializeField] float _gravity = -9.81f;
+        [SerializeField] float _groundedGravity = -2f;
+
         Vector3 _input;
         float _lastSpeed;
+        float _lastVerticalSpeed;
         Quaternion _targetRotation;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
@@ -52,7 +56,10 @@ namespace Strawhenge.Navigation.Unity
                 targetSpeed,
                 acceleration * Time.deltaTime);
 
+            var verticalSpeed = GetVerticalSpeed();
+
             var velocity = _input * speed;
+            velocity.y = verticalSpeed;
             _lastSpeed = speed;
             _characterController.Move(velocity * Time.deltaTime);
         }
@@ -73,6 +80,21 @@ namespace Strawhenge.Navigation.Unity
             return targetSpeed > _lastSpeed
                 ? _acceleration
                 : _deceleration;
+        }
+
+        float GetVerticalSpeed()
+        {
+            if (_characterController.isGrounded)
+            {
+                if (_lastVerticalSpeed < 0f)
+                    _lastVerticalSpeed = _groundedGravity;
+            }
+            else
+            {
+                _lastVerticalSpeed += _gravity * Time.deltaTime;
+            }
+
+            return _lastVerticalSpeed;
         }
     }
 }
