@@ -71,7 +71,18 @@ namespace Strawhenge.Navigation.Unity
             var velocity = _input * speed;
             velocity.y = verticalSpeed;
             _lastSpeed = speed;
-            _characterController.Move(velocity * Time.deltaTime);
+            var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
+
+            var blocked =
+                (collisionFlags & CollisionFlags.Sides) != 0 &&
+                _input.sqrMagnitude > 0.001f;
+            
+            if (blocked)
+            {
+                _lastSpeed = Mathf.Min(
+                    _lastSpeed,
+                    _characterController.velocity.magnitude);
+            }
         }
 
         float GetTargetSpeed()
