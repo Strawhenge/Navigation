@@ -35,9 +35,6 @@ namespace Development
                 cameraForward * input.y +
                 cameraRight * input.x;
 
-            if (moveDirection.sqrMagnitude > 1f)
-                moveDirection.Normalize();
-
             _player.Move(moveDirection);
         }
 
