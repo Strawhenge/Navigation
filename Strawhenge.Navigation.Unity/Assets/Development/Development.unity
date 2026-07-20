@@ -364,7 +364,7 @@ Terrain:
   m_DrawTreesAndFoliage: 1
   m_StaticShadowCaster: 0
   m_ReflectionProbeUsage: 1
-  m_MaterialTemplate: {fileID: 2100000, guid: ad49884d97dceb3419f8fa9ae69043df, type: 2}
+  m_MaterialTemplate: {fileID: 10652, guid: 0000000000000000f000000000000000, type: 0}
   m_BakeLightProbesForTrees: 1
   m_PreserveTreePrototypeLayers: 0
   m_DeringLightProbesForTrees: 1
@@ -2209,6 +2209,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _characterController: {fileID: 6692772569148810662}
+  maxSpeed: 6
+  acceleration: 20
+  deceleration: 25
+  turnResponsiveness: 10
+  sharpTurnBraking: 8
+  rotationSpeed: 540
+  gravity: -20
+  groundedStickForce: -2
 --- !u!143 &6692772569148810662
 CharacterController:
   m_ObjectHideFlags: 0
