@@ -11,10 +11,13 @@ namespace Strawhenge.Navigation.Unity
 
         void LateUpdate()
         {
+            var velocity = _locomotion.CurrentVelocity;
+            velocity.y = 0;
+
             _animator
                 .SetFloat(
                     MoveSpeed,
-                    _locomotion.CurrentVelocity.magnitude,
+                    velocity.magnitude,
                     _dampeningTime,
                     Time.deltaTime);
         }
