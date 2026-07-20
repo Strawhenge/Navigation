@@ -3405,6 +3405,7 @@ MonoBehaviour:
   _acceleration: 10
   _deceleration: 30
   _turnSpeed: 360
+  _jumpHeight: 1.5
   _gravity: -9.81
   _groundedGravity: -2
 --- !u!143 &6692772569148810662

@@ -5,22 +5,26 @@ namespace Strawhenge.Navigation.Unity
     public class LocomotionScript : MonoBehaviour
     {
         [SerializeField] CharacterController _characterController;
-        [SerializeField] float _walkSpeed = 1f;
+        
+        [SerializeField, Header("Speed")] float _walkSpeed = 1f;
         [SerializeField] float _runSpeed = 5f;
         [SerializeField] float _sprintSpeed = 8f;
 
-        [SerializeField] float _acceleration = 10f;
+        [SerializeField, Header("Acceleration")] float _acceleration = 10f;
         [SerializeField] float _deceleration = 30f;
 
-        [SerializeField] float _turnSpeed = 360f;
+        [SerializeField, Header("Turning")] float _turnSpeed = 360f;
 
-        [SerializeField] float _gravity = -9.81f;
+        [SerializeField, Header("Jumping")] float _jumpHeight = 1.5f;
+        
+        [SerializeField, Header("Gravity")] float _gravity = -9.81f;
         [SerializeField] float _groundedGravity = -2f;
 
         Vector3 _input;
         float _lastSpeed;
         float _lastVerticalSpeed;
         Quaternion _targetRotation;
+        bool _jump;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -43,8 +47,7 @@ namespace Strawhenge.Navigation.Unity
 
         public void Jump()
         {
-            // TODO
-            Debug.Log("Jump");
+            _jump = true;
         }
 
         void Update()
@@ -71,6 +74,8 @@ namespace Strawhenge.Navigation.Unity
 
             _lastSpeed = speed;
             _lastVerticalSpeed = verticalSpeed;
+            _jump = false;
+
             var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
 
             var blocked =
@@ -133,6 +138,9 @@ namespace Strawhenge.Navigation.Unity
 
         float GetVerticalSpeed()
         {
+            if (_jump)
+                return Mathf.Sqrt(_jumpHeight * -2f * _gravity);
+
             if (!_characterController.isGrounded)
                 return _lastVerticalSpeed + _gravity * Time.deltaTime;
 
