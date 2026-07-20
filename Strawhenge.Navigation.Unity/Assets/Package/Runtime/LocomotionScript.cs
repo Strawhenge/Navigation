@@ -20,23 +20,30 @@ namespace Strawhenge.Navigation.Unity
         public void Move(Vector3 input)
         {
             input.y = 0;
-            
+
             if (input.sqrMagnitude > 1f)
                 input.Normalize();
-            
+
             _input = input;
         }
 
         void Update()
         {
-            var speed = Sprint
-                ? _sprintSpeed
-                : Walk
-                    ? _walkSpeed
-                    : _runSpeed;
+            var targetSpeed = GetTargetSpeed();
 
-            var velocity = _input * speed;
+            var velocity = _input * targetSpeed;
             _characterController.Move(velocity * Time.deltaTime);
+        }
+
+        float GetTargetSpeed()
+        {
+            if (_input.sqrMagnitude < 0.001f)
+                return 0f;
+            if (Sprint)
+                return _sprintSpeed;
+            if (Walk)
+                return _walkSpeed;
+            return _runSpeed;
         }
     }
 }
