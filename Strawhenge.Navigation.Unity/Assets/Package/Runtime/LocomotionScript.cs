@@ -43,12 +43,21 @@ namespace Strawhenge.Navigation.Unity
 
         void Update()
         {
+            HandleRotation();
+            HandleMovement();
+        }
+
+        void HandleRotation()
+        {
             if (_characterController.isGrounded)
                 transform.rotation = Quaternion.RotateTowards(
                     transform.rotation,
                     _targetRotation,
                     _turnSpeed * Time.deltaTime);
+        }
 
+        void HandleMovement()
+        {
             var targetSpeed = GetTargetSpeed();
             var acceleration = GetAcceleration(targetSpeed);
 
