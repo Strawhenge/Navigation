@@ -51,5 +51,11 @@ namespace Development
             else if (context.canceled)
                 _player.Sprint = false;
         }
+
+        public void Jump(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                _player.Jump();
+        }
     }
 }

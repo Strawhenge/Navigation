@@ -41,6 +41,12 @@ namespace Strawhenge.Navigation.Unity
                 _targetRotation = Quaternion.LookRotation(input);
         }
 
+        public void Jump()
+        {
+            // TODO
+            Debug.Log("Jump");
+        }
+
         void Update()
         {
             HandleRotation();

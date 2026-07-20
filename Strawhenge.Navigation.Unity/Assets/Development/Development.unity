@@ -437,6 +437,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: a9cf3f59-9544-4cf5-b58a-97e481594a92
     m_ActionName: Default/Sprint[/Keyboard/leftShift]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 138225316}
+        m_TargetAssemblyTypeName: Development.ControlsScript, Development
+        m_MethodName: Jump
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 468816c0-8d1f-4eb9-8a43-d50a527e1e90
+    m_ActionName: Default/Jump[/Keyboard/space]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Default
@@ -3383,7 +3399,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _characterController: {fileID: 6692772569148810662}
-  _walkSpeed: 1
+  _walkSpeed: 1.5
   _runSpeed: 5
   _sprintSpeed: 8
   _acceleration: 10
