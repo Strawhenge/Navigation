@@ -57,5 +57,11 @@ namespace Development
             if (context.performed)
                 _player.Jump();
         }
+
+        public void Strafe(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                _player.Strafe = !_player.Strafe;
+        }
     }
 }

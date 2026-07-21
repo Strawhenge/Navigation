@@ -4,7 +4,9 @@ namespace Strawhenge.Navigation.Unity
 {
     public class MovementAnimationSyncScript : MonoBehaviour
     {
-        static readonly int MoveSpeed = Animator.StringToHash("Move Speed");
+        static readonly int MoveX = Animator.StringToHash("Move X");
+        static readonly int MoveY = Animator.StringToHash("Move Y");
+        
         [SerializeField] Animator _animator;
         [SerializeField] LocomotionScript _locomotion;
         [SerializeField] float _dampeningTime = 0.1f;
@@ -16,8 +18,15 @@ namespace Strawhenge.Navigation.Unity
 
             _animator
                 .SetFloat(
-                    MoveSpeed,
-                    velocity.magnitude,
+                    MoveX,
+                    velocity.x,
+                    _dampeningTime,
+                    Time.deltaTime);
+            
+            _animator
+                .SetFloat(
+                    MoveY,
+                    velocity.z,
                     _dampeningTime,
                     Time.deltaTime);
         }

@@ -34,6 +34,8 @@ namespace Strawhenge.Navigation.Unity
 
         public bool Sprint { get; set; }
 
+        public bool Strafe { get; set; }
+
         public void Move(Vector3 input)
         {
             input.y = 0;
@@ -60,10 +62,11 @@ namespace Strawhenge.Navigation.Unity
 
         void HandleRotation()
         {
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
-                _targetRotation,
-                _turnSpeed * Time.deltaTime);
+            if (!Strafe)
+                transform.rotation = Quaternion.RotateTowards(
+                    transform.rotation,
+                    _targetRotation,
+                    _turnSpeed * Time.deltaTime);
         }
 
         void HandleMovement()
@@ -112,7 +115,7 @@ namespace Strawhenge.Navigation.Unity
             if (_input.sqrMagnitude < 0.001f)
                 return 0f;
             if (Sprint)
-                return _sprintSpeed;
+                return Strafe ? _runSpeed : _sprintSpeed;
             if (Walk)
                 return _walkSpeed;
             return _runSpeed;
