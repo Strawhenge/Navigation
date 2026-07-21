@@ -32,9 +32,13 @@ namespace Strawhenge.Navigation.Unity
 
         Quaternion _targetRotation;
 
-        float _currentFallTime;
+        float _fallTime;
+        float _fallDistance;
+        float _groundedY;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
+
+        public float FallDistance => _fallDistance;
 
         public bool Walk { get; set; }
 
@@ -57,16 +61,17 @@ namespace Strawhenge.Navigation.Unity
 
         public void Jump()
         {
-            if (!_isJumping && _currentFallTime <= _coyoteTime)
+            if (!_isJumping && _fallTime <= _coyoteTime)
                 _jumpInput = true;
         }
 
         void Update()
         {
+            HandleFalling();
             HandleRotation();
             HandleMovement();
 
-            Debug.Log($"Is Jumping: {_isJumping} | Fall Time: {_currentFallTime}");
+            Debug.Log($"Is Jumping: {_isJumping} | Fall Time: {_fallTime} | Fall Distance: {FallDistance}");
         }
 
         void HandleRotation()
@@ -87,6 +92,19 @@ namespace Strawhenge.Navigation.Unity
             var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
 
             ManageCollisions(collisionFlags);
+        }
+
+        void HandleFalling()
+        {
+            if (_characterController.isGrounded)
+                _groundedY = transform.position.y;
+
+            _fallDistance = Mathf.Max(0f, _groundedY - transform.position.y);
+
+            if (_characterController.isGrounded || _fallDistance <= 0)
+                _fallTime = 0f;
+            else
+                _fallTime += Time.deltaTime;
         }
 
         void CalculateHorizontalSpeed()
@@ -115,16 +133,11 @@ namespace Strawhenge.Navigation.Unity
 
         void CalculateVerticalSpeed()
         {
-            if (_characterController.isGrounded || _verticalSpeed > 0)
-                _currentFallTime = 0f;
-            else
-                _currentFallTime += Time.deltaTime;
-            
             if (_jumpInput)
             {
                 _jumpInput = false;
-                _verticalSpeed = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
                 _isJumping = true;
+                _verticalSpeed = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
                 return;
             }
 
