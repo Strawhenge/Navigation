@@ -40,6 +40,8 @@ namespace Strawhenge.Navigation.Unity
 
         public float FallDistance => _fallDistance;
 
+        public bool IsJumping => _isJumping;
+
         public bool Walk { get; set; }
 
         public bool Sprint { get; set; }
