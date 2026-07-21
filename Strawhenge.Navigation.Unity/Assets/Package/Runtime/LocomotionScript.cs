@@ -83,7 +83,11 @@ namespace Strawhenge.Navigation.Unity
 
             var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
 
-            UpdateState(speed, verticalSpeed, collisionFlags);
+            _horizontalSpeed = speed;
+            _verticalSpeed = verticalSpeed;
+            _jump = false;
+            
+            ManageCollisions(collisionFlags);
         }
 
         void HandleFalling()
@@ -153,12 +157,8 @@ namespace Strawhenge.Navigation.Unity
                 : _verticalSpeed;
         }
 
-        void UpdateState(float speed, float verticalSpeed, CollisionFlags collisionFlags)
+        void ManageCollisions(CollisionFlags collisionFlags)
         {
-            _horizontalSpeed = speed;
-            _verticalSpeed = verticalSpeed;
-            _jump = false;
-
             var blocked =
                 (collisionFlags & CollisionFlags.Sides) != 0 &&
                 _input.sqrMagnitude > 0.001f;
