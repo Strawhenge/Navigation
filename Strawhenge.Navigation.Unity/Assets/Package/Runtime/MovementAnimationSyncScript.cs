@@ -11,7 +11,7 @@ namespace Strawhenge.Navigation.Unity
 
         void LateUpdate()
         {
-            var velocity = _locomotion.CurrentVelocity;
+            var velocity = transform.root.InverseTransformDirection(_locomotion.CurrentVelocity);
             velocity.y = 0;
 
             _animator
