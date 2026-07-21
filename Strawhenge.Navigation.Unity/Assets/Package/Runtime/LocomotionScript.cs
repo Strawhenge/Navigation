@@ -18,6 +18,7 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField, Header("Turning")] float _turnSpeed = 360f;
 
         [SerializeField, Header("Jumping")] float _jumpHeight = 1.5f;
+        [SerializeField] float _coyoteTime = 0.2f;
 
         [SerializeField, Header("Gravity")] float _gravity = -9.81f;
         [SerializeField] float _groundedGravity = -2f;
@@ -27,6 +28,7 @@ namespace Strawhenge.Navigation.Unity
         float _lastVerticalSpeed;
         Quaternion _targetRotation;
         bool _jump;
+        float _currentFallTime;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -51,13 +53,15 @@ namespace Strawhenge.Navigation.Unity
 
         public void Jump()
         {
-            _jump = true;
+            if (_currentFallTime <= _coyoteTime)
+                _jump = true;
         }
 
         void Update()
         {
             HandleRotation();
             HandleMovement();
+            HandleFalling();
         }
 
         void HandleRotation()
@@ -80,6 +84,14 @@ namespace Strawhenge.Navigation.Unity
             var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
 
             UpdateState(speed, verticalSpeed, collisionFlags);
+        }
+
+        void HandleFalling()
+        {
+            if (_characterController.isGrounded)
+                _currentFallTime = 0f;
+            else
+                _currentFallTime += Time.deltaTime;
         }
 
         Vector3 GetVelocity(float speed, float verticalSpeed)
