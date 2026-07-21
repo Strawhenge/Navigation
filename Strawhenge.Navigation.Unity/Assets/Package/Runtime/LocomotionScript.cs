@@ -24,8 +24,8 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _groundedGravity = -2f;
 
         Vector3 _input;
-        float _lastSpeed;
-        float _lastVerticalSpeed;
+        float _horizontalSpeed;
+        float _verticalSpeed;
         Quaternion _targetRotation;
         bool _jump;
         float _currentFallTime;
@@ -104,7 +104,7 @@ namespace Strawhenge.Navigation.Unity
         float GetSpeed(float targetSpeed, float acceleration)
         {
             var speed = Mathf.MoveTowards(
-                _lastSpeed,
+                _horizontalSpeed,
                 targetSpeed,
                 acceleration * Time.deltaTime);
 
@@ -135,7 +135,7 @@ namespace Strawhenge.Navigation.Unity
 
         float GetAcceleration(float targetSpeed)
         {
-            return targetSpeed > _lastSpeed
+            return targetSpeed > _horizontalSpeed
                 ? _acceleration
                 : _deceleration;
         }
@@ -146,17 +146,17 @@ namespace Strawhenge.Navigation.Unity
                 return Mathf.Sqrt(_jumpHeight * -2f * _gravity);
 
             if (!_characterController.isGrounded)
-                return _lastVerticalSpeed + _gravity * Time.deltaTime;
+                return _verticalSpeed + _gravity * Time.deltaTime;
 
-            return _lastVerticalSpeed < 0f
+            return _verticalSpeed < 0f
                 ? _groundedGravity
-                : _lastVerticalSpeed;
+                : _verticalSpeed;
         }
 
         void UpdateState(float speed, float verticalSpeed, CollisionFlags collisionFlags)
         {
-            _lastSpeed = speed;
-            _lastVerticalSpeed = verticalSpeed;
+            _horizontalSpeed = speed;
+            _verticalSpeed = verticalSpeed;
             _jump = false;
 
             var blocked =
@@ -165,8 +165,8 @@ namespace Strawhenge.Navigation.Unity
 
             if (blocked)
             {
-                _lastSpeed = Mathf.Min(
-                    _lastSpeed,
+                _horizontalSpeed = Mathf.Min(
+                    _horizontalSpeed,
                     _characterController.velocity.magnitude);
             }
         }
