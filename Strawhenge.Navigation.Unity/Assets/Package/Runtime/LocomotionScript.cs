@@ -78,9 +78,9 @@ namespace Strawhenge.Navigation.Unity
             var targetSpeed = GetTargetSpeed();
             var acceleration = GetAcceleration(targetSpeed);
             var speed = GetSpeed(targetSpeed, acceleration);
-            var verticalSpeed = GetVerticalSpeed();
-
             _horizontalSpeed = speed;
+
+            var verticalSpeed = GetVerticalSpeed();
             _verticalSpeed = verticalSpeed;
 
             var velocity = GetVelocity();
