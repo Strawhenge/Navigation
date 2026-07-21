@@ -70,8 +70,6 @@ namespace Strawhenge.Navigation.Unity
             HandleFalling();
             HandleRotation();
             HandleMovement();
-
-            Debug.Log($"Is Jumping: {_isJumping} | Fall Time: {_fallTime} | Fall Distance: {FallDistance}");
         }
 
         void HandleRotation()
