@@ -24,10 +24,14 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _groundedGravity = -2f;
 
         Vector3 _input;
+        bool _jumpInput;
+
         float _horizontalSpeed;
         float _verticalSpeed;
+        bool _isJumping;
+
         Quaternion _targetRotation;
-        bool _jump;
+
         float _currentFallTime;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
@@ -53,15 +57,16 @@ namespace Strawhenge.Navigation.Unity
 
         public void Jump()
         {
-            if (_currentFallTime <= _coyoteTime)
-                _jump = true;
+            if (!_isJumping && _currentFallTime <= _coyoteTime)
+                _jumpInput = true;
         }
 
         void Update()
         {
             HandleRotation();
             HandleMovement();
-            HandleFalling();
+
+            Debug.Log($"Is Jumping: {_isJumping} | Fall Time: {_currentFallTime}");
         }
 
         void HandleRotation()
@@ -88,7 +93,7 @@ namespace Strawhenge.Navigation.Unity
         {
             var targetSpeed = GetTargetSpeed();
             var acceleration = GetAcceleration(targetSpeed);
-            
+
             var speed = Mathf.MoveTowards(
                 _horizontalSpeed,
                 targetSpeed,
@@ -104,18 +109,27 @@ namespace Strawhenge.Navigation.Unity
                 speed = Mathf.Min(speed, _walkSpeed);
             else if (Mathf.Abs(directionChangeAngle) >= 40f)
                 speed = Mathf.Min(speed, _runSpeed);
-            
+
             _horizontalSpeed = speed;
         }
 
         void CalculateVerticalSpeed()
         {
-            if (_jump)
+            if (_characterController.isGrounded || _verticalSpeed > 0)
+                _currentFallTime = 0f;
+            else
+                _currentFallTime += Time.deltaTime;
+            
+            if (_jumpInput)
             {
-                _jump = false;
+                _jumpInput = false;
                 _verticalSpeed = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
+                _isJumping = true;
                 return;
             }
+
+            if (_characterController.isGrounded)
+                _isJumping = false;
 
             if (!_characterController.isGrounded)
             {
@@ -127,7 +141,7 @@ namespace Strawhenge.Navigation.Unity
                 ? _groundedGravity
                 : _verticalSpeed;
         }
-        
+
         void ManageCollisions(CollisionFlags collisionFlags)
         {
             var blocked =
@@ -141,7 +155,7 @@ namespace Strawhenge.Navigation.Unity
                     _characterController.velocity.magnitude);
             }
         }
-        
+
         Vector3 GetVelocity()
         {
             var velocity = (_input.magnitude > 0.1f ? _input : transform.forward) * _horizontalSpeed;
@@ -165,14 +179,6 @@ namespace Strawhenge.Navigation.Unity
             return targetSpeed > _horizontalSpeed
                 ? _acceleration
                 : _deceleration;
-        }
-        
-        void HandleFalling()
-        {
-            if (_characterController.isGrounded)
-                _currentFallTime = 0f;
-            else
-                _currentFallTime += Time.deltaTime;
         }
     }
 }
