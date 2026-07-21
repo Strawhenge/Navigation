@@ -79,14 +79,15 @@ namespace Strawhenge.Navigation.Unity
             var acceleration = GetAcceleration(targetSpeed);
             var speed = GetSpeed(targetSpeed, acceleration);
             var verticalSpeed = GetVerticalSpeed();
-            var velocity = GetVelocity(speed, verticalSpeed);
-
-            var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
 
             _horizontalSpeed = speed;
             _verticalSpeed = verticalSpeed;
+
+            var velocity = GetVelocity();
+            var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
+
             _jump = false;
-            
+
             ManageCollisions(collisionFlags);
         }
 
@@ -98,10 +99,10 @@ namespace Strawhenge.Navigation.Unity
                 _currentFallTime += Time.deltaTime;
         }
 
-        Vector3 GetVelocity(float speed, float verticalSpeed)
+        Vector3 GetVelocity()
         {
-            var velocity = (_input.magnitude > 0.1f ? _input : transform.forward) * speed;
-            velocity.y = verticalSpeed;
+            var velocity = (_input.magnitude > 0.1f ? _input : transform.forward) * _horizontalSpeed;
+            velocity.y = _verticalSpeed;
             return velocity;
         }
 
