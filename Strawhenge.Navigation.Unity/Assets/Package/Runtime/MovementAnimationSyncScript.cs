@@ -5,6 +5,7 @@ namespace Strawhenge.Navigation.Unity
     public class MovementAnimationSyncScript : MonoBehaviour
     {
         static readonly int MoveSpeed = Animator.StringToHash("Move Speed");
+        static readonly int Strafing = Animator.StringToHash("Strafing");
         static readonly int StrafeX = Animator.StringToHash("Strafe X");
         static readonly int StrafeY = Animator.StringToHash("Strafe Y");
 
@@ -19,8 +20,9 @@ namespace Strawhenge.Navigation.Unity
 
             if (_locomotion.Strafe)
             {
+                _animator.SetBool(Strafing, true);
                 _animator.SetFloat(MoveSpeed, 0);
-                
+
                 _animator
                     .SetFloat(
                         StrafeX,
@@ -37,9 +39,10 @@ namespace Strawhenge.Navigation.Unity
                 return;
             }
 
+            _animator.SetBool(Strafing, false);
             _animator.SetFloat(StrafeX, 0);
             _animator.SetFloat(StrafeY, 0);
-            
+
             _animator.SetFloat(
                 MoveSpeed,
                 velocity.magnitude,
