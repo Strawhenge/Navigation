@@ -80,15 +80,33 @@ namespace Strawhenge.Navigation.Unity
             var speed = GetSpeed(targetSpeed, acceleration);
             _horizontalSpeed = speed;
 
-            var verticalSpeed = GetVerticalSpeed();
-            _verticalSpeed = verticalSpeed;
+            CalculateVerticalSpeed();
 
             var velocity = GetVelocity();
             var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
 
-            _jump = false;
 
             ManageCollisions(collisionFlags);
+        }
+
+        void CalculateVerticalSpeed()
+        {
+            if (_jump)
+            {
+                _jump = false;
+                _verticalSpeed = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
+                return;
+            }
+
+            if (!_characterController.isGrounded)
+            {
+                _verticalSpeed += _gravity * Time.deltaTime;
+                return;
+            }
+
+            _verticalSpeed = _verticalSpeed < 0f
+                ? _groundedGravity
+                : _verticalSpeed;
         }
 
         void HandleFalling()
@@ -143,19 +161,6 @@ namespace Strawhenge.Navigation.Unity
             return targetSpeed > _horizontalSpeed
                 ? _acceleration
                 : _deceleration;
-        }
-
-        float GetVerticalSpeed()
-        {
-            if (_jump)
-                return Mathf.Sqrt(_jumpHeight * -2f * _gravity);
-
-            if (!_characterController.isGrounded)
-                return _verticalSpeed + _gravity * Time.deltaTime;
-
-            return _verticalSpeed < 0f
-                ? _groundedGravity
-                : _verticalSpeed;
         }
 
         void ManageCollisions(CollisionFlags collisionFlags)
