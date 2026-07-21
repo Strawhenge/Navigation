@@ -75,18 +75,37 @@ namespace Strawhenge.Navigation.Unity
 
         void HandleMovement()
         {
-            var targetSpeed = GetTargetSpeed();
-            var acceleration = GetAcceleration(targetSpeed);
-            var speed = GetSpeed(targetSpeed, acceleration);
-            _horizontalSpeed = speed;
-
+            CalculateHorizontalSpeed();
             CalculateVerticalSpeed();
 
             var velocity = GetVelocity();
             var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
 
-
             ManageCollisions(collisionFlags);
+        }
+
+        void CalculateHorizontalSpeed()
+        {
+            var targetSpeed = GetTargetSpeed();
+            var acceleration = GetAcceleration(targetSpeed);
+            
+            var speed = Mathf.MoveTowards(
+                _horizontalSpeed,
+                targetSpeed,
+                acceleration * Time.deltaTime);
+
+            var directionChangeAngle = Vector3.SignedAngle(
+                _characterController.velocity.normalized,
+                _input.normalized,
+                Vector3.up
+            );
+
+            if (Mathf.Abs(directionChangeAngle) >= 120f)
+                speed = Mathf.Min(speed, _walkSpeed);
+            else if (Mathf.Abs(directionChangeAngle) >= 40f)
+                speed = Mathf.Min(speed, _runSpeed);
+            
+            _horizontalSpeed = speed;
         }
 
         void CalculateVerticalSpeed()
@@ -108,41 +127,26 @@ namespace Strawhenge.Navigation.Unity
                 ? _groundedGravity
                 : _verticalSpeed;
         }
-
-        void HandleFalling()
+        
+        void ManageCollisions(CollisionFlags collisionFlags)
         {
-            if (_characterController.isGrounded)
-                _currentFallTime = 0f;
-            else
-                _currentFallTime += Time.deltaTime;
-        }
+            var blocked =
+                (collisionFlags & CollisionFlags.Sides) != 0 &&
+                _input.sqrMagnitude > 0.001f;
 
+            if (blocked)
+            {
+                _horizontalSpeed = Mathf.Min(
+                    _horizontalSpeed,
+                    _characterController.velocity.magnitude);
+            }
+        }
+        
         Vector3 GetVelocity()
         {
             var velocity = (_input.magnitude > 0.1f ? _input : transform.forward) * _horizontalSpeed;
             velocity.y = _verticalSpeed;
             return velocity;
-        }
-
-        float GetSpeed(float targetSpeed, float acceleration)
-        {
-            var speed = Mathf.MoveTowards(
-                _horizontalSpeed,
-                targetSpeed,
-                acceleration * Time.deltaTime);
-
-            var directionChangeAngle = Vector3.SignedAngle(
-                _characterController.velocity.normalized,
-                _input.normalized,
-                Vector3.up
-            );
-
-            if (Mathf.Abs(directionChangeAngle) >= 120f)
-                speed = Mathf.Min(speed, _walkSpeed);
-            else if (Mathf.Abs(directionChangeAngle) >= 40f)
-                speed = Mathf.Min(speed, _runSpeed);
-
-            return speed;
         }
 
         float GetTargetSpeed()
@@ -162,19 +166,13 @@ namespace Strawhenge.Navigation.Unity
                 ? _acceleration
                 : _deceleration;
         }
-
-        void ManageCollisions(CollisionFlags collisionFlags)
+        
+        void HandleFalling()
         {
-            var blocked =
-                (collisionFlags & CollisionFlags.Sides) != 0 &&
-                _input.sqrMagnitude > 0.001f;
-
-            if (blocked)
-            {
-                _horizontalSpeed = Mathf.Min(
-                    _horizontalSpeed,
-                    _characterController.velocity.magnitude);
-            }
+            if (_characterController.isGrounded)
+                _currentFallTime = 0f;
+            else
+                _currentFallTime += Time.deltaTime;
         }
     }
 }
