@@ -82,11 +82,12 @@ namespace Strawhenge.Navigation.Unity
 
         void HandleRotation()
         {
-            if (!Strafe)
-                transform.rotation = Quaternion.RotateTowards(
-                    transform.rotation,
-                    _targetRotation,
-                    _settings.TurnSpeed * Time.deltaTime);
+            if (Strafe) return;
+
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                _targetRotation,
+                _settings.TurnSpeed * Time.deltaTime);
         }
 
         void HandleMovement()
@@ -115,6 +116,9 @@ namespace Strawhenge.Navigation.Unity
 
         void CalculateHorizontalSpeed()
         {
+            if (_isAwaitingJumpTrigger)
+                return;
+
             var targetSpeed = GetTargetSpeed();
             var acceleration = GetAcceleration(targetSpeed);
 

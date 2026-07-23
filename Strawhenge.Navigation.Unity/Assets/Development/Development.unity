@@ -3415,15 +3415,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _characterController: {fileID: 6692772569148810662}
-  _walkSpeed: 1.5
-  _runSpeed: 5
-  _sprintSpeed: 8
-  _acceleration: 10
-  _deceleration: 30
-  _turnSpeed: 360
-  _jumpHeight: 1.5
-  _gravity: -9.81
-  _groundedGravity: -2
+  _settings:
+    _walkSpeed: 1
+    _runSpeed: 5
+    _sprintSpeed: 8
+    _acceleration: 10
+    _deceleration: 30
+    _turnSpeed: 360
+    _jumpHeight: 1
+    _coyoteTime: 0.2
+    _deferJumpTrigger: 1
+    _gravity: -9.81
+    _groundedGravity: -2
+    _fallDistance: 1
 --- !u!143 &6692772569148810662
 CharacterController:
   m_ObjectHideFlags: 0
@@ -3457,6 +3461,7 @@ MonoBehaviour:
   _animator: {fileID: 721048617098035166}
   _locomotion: {fileID: 6692772569148810661}
   _dampeningTime: 0.1
+  _minFallDistance: 1
 --- !u!4 &6738403962080843781
 Transform:
   m_ObjectHideFlags: 0
