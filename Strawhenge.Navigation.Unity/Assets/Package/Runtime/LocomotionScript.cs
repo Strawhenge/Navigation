@@ -11,6 +11,7 @@ namespace Strawhenge.Navigation.Unity
 
         float _horizontalSpeed;
         float _verticalSpeed;
+        bool _jump;
         bool _isJumping;
 
         Quaternion _targetRotation;
@@ -45,10 +46,7 @@ namespace Strawhenge.Navigation.Unity
         public void Jump()
         {
             if (!_isJumping && _fallTime <= _settings.CoyoteTime)
-            {
-                _isJumping = true;
-                _verticalSpeed = Mathf.Sqrt(_settings.JumpHeight * -2f * _settings.Gravity);
-            }
+                _jump = true;
         }
 
         void Update()
@@ -117,6 +115,14 @@ namespace Strawhenge.Navigation.Unity
 
         void CalculateVerticalSpeed()
         {
+            if (_jump)
+            {
+                _jump = false;
+                _isJumping = true;
+                _verticalSpeed = Mathf.Sqrt(_settings.JumpHeight * -2f * _settings.Gravity);
+                return;
+            }
+
             if (_characterController.isGrounded)
                 _isJumping = false;
 
