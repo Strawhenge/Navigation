@@ -8,7 +8,6 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] SerializedLocomotionSettings _settings;
 
         Vector3 _input;
-        bool _jumpInput;
 
         float _horizontalSpeed;
         float _verticalSpeed;
@@ -48,7 +47,10 @@ namespace Strawhenge.Navigation.Unity
         public void Jump()
         {
             if (!_isJumping && _fallTime <= _settings.CoyoteTime)
-                _jumpInput = true;
+            {
+                _isJumping = true;
+                _verticalSpeed = Mathf.Sqrt(_settings.JumpHeight * -2f * _settings.Gravity);
+            }
         }
 
         void Update()
@@ -117,14 +119,6 @@ namespace Strawhenge.Navigation.Unity
 
         void CalculateVerticalSpeed()
         {
-            if (_jumpInput)
-            {
-                _jumpInput = false;
-                _isJumping = true;
-                _verticalSpeed = Mathf.Sqrt(_settings.JumpHeight * -2f * _settings.Gravity);
-                return;
-            }
-
             if (_characterController.isGrounded)
                 _isJumping = false;
 
