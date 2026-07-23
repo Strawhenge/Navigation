@@ -15,6 +15,10 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _dampeningTime = 0.1f;
         [SerializeField] float _minFallDistance = 1f;
 
+        public void OnJumpLaunch()
+        {
+        }
+
         void LateUpdate()
         {
             _animator.SetBool(Falling, _locomotion.FallDistance >= _minFallDistance);
