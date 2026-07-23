@@ -5,23 +5,7 @@ namespace Strawhenge.Navigation.Unity
     public class LocomotionScript : MonoBehaviour
     {
         [SerializeField] CharacterController _characterController;
-
-        [SerializeField, Header("Speed")] float _walkSpeed = 1f;
-        [SerializeField] float _runSpeed = 5f;
-        [SerializeField] float _sprintSpeed = 8f;
-
-        [SerializeField, Header("Acceleration")]
-        float _acceleration = 10f;
-
-        [SerializeField] float _deceleration = 30f;
-
-        [SerializeField, Header("Turning")] float _turnSpeed = 360f;
-
-        [SerializeField, Header("Jumping")] float _jumpHeight = 1.5f;
-        [SerializeField] float _coyoteTime = 0.2f;
-
-        [SerializeField, Header("Gravity")] float _gravity = -9.81f;
-        [SerializeField] float _groundedGravity = -2f;
+        [SerializeField] SerializedLocomotionSettings _settings;
 
         Vector3 _input;
         bool _jumpInput;
@@ -63,7 +47,7 @@ namespace Strawhenge.Navigation.Unity
 
         public void Jump()
         {
-            if (!_isJumping && _fallTime <= _coyoteTime)
+            if (!_isJumping && _fallTime <= _settings.CoyoteTime)
                 _jumpInput = true;
         }
 
@@ -80,7 +64,7 @@ namespace Strawhenge.Navigation.Unity
                 transform.rotation = Quaternion.RotateTowards(
                     transform.rotation,
                     _targetRotation,
-                    _turnSpeed * Time.deltaTime);
+                    _settings.TurnSpeed * Time.deltaTime);
         }
 
         void HandleMovement()
@@ -101,7 +85,7 @@ namespace Strawhenge.Navigation.Unity
 
             _fallDistance = Mathf.Max(0f, _groundedY - transform.position.y);
 
-            if (_characterController.isGrounded || _fallDistance <= 0)
+            if (_characterController.isGrounded || _fallDistance < _settings.FallDistance)
                 _fallTime = 0f;
             else
                 _fallTime += Time.deltaTime;
@@ -124,9 +108,9 @@ namespace Strawhenge.Navigation.Unity
             );
 
             if (Mathf.Abs(directionChangeAngle) >= 120f)
-                speed = Mathf.Min(speed, _walkSpeed);
+                speed = Mathf.Min(speed, _settings.WalkSpeed);
             else if (Mathf.Abs(directionChangeAngle) >= 40f)
-                speed = Mathf.Min(speed, _runSpeed);
+                speed = Mathf.Min(speed, _settings.RunSpeed);
 
             _horizontalSpeed = speed;
         }
@@ -137,7 +121,7 @@ namespace Strawhenge.Navigation.Unity
             {
                 _jumpInput = false;
                 _isJumping = true;
-                _verticalSpeed = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
+                _verticalSpeed = Mathf.Sqrt(_settings.JumpHeight * -2f * _settings.Gravity);
                 return;
             }
 
@@ -146,12 +130,12 @@ namespace Strawhenge.Navigation.Unity
 
             if (!_characterController.isGrounded)
             {
-                _verticalSpeed += _gravity * Time.deltaTime;
+                _verticalSpeed += _settings.Gravity * Time.deltaTime;
                 return;
             }
 
             _verticalSpeed = _verticalSpeed < 0f
-                ? _groundedGravity
+                ? _settings.GroundedGravity
                 : _verticalSpeed;
         }
 
@@ -181,17 +165,17 @@ namespace Strawhenge.Navigation.Unity
             if (_input.sqrMagnitude < 0.001f)
                 return 0f;
             if (Sprint)
-                return Strafe ? _runSpeed : _sprintSpeed;
+                return Strafe ? _settings.RunSpeed : _settings.SprintSpeed;
             if (Walk)
-                return _walkSpeed;
-            return _runSpeed;
+                return _settings.WalkSpeed;
+            return _settings.RunSpeed;
         }
 
         float GetAcceleration(float targetSpeed)
         {
             return targetSpeed > _horizontalSpeed
-                ? _acceleration
-                : _deceleration;
+                ? _settings.Acceleration
+                : _settings.Deceleration;
         }
     }
 }
