@@ -9,7 +9,6 @@ namespace Strawhenge.Navigation.Unity
         static readonly int StrafeX = Animator.StringToHash("Strafe X");
         static readonly int StrafeY = Animator.StringToHash("Strafe Y");
         static readonly int Falling = Animator.StringToHash("Falling");
-        static readonly int Jumping = Animator.StringToHash("Jumping");
 
         [SerializeField] Animator _animator;
         [SerializeField] LocomotionScript _locomotion;
@@ -19,7 +18,6 @@ namespace Strawhenge.Navigation.Unity
         void LateUpdate()
         {
             _animator.SetBool(Falling, _locomotion.FallDistance >= _minFallDistance);
-            _animator.SetBool(Jumping, _locomotion.IsJumping);
 
             var velocity = transform.root.InverseTransformDirection(_locomotion.CurrentVelocity);
             velocity.y = 0;
