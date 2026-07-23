@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -21,8 +20,8 @@ namespace Strawhenge.Navigation.Unity
         void Awake()
         {
             _locomotion.JumpTriggerRequested += OnJumpTriggerRequested;
-            _locomotion.JumpStarted += OnJumpStarted;
-            _locomotion.Landed += OnLanded;
+            _locomotion.JumpBegan += OnJumpBegan;
+            _locomotion.JumpEnded += OnJumpEnded;
         }
 
         public void OnJumpLaunch()
@@ -74,12 +73,12 @@ namespace Strawhenge.Navigation.Unity
             _animator.SetTrigger(Jump);
         }
 
-        void OnJumpStarted()
+        void OnJumpBegan()
         {
            _animator.SetBool(Jumping, true);
         }
 
-        void OnLanded()
+        void OnJumpEnded()
         {
             _animator.SetBool(Jumping, false);
         }

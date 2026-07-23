@@ -25,9 +25,9 @@ namespace Strawhenge.Navigation.Unity
 
         public event Action JumpTriggerRequested;
 
-        public event Action JumpStarted;
+        public event Action JumpBegan;
 
-        public event Action Landed;
+        public event Action JumpEnded;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -144,14 +144,14 @@ namespace Strawhenge.Navigation.Unity
                 _jump = false;
                 _isJumping = true;
                 _verticalSpeed = Mathf.Sqrt(_settings.JumpHeight * -2f * _settings.Gravity);
-                JumpStarted?.Invoke();
+                JumpBegan?.Invoke();
                 return;
             }
 
             if (_characterController.isGrounded && _verticalSpeed <= 0f)
             {
                 _isJumping = false;
-                Landed?.Invoke();
+                JumpEnded?.Invoke();
             }
 
             if (!_characterController.isGrounded)
