@@ -54,15 +54,15 @@ namespace Strawhenge.Navigation.Unity
 
         public void Jump()
         {
-            if (!_isJumping && _fallTime <= _settings.CoyoteTime)
-            {
-                _isAwaitingJumpTrigger = true;
+            if (_isJumping || _fallTime > _settings.CoyoteTime)
+                return;
+            
+            _isAwaitingJumpTrigger = true;
 
-                if (_settings.DeferJumpTrigger)
-                    JumpTriggerRequested?.Invoke();
-                else
-                    TriggerJump();
-            }
+            if (_settings.DeferJumpTrigger)
+                JumpTriggerRequested?.Invoke();
+            else
+                TriggerJump();
         }
 
         public void TriggerJump()
