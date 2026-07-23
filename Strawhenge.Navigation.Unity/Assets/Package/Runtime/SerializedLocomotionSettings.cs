@@ -19,6 +19,7 @@ namespace Strawhenge.Navigation.Unity
 
         [SerializeField, Header("Jumping")] float _jumpHeight = 1.5f;
         [SerializeField] float _coyoteTime = 0.2f;
+        [SerializeField] bool _deferJumpTrigger;
 
         [SerializeField, Header("Gravity")] float _gravity = -9.81f;
         [SerializeField] float _groundedGravity = -2f;
@@ -40,6 +41,8 @@ namespace Strawhenge.Navigation.Unity
         public float JumpHeight => _jumpHeight;
 
         public float CoyoteTime => _coyoteTime;
+        
+        public bool DeferJumpTrigger => _deferJumpTrigger;
 
         public float Gravity => _gravity;
 

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -9,14 +10,24 @@ namespace Strawhenge.Navigation.Unity
         static readonly int StrafeX = Animator.StringToHash("Strafe X");
         static readonly int StrafeY = Animator.StringToHash("Strafe Y");
         static readonly int Falling = Animator.StringToHash("Falling");
+        static readonly int Jump = Animator.StringToHash("Jump");
+        static readonly int Jumping = Animator.StringToHash("Jumping");
 
         [SerializeField] Animator _animator;
         [SerializeField] LocomotionScript _locomotion;
         [SerializeField] float _dampeningTime = 0.1f;
         [SerializeField] float _minFallDistance = 1f;
 
+        void Awake()
+        {
+            _locomotion.JumpTriggerRequested += OnJumpTriggerRequested;
+            _locomotion.JumpStarted += OnJumpStarted;
+            _locomotion.Landed += OnLanded;
+        }
+
         public void OnJumpLaunch()
         {
+            _locomotion.TriggerJump();
         }
 
         void LateUpdate()
@@ -56,6 +67,21 @@ namespace Strawhenge.Navigation.Unity
                 velocity.magnitude,
                 _dampeningTime,
                 Time.deltaTime);
+        }
+
+        void OnJumpTriggerRequested()
+        {
+            _animator.SetTrigger(Jump);
+        }
+
+        void OnJumpStarted()
+        {
+           _animator.SetBool(Jumping, true);
+        }
+
+        void OnLanded()
+        {
+            _animator.SetBool(Jumping, false);
         }
     }
 }

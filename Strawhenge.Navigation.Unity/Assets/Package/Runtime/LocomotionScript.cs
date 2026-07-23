@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -11,6 +12,8 @@ namespace Strawhenge.Navigation.Unity
 
         float _horizontalSpeed;
         float _verticalSpeed;
+
+        bool _isAwaitingJumpTrigger;
         bool _jump;
         bool _isJumping;
 
@@ -19,6 +22,12 @@ namespace Strawhenge.Navigation.Unity
         float _fallTime;
         float _fallDistance;
         float _groundedY;
+
+        public event Action JumpTriggerRequested;
+
+        public event Action JumpStarted;
+
+        public event Action Landed;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -46,7 +55,22 @@ namespace Strawhenge.Navigation.Unity
         public void Jump()
         {
             if (!_isJumping && _fallTime <= _settings.CoyoteTime)
-                _jump = true;
+            {
+                _isAwaitingJumpTrigger = true;
+
+                if (_settings.DeferJumpTrigger)
+                    JumpTriggerRequested?.Invoke();
+                else
+                    TriggerJump();
+            }
+        }
+
+        public void TriggerJump()
+        {
+            if (!_isAwaitingJumpTrigger) return;
+            _isAwaitingJumpTrigger = false;
+
+            _jump = true;
         }
 
         void Update()
@@ -120,11 +144,15 @@ namespace Strawhenge.Navigation.Unity
                 _jump = false;
                 _isJumping = true;
                 _verticalSpeed = Mathf.Sqrt(_settings.JumpHeight * -2f * _settings.Gravity);
+                JumpStarted?.Invoke();
                 return;
             }
 
-            if (_characterController.isGrounded)
+            if (_characterController.isGrounded && _verticalSpeed <= 0f)
+            {
                 _isJumping = false;
+                Landed?.Invoke();
+            }
 
             if (!_characterController.isGrounded)
             {
