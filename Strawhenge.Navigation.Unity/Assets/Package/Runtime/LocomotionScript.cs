@@ -23,6 +23,8 @@ namespace Strawhenge.Navigation.Unity
         float _fallDistance;
         float _groundedY;
 
+        float _turnAngle;
+
         public event Action JumpTriggerRequested;
 
         public event Action JumpBegan;
@@ -84,6 +86,12 @@ namespace Strawhenge.Navigation.Unity
         {
             if (Strafe) return;
 
+            _turnAngle = Vector3.SignedAngle(
+                _characterController.velocity.normalized,
+                _input.normalized,
+                Vector3.up
+            );
+            
             transform.rotation = Quaternion.RotateTowards(
                 transform.rotation,
                 _targetRotation,
@@ -127,15 +135,9 @@ namespace Strawhenge.Navigation.Unity
                 targetSpeed,
                 acceleration * Time.deltaTime);
 
-            var directionChangeAngle = Vector3.SignedAngle(
-                _characterController.velocity.normalized,
-                _input.normalized,
-                Vector3.up
-            );
-
-            if (Mathf.Abs(directionChangeAngle) >= 120f)
+            if (Mathf.Abs(_turnAngle) >= 120f)
                 speed = Mathf.Min(speed, _settings.WalkSpeed);
-            else if (Mathf.Abs(directionChangeAngle) >= 40f)
+            else if (Mathf.Abs(_turnAngle) >= 40f)
                 speed = Mathf.Min(speed, _settings.RunSpeed);
 
             _horizontalSpeed = speed;
