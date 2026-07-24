@@ -62,10 +62,7 @@ namespace Strawhenge.Navigation.Unity
                 _triggerStationaryPivot = false;
 
                 if (_input.magnitude > 0.001 || Mathf.Abs(_turnAngle) <= 70)
-                {
-                    Debug.Log($"Stationary pivot cancelled. Input: {_input.magnitude}, Turn Angle: {_turnAngle}");
                     return;
-                }
 
                 Pivot();
             }
