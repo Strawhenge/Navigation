@@ -17,11 +17,21 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _dampeningTime = 0.1f;
         [SerializeField] float _minFallDistance = 1f;
 
+        Transform _leftFoot;
+        Transform _rightFoot;
+
         void Awake()
         {
             _locomotion.JumpTriggerRequested += OnJumpTriggerRequested;
             _locomotion.JumpBegan += OnJumpBegan;
             _locomotion.JumpEnded += OnJumpEnded;
+            _locomotion.Pivot += OnPivot;
+
+            var pivotStateMachineBehavior = _animator.GetBehaviour<PivotStateMachineBehaviour>();
+            pivotStateMachineBehavior.Ended += OnPivotEnded;
+
+            _leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+            _rightFoot = _animator.GetBoneTransform(HumanBodyBones.RightFoot);
         }
 
         public void OnJumpLaunch()
@@ -75,12 +85,34 @@ namespace Strawhenge.Navigation.Unity
 
         void OnJumpBegan()
         {
-           _animator.SetBool(Jumping, true);
+            _animator.SetBool(Jumping, true);
         }
 
         void OnJumpEnded()
         {
             _animator.SetBool(Jumping, false);
+        }
+
+        void OnPivot()
+        {
+            var leftOffset = _leftFoot.position - transform.root.position;
+            var rightOffset = _rightFoot.position - transform.root.position;
+
+            var leftForward = Vector3.Dot(leftOffset, transform.root.forward);
+            var rightForward = Vector3.Dot(rightOffset, transform.root.forward);
+
+            _animator.SetBool("Pivot Right Foot", rightForward > leftForward);
+
+            _animator.applyRootMotion = true;
+            _animator.SetTrigger("Pivot");
+        }
+
+        void OnPivotEnded()
+        {
+            var rotationDelta = _animator.deltaRotation;
+            _animator.applyRootMotion = false;
+
+            _locomotion.CompletePivot(rotationDelta);
         }
     }
 }

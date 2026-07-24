@@ -24,12 +24,15 @@ namespace Strawhenge.Navigation.Unity
         float _groundedY;
 
         float _turnAngle;
+        bool _isPivoting;
 
         public event Action JumpTriggerRequested;
 
         public event Action JumpBegan;
 
         public event Action JumpEnded;
+
+        public event Action Pivot;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -58,7 +61,7 @@ namespace Strawhenge.Navigation.Unity
         {
             if (_isJumping || _fallTime > _settings.CoyoteTime)
                 return;
-            
+
             _isAwaitingJumpTrigger = true;
 
             if (_settings.DeferJumpTrigger)
@@ -75,6 +78,14 @@ namespace Strawhenge.Navigation.Unity
             _jump = true;
         }
 
+        public void CompletePivot(Quaternion rotationDelta)
+        {
+            if (!_isPivoting) return;
+
+            transform.root.rotation = rotationDelta * transform.root.rotation;
+            _isPivoting = false;
+        }
+
         void Update()
         {
             HandleFalling();
@@ -84,14 +95,29 @@ namespace Strawhenge.Navigation.Unity
 
         void HandleRotation()
         {
-            if (Strafe) return;
+            if (_isPivoting) return;
+
+            if (Strafe)
+            {
+                _turnAngle = 0;
+                _targetRotation = transform.rotation;
+                return;
+            }
 
             _turnAngle = Vector3.SignedAngle(
                 transform.root.forward,
                 _input.normalized,
                 Vector3.up
             );
-            
+
+            if (Mathf.Abs(_turnAngle) >= 170f)
+            {
+                _isPivoting = true;
+                Pivot?.Invoke();
+
+                return;
+            }
+
             transform.rotation = Quaternion.RotateTowards(
                 transform.rotation,
                 _targetRotation,
@@ -100,6 +126,8 @@ namespace Strawhenge.Navigation.Unity
 
         void HandleMovement()
         {
+            if (_isPivoting) return;
+
             CalculateHorizontalSpeed();
             CalculateVerticalSpeed();
 
