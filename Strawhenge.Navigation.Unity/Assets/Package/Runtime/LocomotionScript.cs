@@ -61,8 +61,11 @@ namespace Strawhenge.Navigation.Unity
             {
                 _triggerStationaryPivot = false;
 
-                if (_input.magnitude > 0.001 || _turnAngle <= 70)
+                if (_input.magnitude > 0.001 || Mathf.Abs(_turnAngle) <= 70)
+                {
+                    Debug.Log($"Stationary pivot cancelled. Input: {_input.magnitude}, Turn Angle: {_turnAngle}");
                     return;
+                }
 
                 Pivot();
             }
@@ -108,7 +111,7 @@ namespace Strawhenge.Navigation.Unity
         {
             if (_isPivoting) return;
 
-            if (_horizontalSpeed >= 0.75f)
+            if (_horizontalSpeed >= 1f)
                 _triggerStationaryPivot = false;
             
             if (Strafe)
@@ -127,8 +130,10 @@ namespace Strawhenge.Navigation.Unity
             if (_horizontalSpeed < 0.75f && Mathf.Abs(_turnAngle) >= 70f)
             {
                 _triggerStationaryPivot = true;
+                return;
             }
-            else if (Mathf.Abs(_turnAngle) >= 170f)
+            
+            if (Mathf.Abs(_turnAngle) >= 170f)
             {
                 Pivot();
                 return;

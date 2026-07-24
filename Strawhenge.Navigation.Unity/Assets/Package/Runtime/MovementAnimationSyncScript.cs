@@ -95,7 +95,7 @@ namespace Strawhenge.Navigation.Unity
 
         void OnPivotRequested(Pivot pivot)
         {
-            _animator.SetFloat("Move Speed", pivot.MoveSpeed);
+            _animator.SetFloat("Pivot Speed", pivot.MoveSpeed);
             _animator.SetFloat("Pivot Angle", pivot.Angle);
 
             var leftOffset = _leftFoot.position - transform.root.position;
