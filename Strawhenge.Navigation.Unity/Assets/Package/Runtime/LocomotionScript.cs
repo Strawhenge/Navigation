@@ -25,6 +25,7 @@ namespace Strawhenge.Navigation.Unity
 
         float _turnAngle;
         bool _isPivoting;
+        bool _triggerStationaryPivot;
 
         public event Action JumpTriggerRequested;
 
@@ -32,7 +33,7 @@ namespace Strawhenge.Navigation.Unity
 
         public event Action JumpEnded;
 
-        public event Action<Pivot> Pivot;
+        public event Action<Pivot> PivotRequested;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -55,6 +56,16 @@ namespace Strawhenge.Navigation.Unity
 
             if (_input.sqrMagnitude > 0.001f)
                 _targetRotation = Quaternion.LookRotation(input);
+
+            if (_triggerStationaryPivot)
+            {
+                _triggerStationaryPivot = false;
+
+                if (_input.magnitude > 0.001)
+                    return;
+
+                Pivot();
+            }
         }
 
         public void Jump()
@@ -110,15 +121,13 @@ namespace Strawhenge.Navigation.Unity
                 Vector3.up
             );
 
-            if (Mathf.Abs(_turnAngle) >= 170f)
+            if (_horizontalSpeed < 0.75f && Mathf.Abs(_turnAngle) >= 70f)
             {
-                _isPivoting = true;
-                Pivot?.Invoke(new Pivot
-                {
-                    Angle = _turnAngle,
-                    MoveSpeed = _horizontalSpeed
-                });
-
+                _triggerStationaryPivot = true;
+            }
+            else if (Mathf.Abs(_turnAngle) >= 170f)
+            {
+                Pivot();
                 return;
             }
 
@@ -240,6 +249,16 @@ namespace Strawhenge.Navigation.Unity
             return targetSpeed > _horizontalSpeed
                 ? _settings.Acceleration
                 : _settings.Deceleration;
+        }
+
+        void Pivot()
+        {
+            _isPivoting = true;
+            PivotRequested?.Invoke(new Pivot
+            {
+                Angle = _turnAngle,
+                MoveSpeed = _horizontalSpeed
+            });
         }
     }
 }

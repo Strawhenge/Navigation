@@ -25,7 +25,7 @@ namespace Strawhenge.Navigation.Unity
             _locomotion.JumpTriggerRequested += OnJumpTriggerRequested;
             _locomotion.JumpBegan += OnJumpBegan;
             _locomotion.JumpEnded += OnJumpEnded;
-            _locomotion.Pivot += OnPivot;
+            _locomotion.PivotRequested += OnPivotRequested;
 
             var pivotStateMachineBehavior = _animator.GetBehaviour<PivotStateMachineBehaviour>();
             pivotStateMachineBehavior.Ended += OnPivotEnded;
@@ -93,7 +93,7 @@ namespace Strawhenge.Navigation.Unity
             _animator.SetBool(Jumping, false);
         }
 
-        void OnPivot(Pivot pivot)
+        void OnPivotRequested(Pivot pivot)
         {
             _animator.SetFloat("Move Speed", pivot.MoveSpeed);
             _animator.SetFloat("Pivot Angle", pivot.Angle);
