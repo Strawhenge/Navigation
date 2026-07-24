@@ -133,7 +133,7 @@ namespace Strawhenge.Navigation.Unity
                 return;
             }
             
-            if (Mathf.Abs(_turnAngle) >= 170f)
+            if (!_triggerStationaryPivot && Mathf.Abs(_turnAngle) >= 170f)
             {
                 Pivot();
                 return;
