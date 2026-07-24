@@ -108,6 +108,9 @@ namespace Strawhenge.Navigation.Unity
         {
             if (_isPivoting) return;
 
+            if (_horizontalSpeed >= 0.75f)
+                _triggerStationaryPivot = false;
+            
             if (Strafe)
             {
                 _turnAngle = 0;
