@@ -61,7 +61,7 @@ namespace Strawhenge.Navigation.Unity
             {
                 _triggerStationaryPivot = false;
 
-                if (_input.magnitude > 0.001)
+                if (_input.magnitude > 0.001 || _turnAngle <= 70)
                     return;
 
                 Pivot();
