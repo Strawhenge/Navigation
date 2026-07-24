@@ -32,7 +32,7 @@ namespace Strawhenge.Navigation.Unity
 
         public event Action JumpEnded;
 
-        public event Action Pivot;
+        public event Action<Pivot> Pivot;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -113,7 +113,11 @@ namespace Strawhenge.Navigation.Unity
             if (Mathf.Abs(_turnAngle) >= 170f)
             {
                 _isPivoting = true;
-                Pivot?.Invoke();
+                Pivot?.Invoke(new Pivot
+                {
+                    Angle = _turnAngle,
+                    MoveSpeed = _horizontalSpeed
+                });
 
                 return;
             }
