@@ -87,7 +87,7 @@ namespace Strawhenge.Navigation.Unity
             if (Strafe) return;
 
             _turnAngle = Vector3.SignedAngle(
-                _characterController.velocity.normalized,
+                transform.root.forward,
                 _input.normalized,
                 Vector3.up
             );
