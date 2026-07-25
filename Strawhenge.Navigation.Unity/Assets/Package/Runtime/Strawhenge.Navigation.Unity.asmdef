@@ -1,7 +1,9 @@
 {
     "name": "Strawhenge.Navigation.Unity",
     "rootNamespace": "Strawhenge.Navigation.Unity",
-    "references": [],
+    "references": [
+        "GUID:ab0e643ec0e5c9a4e976743cf4c3ad5e"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
