@@ -3467,8 +3467,8 @@ MonoBehaviour:
         _max: 2
       _angleRanges:
       - _min: -190
-        _max: -170
-      - _min: 170
+        _max: -150
+      - _min: 150
         _max: 190
     _jumpHeight: 1
     _coyoteTime: 0.2
