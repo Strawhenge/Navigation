@@ -54,24 +54,25 @@ namespace Strawhenge.Navigation.Unity
             if (input.sqrMagnitude > 1f)
                 input.Normalize();
 
-            _input = input;
-
-            if (_input.sqrMagnitude > 0.001f)
+            if (input.sqrMagnitude > 0.001f)
                 _targetRotation = Quaternion.LookRotation(input);
 
             if (_isAwaitingStationaryPivot)
             {
-                _isAwaitingStationaryPivot = false;
-
-                if (_stationaryPivot == null)
-                    return;
-
-                if (_input.magnitude > 0.001f)
-                    return;
-
-                Pivot(_stationaryPivot.Id);
-                _stationaryPivot = null;
+                if (_input.magnitude < 0.001f)
+                {
+                    _isAwaitingStationaryPivot = false;
+                    Pivot(_stationaryPivot.Id);
+                    _stationaryPivot = null;
+                }
+                else if (input.magnitude > _input.magnitude)
+                {
+                    _isAwaitingStationaryPivot = false;
+                    _stationaryPivot = null;
+                }
             }
+            
+            _input = input;
         }
 
         public void Jump()
