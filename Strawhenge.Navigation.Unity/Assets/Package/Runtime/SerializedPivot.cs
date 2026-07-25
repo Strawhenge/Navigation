@@ -13,17 +13,11 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] int _id;
         [SerializeField] SerializedFloatRange _speedRange;
         [SerializeField] SerializedFloatRange[] _angleRanges;
-        [SerializeField] bool _requireInputConfirmation;
-        [SerializeField] SerializedFloatRange _inputMagnitudeConfirmationRange;
         
         public int Id => _id;
 
         public FloatRange SpeedRange => _speedRange.Value;
 
         public IEnumerable<FloatRange> AngleRanges => _angleRanges.Select(angleRange => angleRange.Value);
-        
-        public bool RequireInputConfirmation => _requireInputConfirmation;
-        
-        public FloatRange InputMagnitudeConfirmationRange => _inputMagnitudeConfirmationRange.Value;
     }
 }

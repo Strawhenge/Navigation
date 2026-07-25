@@ -16,7 +16,8 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _deceleration = 30f;
 
         [SerializeField, Header("Turning")] float _turnSpeed = 360f;
-        [SerializeField] SerializedPivot[] _pivots;
+        [SerializeField]SerializedPivot[] _stationaryPivots;
+        [SerializeField] SerializedPivot[] _movingPivots;
 
         [SerializeField, Header("Jumping")] float _jumpHeight = 1.5f;
         [SerializeField] float _coyoteTime = 0.2f;
@@ -38,8 +39,10 @@ namespace Strawhenge.Navigation.Unity
         public float Deceleration => _deceleration;
 
         public float TurnSpeed => _turnSpeed;
+        
+        public SerializedPivot[] StationaryPivots => _stationaryPivots;
 
-        public SerializedPivot[] Pivots => _pivots;
+        public SerializedPivot[] MovingPivots => _movingPivots;
 
         public float JumpHeight => _jumpHeight;
 

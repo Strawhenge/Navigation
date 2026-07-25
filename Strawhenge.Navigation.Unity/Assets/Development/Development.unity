@@ -3422,20 +3422,45 @@ MonoBehaviour:
     _acceleration: 10
     _deceleration: 30
     _turnSpeed: 360
-    _pivots:
+    _stationaryPivots:
+    - _id: 3
+      _speedRange:
+        _min: 0
+        _max: 1
+      _angleRanges:
+      - _min: -190
+        _max: -170
+    - _id: 4
+      _speedRange:
+        _min: 0
+        _max: 1
+      _angleRanges:
+      - _min: 170
+        _max: 190
+    - _id: 5
+      _speedRange:
+        _min: 0
+        _max: 1
+      _angleRanges:
+      - _min: -110
+        _max: -60
+    - _id: 6
+      _speedRange:
+        _min: 0
+        _max: 1
+      _angleRanges:
+      - _min: 60
+        _max: 110
+    _movingPivots:
     - _id: 1
       _speedRange:
         _min: 2
-        _max: Infinity
+        _max: 2
       _angleRanges:
       - _min: -190
         _max: -170
       - _min: 170
         _max: 190
-      _requireInputConfirmation: 0
-      _inputMagnitudeConfirmationRange:
-        _min: 0
-        _max: 0
     - _id: 2
       _speedRange:
         _min: 1
@@ -3445,54 +3470,6 @@ MonoBehaviour:
         _max: -170
       - _min: 170
         _max: 190
-      _requireInputConfirmation: 0
-      _inputMagnitudeConfirmationRange:
-        _min: 0
-        _max: 0
-    - _id: 3
-      _speedRange:
-        _min: 0
-        _max: 1
-      _angleRanges:
-      - _min: -190
-        _max: -170
-      _requireInputConfirmation: 1
-      _inputMagnitudeConfirmationRange:
-        _min: 0
-        _max: 0.01
-    - _id: 4
-      _speedRange:
-        _min: 0
-        _max: 1
-      _angleRanges:
-      - _min: 170
-        _max: 190
-      _requireInputConfirmation: 1
-      _inputMagnitudeConfirmationRange:
-        _min: 0
-        _max: 0.01
-    - _id: 5
-      _speedRange:
-        _min: 0
-        _max: 1
-      _angleRanges:
-      - _min: -110
-        _max: -60
-      _requireInputConfirmation: 1
-      _inputMagnitudeConfirmationRange:
-        _min: 0
-        _max: 0.01
-    - _id: 6
-      _speedRange:
-        _min: 0
-        _max: 1
-      _angleRanges:
-      - _min: 60
-        _max: 110
-      _requireInputConfirmation: 1
-      _inputMagnitudeConfirmationRange:
-        _min: 0
-        _max: 0.01
     _jumpHeight: 1
     _coyoteTime: 0.2
     _deferJumpTrigger: 1
