@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "com.strawhenge.common": "https://github.com/Strawhenge/Common.git?path=/Strawhenge.Common.Unity/Assets/Package#release",
+    "com.strawhenge.functionalutilities": "https://github.com/Strawhenge/FunctionalUtilities.git?path=/Package#release",
     "com.unity.collab-proxy": "1.17.7",
     "com.unity.feature.development": "1.0.1",
     "com.unity.ide.rider": "3.0.40",
