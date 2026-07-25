@@ -3455,7 +3455,7 @@ MonoBehaviour:
     - _id: 1
       _speedRange:
         _min: 2
-        _max: 2
+        _max: Infinity
       _angleRanges:
       - _min: -190
         _max: -170
