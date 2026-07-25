@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -25,7 +26,8 @@ namespace Strawhenge.Navigation.Unity
 
         float _turnAngle;
         bool _isPivoting;
-        bool _triggerStationaryPivot;
+        bool _isAwaitingPivotConfirmation;
+        SerializedPivot _pivotAwaitingConfirmation;
 
         public event Action JumpTriggerRequested;
 
@@ -33,7 +35,7 @@ namespace Strawhenge.Navigation.Unity
 
         public event Action JumpEnded;
 
-        public event Action<Pivot> PivotRequested;
+        public event Action<int> PivotRequested;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -57,14 +59,17 @@ namespace Strawhenge.Navigation.Unity
             if (_input.sqrMagnitude > 0.001f)
                 _targetRotation = Quaternion.LookRotation(input);
 
-            if (_triggerStationaryPivot)
+            if (_isAwaitingPivotConfirmation)
             {
-                _triggerStationaryPivot = false;
-
-                if (_input.magnitude > 0.001 || Mathf.Abs(_turnAngle) <= 70)
+                _isAwaitingPivotConfirmation = false;
+                if (_pivotAwaitingConfirmation == null)
                     return;
 
-                Pivot();
+                if (!_pivotAwaitingConfirmation.InputMagnitudeConfirmationRange.IsInRange(_input.magnitude))
+                    return;
+
+                Pivot(_pivotAwaitingConfirmation.Id);
+                _pivotAwaitingConfirmation = null;
             }
         }
 
@@ -109,8 +114,11 @@ namespace Strawhenge.Navigation.Unity
             if (_isPivoting) return;
 
             if (_horizontalSpeed >= 1f)
-                _triggerStationaryPivot = false;
-            
+            {
+                _isAwaitingPivotConfirmation = false;
+                _pivotAwaitingConfirmation = null;
+            }
+
             if (Strafe)
             {
                 _turnAngle = 0;
@@ -124,15 +132,16 @@ namespace Strawhenge.Navigation.Unity
                 Vector3.up
             );
 
-            if (_horizontalSpeed < 0.75f && Mathf.Abs(_turnAngle) >= 70f)
+            if (CheckForPivots(out var pivot))
             {
-                _triggerStationaryPivot = true;
-                return;
-            }
-            
-            if (!_triggerStationaryPivot && Mathf.Abs(_turnAngle) >= 170f)
-            {
-                Pivot();
+                if (!pivot.RequireInputConfirmation)
+                {
+                    Pivot(pivot.Id);
+                    return;
+                }
+
+                _isAwaitingPivotConfirmation = true;
+                _pivotAwaitingConfirmation = pivot;
                 return;
             }
 
@@ -140,6 +149,28 @@ namespace Strawhenge.Navigation.Unity
                 transform.rotation,
                 _targetRotation,
                 _settings.TurnSpeed * Time.deltaTime);
+        }
+
+        bool CheckForPivots(out SerializedPivot matchingPivot)
+        {
+            if (_isAwaitingPivotConfirmation)
+            {
+                matchingPivot = null;
+                return false;
+            }
+
+            foreach (var pivot in _settings.Pivots)
+            {
+                if (pivot.SpeedRange.IsInRange(_horizontalSpeed) &&
+                    pivot.AngleRanges.Any(angleRange => angleRange.IsInRange(_turnAngle)))
+                {
+                    matchingPivot = pivot;
+                    return true;
+                }
+            }
+
+            matchingPivot = null;
+            return false;
         }
 
         void HandleMovement()
@@ -256,14 +287,10 @@ namespace Strawhenge.Navigation.Unity
                 : _settings.Deceleration;
         }
 
-        void Pivot()
+        void Pivot(int pivotId)
         {
             _isPivoting = true;
-            PivotRequested?.Invoke(new Pivot
-            {
-                Angle = _turnAngle,
-                MoveSpeed = _horizontalSpeed
-            });
+            PivotRequested?.Invoke(pivotId);
         }
     }
 }

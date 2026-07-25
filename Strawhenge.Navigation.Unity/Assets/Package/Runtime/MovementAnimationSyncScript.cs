@@ -93,11 +93,10 @@ namespace Strawhenge.Navigation.Unity
             _animator.SetBool(Jumping, false);
         }
 
-        void OnPivotRequested(Pivot pivot)
+        void OnPivotRequested(int pivotId)
         {
-            _animator.SetFloat("Pivot Speed", pivot.MoveSpeed);
-            _animator.SetFloat("Pivot Angle", pivot.Angle);
-
+            _animator.SetInteger("Pivot ID", pivotId);
+            
             var leftOffset = _leftFoot.position - transform.root.position;
             var rightOffset = _rightFoot.position - transform.root.position;
 
@@ -105,7 +104,7 @@ namespace Strawhenge.Navigation.Unity
             var rightForward = Vector3.Dot(rightOffset, transform.root.forward);
 
             _animator.SetBool("Pivot Right Foot", rightForward > leftForward);
-
+            
             _animator.applyRootMotion = true;
             _animator.SetTrigger("Pivot");
         }

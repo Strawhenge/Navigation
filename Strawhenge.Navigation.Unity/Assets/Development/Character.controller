@@ -29,7 +29,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Walking Turn Right
+  m_Name: Walking Turn Left Foot
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -82,15 +82,12 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Pivot
     m_EventTreshold: 0
+  - m_ConditionMode: 6
+    m_ConditionEvent: Pivot ID
+    m_EventTreshold: 2
   - m_ConditionMode: 2
     m_ConditionEvent: Pivot Right Foot
     m_EventTreshold: 0
-  - m_ConditionMode: 4
-    m_ConditionEvent: Pivot Speed
-    m_EventTreshold: 1.5001
-  - m_ConditionMode: 3
-    m_ConditionEvent: Pivot Speed
-    m_EventTreshold: 0.75
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -8040791530849696951}
   m_Solo: 0
@@ -185,12 +182,9 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Pivot
     m_EventTreshold: 0
-  - m_ConditionMode: 4
-    m_ConditionEvent: Pivot Speed
-    m_EventTreshold: 0.751
-  - m_ConditionMode: 4
-    m_ConditionEvent: Pivot Angle
-    m_EventTreshold: -110
+  - m_ConditionMode: 6
+    m_ConditionEvent: Pivot ID
+    m_EventTreshold: 3
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -4290958024986398363}
   m_Solo: 0
@@ -216,15 +210,12 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Pivot
     m_EventTreshold: 0
+  - m_ConditionMode: 6
+    m_ConditionEvent: Pivot ID
+    m_EventTreshold: 2
   - m_ConditionMode: 1
     m_ConditionEvent: Pivot Right Foot
     m_EventTreshold: 0
-  - m_ConditionMode: 4
-    m_ConditionEvent: Pivot Speed
-    m_EventTreshold: 1.5001
-  - m_ConditionMode: 3
-    m_ConditionEvent: Pivot Speed
-    m_EventTreshold: 0.75
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 7247250255783412468}
   m_Solo: 0
@@ -509,7 +500,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Running Turn Right
+  m_Name: Running Turn Left Foot
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -586,7 +577,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Running Turn Left
+  m_Name: Running Turn Right Foot
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -617,12 +608,9 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Pivot
     m_EventTreshold: 0
-  - m_ConditionMode: 4
-    m_ConditionEvent: Pivot Speed
-    m_EventTreshold: 0.751
-  - m_ConditionMode: 3
-    m_ConditionEvent: Pivot Angle
-    m_EventTreshold: 70
+  - m_ConditionMode: 6
+    m_ConditionEvent: Pivot ID
+    m_EventTreshold: 6
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -4293215890045921764}
   m_Solo: 0
@@ -789,12 +777,9 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Pivot
     m_EventTreshold: 0
-  - m_ConditionMode: 4
-    m_ConditionEvent: Pivot Speed
-    m_EventTreshold: 0.751
-  - m_ConditionMode: 4
-    m_ConditionEvent: Pivot Angle
-    m_EventTreshold: -70
+  - m_ConditionMode: 6
+    m_ConditionEvent: Pivot ID
+    m_EventTreshold: 5
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1714648739483459274}
   m_Solo: 0
@@ -923,91 +908,97 @@ AnimatorController:
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Strafing
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Strafe X
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Strafe Y
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Falling
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Jump
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Jumping
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Turn Left
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Turn Right
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Sharp Turn Right
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Sharp Turn Left
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Pivot
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Pivot Right Foot
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Pivot Angle
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: Pivot Speed
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
+  - m_Name: Pivot ID
+    m_Type: 3
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
   m_AnimatorLayers:
   - serializedVersion: 5
     m_Name: Base Layer
@@ -1151,12 +1142,12 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Pivot
     m_EventTreshold: 0
-  - m_ConditionMode: 2
+  - m_ConditionMode: 6
+    m_ConditionEvent: Pivot ID
+    m_EventTreshold: 1
+  - m_ConditionMode: 1
     m_ConditionEvent: Pivot Right Foot
     m_EventTreshold: 0
-  - m_ConditionMode: 3
-    m_ConditionEvent: Pivot Speed
-    m_EventTreshold: 1.5
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -3583235886112539602}
   m_Solo: 0
@@ -1254,12 +1245,12 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Pivot
     m_EventTreshold: 0
-  - m_ConditionMode: 1
+  - m_ConditionMode: 6
+    m_ConditionEvent: Pivot ID
+    m_EventTreshold: 1
+  - m_ConditionMode: 2
     m_ConditionEvent: Pivot Right Foot
     m_EventTreshold: 0
-  - m_ConditionMode: 3
-    m_ConditionEvent: Pivot Speed
-    m_EventTreshold: 1.5
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -3419251459259867745}
   m_Solo: 0
@@ -1427,12 +1418,9 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: Pivot
     m_EventTreshold: 0
-  - m_ConditionMode: 4
-    m_ConditionEvent: Pivot Speed
-    m_EventTreshold: 0.751
-  - m_ConditionMode: 3
-    m_ConditionEvent: Pivot Angle
-    m_EventTreshold: 110
+  - m_ConditionMode: 6
+    m_ConditionEvent: Pivot ID
+    m_EventTreshold: 4
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 4486974429105392065}
   m_Solo: 0
@@ -1886,7 +1874,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Walking Turn Left
+  m_Name: Walking Turn Right Foot
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
