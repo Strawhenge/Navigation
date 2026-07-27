@@ -49,6 +49,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Rotate Camera",
+                    "type": "Value",
+                    "id": "65d20a4f-2690-4ef1-8d5c-6d483c348ae9",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -203,6 +212,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Strafe",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8440742e-13a7-427f-bef4-edd2e21763dc",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Rotate Camera",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

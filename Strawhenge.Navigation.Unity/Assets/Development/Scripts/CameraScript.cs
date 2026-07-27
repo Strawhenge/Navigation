@@ -1,63 +1,34 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Development
 {
     public class CameraScript : MonoBehaviour
     {
         [SerializeField] Transform _target;
-        [SerializeField] Vector3 _positionOffset = new(0, 1, -2);
-        [SerializeField] bool _enableOrbit = true;
-        [SerializeField, Min(0f)] float _orbitDegreesPerSecond = 60f;
-        [SerializeField, Min(0f)] float _followSmoothTime = 0.15f;
+        [SerializeField] float _distanceFromTarget = 3f;
+        [SerializeField] float _heightAboveTarget = 1f;
+        [SerializeField] float _rotationSpeed = 90f;
 
-        Vector3 _followVelocity;
+        float _input;
+        float _currentAngle;
 
-        void LateUpdate()
+        void Update()
         {
             if (_target == null)
                 return;
 
-            var desiredPosition = _enableOrbit ? GetOrbitToBackPosition() : _target.position + _positionOffset;
+            _currentAngle += _rotationSpeed * _input * Time.deltaTime;
+            var offset = Quaternion.Euler(0f, _currentAngle, 0f) * new Vector3(0f, 0f, -_distanceFromTarget);
+            var targetPosition = _target.position + new Vector3(0f, _heightAboveTarget, 0f);
 
-            if (_followSmoothTime <= 0f)
-            {
-                transform.position = desiredPosition;
-                transform.LookAt(_target.position);
-                return;
-            }
-
-            transform.position = Vector3.SmoothDamp(
-                transform.position,
-                desiredPosition,
-                ref _followVelocity,
-                _followSmoothTime);
-
-            transform.LookAt(_target.position);
+            transform.position = targetPosition + offset;
+            transform.LookAt(targetPosition);
         }
 
-        Vector3 GetOrbitToBackPosition()
+        public void Rotate(InputAction.CallbackContext context)
         {
-            var radius = new Vector2(_positionOffset.x, _positionOffset.z).magnitude;
-            if (radius <= 0.0001f)
-                return _target.position + Vector3.up * _positionOffset.y;
-
-            var targetBack = Vector3.ProjectOnPlane(-_target.forward, Vector3.up).normalized;
-            if (targetBack.sqrMagnitude <= 0.0001f)
-                targetBack = Vector3.back;
-
-            var fromTarget = Vector3.ProjectOnPlane(transform.position - _target.position, Vector3.up);
-            var currentDir = fromTarget.sqrMagnitude > 0.0001f
-                ? fromTarget.normalized
-                : Vector3.ProjectOnPlane(_positionOffset, Vector3.up).normalized;
-
-            if (currentDir.sqrMagnitude <= 0.0001f)
-                currentDir = targetBack;
-
-            var maxRadians = _orbitDegreesPerSecond * Mathf.Deg2Rad * Time.deltaTime;
-            var nextDir = Vector3.RotateTowards(currentDir, targetBack, maxRadians, 0f);
-            var orbitOffset = nextDir * radius + Vector3.up * _positionOffset.y;
-
-            return _target.position + orbitOffset;
+            _input = context.ReadValue<Vector2>().x;
         }
     }
 }

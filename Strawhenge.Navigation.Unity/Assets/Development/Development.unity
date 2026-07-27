@@ -469,42 +469,27 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 2801d0be-a75a-427b-816b-b9c066d992d5
     m_ActionName: Default/Strafe[/Keyboard/leftCtrl]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 969177857}
+        m_TargetAssemblyTypeName: Development.CameraScript, Development
+        m_MethodName: Rotate
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 65d20a4f-2690-4ef1-8d5c-6d483c348ae9
+    m_ActionName: Default/Rotate Camera[/Mouse/delta]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Default
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!1 &331446464
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 331446465}
-  m_Layer: 0
-  m_Name: Camera Target
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &331446465
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 331446464}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6692772569148810660}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &520618708
 GameObject:
   m_ObjectHideFlags: 0
@@ -909,10 +894,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d6cf2919b3a4efea9e7b5efaa447a05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _target: {fileID: 331446465}
-  _positionOffset: {x: 0, y: 0, z: -2}
-  _orbitDegreesPerSecond: 60
-  _followSmoothTime: 0.05
+  _target: {fileID: 6692772569148810660}
+  _distanceFromTarget: 2
+  _heightAboveTarget: 1.2
+  _rotationSpeed: 30
 --- !u!1 &1093666944
 GameObject:
   m_ObjectHideFlags: 0
@@ -3431,7 +3416,6 @@ Transform:
   - {fileID: 6400577660821838922}
   - {fileID: 8724138726384526987}
   - {fileID: 1202975661771818288}
-  - {fileID: 331446465}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
