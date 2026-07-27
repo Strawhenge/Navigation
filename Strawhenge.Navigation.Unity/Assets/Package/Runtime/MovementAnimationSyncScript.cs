@@ -11,6 +11,9 @@ namespace Strawhenge.Navigation.Unity
         static readonly int Falling = Animator.StringToHash("Falling");
         static readonly int Jump = Animator.StringToHash("Jump");
         static readonly int Jumping = Animator.StringToHash("Jumping");
+        static readonly int Pivot = Animator.StringToHash("Pivot");
+        static readonly int PivotId = Animator.StringToHash("Pivot ID");
+        static readonly int PivotRightFoot = Animator.StringToHash("Pivot Right Foot");
 
         [SerializeField] Animator _animator;
         [SerializeField] LocomotionScript _locomotion;
@@ -95,7 +98,7 @@ namespace Strawhenge.Navigation.Unity
 
         void OnPivotRequested(int pivotId)
         {
-            _animator.SetInteger("Pivot ID", pivotId);
+            _animator.SetInteger(PivotId, pivotId);
             
             var leftOffset = _leftFoot.position - transform.root.position;
             var rightOffset = _rightFoot.position - transform.root.position;
@@ -103,10 +106,10 @@ namespace Strawhenge.Navigation.Unity
             var leftForward = Vector3.Dot(leftOffset, transform.root.forward);
             var rightForward = Vector3.Dot(rightOffset, transform.root.forward);
 
-            _animator.SetBool("Pivot Right Foot", rightForward > leftForward);
+            _animator.SetBool(PivotRightFoot, rightForward > leftForward);
             
             _animator.applyRootMotion = true;
-            _animator.SetTrigger("Pivot");
+            _animator.SetTrigger(Pivot);
         }
 
         void OnPivotEnded()
