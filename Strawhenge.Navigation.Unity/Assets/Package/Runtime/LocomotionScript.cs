@@ -237,8 +237,7 @@ namespace Strawhenge.Navigation.Unity
                 {
                     Land(2);
                 }
-
-                if (_horizontalSpeed <= _settings.WalkSpeed)
+                else if (_horizontalSpeed <= _settings.WalkSpeed)
                 {
                     Land(1);
                 }
