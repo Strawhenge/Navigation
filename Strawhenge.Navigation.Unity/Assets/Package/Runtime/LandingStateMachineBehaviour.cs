@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
 {
-    public class PivotStateMachineBehaviour : StateMachineBehaviour
+    public class LandingStateMachineBehaviour : StateMachineBehaviour
     {
         public event Action Ended;
 

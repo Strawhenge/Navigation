@@ -24,6 +24,7 @@ namespace Strawhenge.Navigation.Unity
         float _fallTime;
         float _fallDistance;
         float _groundedY;
+        bool _isLanding;
 
         float _turnAngle;
         bool _isPivoting;
@@ -39,8 +40,10 @@ namespace Strawhenge.Navigation.Unity
         public event Action<int> PivotRequested;
 
         public event Action FallBegan;
-        
+
         public event Action FallEnded;
+
+        public event Action<int> LandingRequested;
 
         public Vector3 CurrentVelocity => _characterController.velocity;
 
@@ -74,13 +77,13 @@ namespace Strawhenge.Navigation.Unity
                     _stationaryPivot = null;
                 }
             }
-            
+
             _input = input;
         }
 
         public void Jump()
         {
-            if (_isJumping || _fallTime > _settings.CoyoteTime)
+            if (_isJumping || _isPivoting || _isLanding || _fallTime > _settings.CoyoteTime)
                 return;
 
             _isAwaitingJumpTrigger = true;
@@ -107,6 +110,12 @@ namespace Strawhenge.Navigation.Unity
             _isPivoting = false;
         }
 
+        public void CompleteLanding()
+        {
+            if (!_isLanding) return;
+            _isLanding = false;
+        }
+
         void Update()
         {
             HandleFalling();
@@ -116,7 +125,7 @@ namespace Strawhenge.Navigation.Unity
 
         void HandleRotation()
         {
-            if (_isPivoting) return;
+            if (_isPivoting || _isLanding) return;
 
             if (_horizontalSpeed >= 1f)
             {
@@ -211,6 +220,7 @@ namespace Strawhenge.Navigation.Unity
             if (_characterController.isGrounded)
                 _groundedY = transform.position.y;
 
+            var previousFallDistance = _fallDistance;
             _fallDistance = Mathf.Max(0f, _groundedY - transform.position.y);
 
             var isFalling = !_characterController.isGrounded && _fallDistance >= _settings.FallDistance;
@@ -218,9 +228,19 @@ namespace Strawhenge.Navigation.Unity
             {
                 _isFalling = isFalling;
                 if (_isFalling)
+                {
                     FallBegan?.Invoke();
-                else
-                    FallEnded?.Invoke();
+                    return;
+                }
+
+                if (_horizontalSpeed <= _settings.WalkSpeed)
+                {
+                    _isLanding = true;
+                    LandingRequested?.Invoke(
+                        previousFallDistance > 2 ? 2 : 1);
+                }
+
+                FallEnded?.Invoke();
             }
 
             if (_isFalling)
@@ -231,7 +251,7 @@ namespace Strawhenge.Navigation.Unity
 
         void CalculateHorizontalSpeed()
         {
-            if (_isAwaitingJumpTrigger)
+            if (_isAwaitingJumpTrigger || _isLanding)
                 return;
 
             var targetSpeed = GetTargetSpeed();
@@ -261,10 +281,16 @@ namespace Strawhenge.Navigation.Unity
                 return;
             }
 
-            if (_characterController.isGrounded && _verticalSpeed <= 0f)
+            if (_isJumping && _characterController.isGrounded && _verticalSpeed <= 0f)
             {
                 _isJumping = false;
                 JumpEnded?.Invoke();
+
+                if (!_isLanding && _horizontalSpeed <= _settings.WalkSpeed)
+                {
+                    _isLanding = true;
+                    LandingRequested?.Invoke(1);
+                }
             }
 
             if (!_characterController.isGrounded)

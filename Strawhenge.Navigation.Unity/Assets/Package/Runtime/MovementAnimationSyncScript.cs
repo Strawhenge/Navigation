@@ -31,9 +31,13 @@ namespace Strawhenge.Navigation.Unity
             _locomotion.PivotRequested += OnPivotRequested;
             _locomotion.FallBegan += OnFallBegan;
             _locomotion.FallEnded += OnFallEnded;
+            _locomotion.LandingRequested += OnLandingRequested;
 
             var pivotStateMachineBehavior = _animator.GetBehaviour<PivotStateMachineBehaviour>();
             pivotStateMachineBehavior.Ended += OnPivotEnded;
+
+            var landingStateMachineBehavior = _animator.GetBehaviour<LandingStateMachineBehaviour>();
+            landingStateMachineBehavior.Ended += OnLandingEnded;
 
             _leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
             _rightFoot = _animator.GetBoneTransform(HumanBodyBones.RightFoot);
@@ -99,7 +103,7 @@ namespace Strawhenge.Navigation.Unity
         void OnPivotRequested(int pivotId)
         {
             _animator.SetInteger(PivotId, pivotId);
-            
+
             var leftOffset = _leftFoot.position - transform.root.position;
             var rightOffset = _rightFoot.position - transform.root.position;
 
@@ -107,7 +111,7 @@ namespace Strawhenge.Navigation.Unity
             var rightForward = Vector3.Dot(rightOffset, transform.root.forward);
 
             _animator.SetBool(PivotRightFoot, rightForward > leftForward);
-            
+
             _animator.applyRootMotion = true;
             _animator.SetTrigger(Pivot);
         }
@@ -128,6 +132,17 @@ namespace Strawhenge.Navigation.Unity
         void OnFallEnded()
         {
             _animator.SetBool(Falling, false);
+        }
+
+        void OnLandingRequested(int landingId)
+        {
+            _animator.SetInteger("Landing ID", landingId);
+            _animator.SetTrigger("Land");
+        }
+
+        void OnLandingEnded()
+        {
+            _locomotion.CompleteLanding();
         }
     }
 }
