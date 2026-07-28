@@ -14,6 +14,8 @@ namespace Strawhenge.Navigation.Unity
         static readonly int Pivot = Animator.StringToHash("Pivot");
         static readonly int PivotId = Animator.StringToHash("Pivot ID");
         static readonly int PivotRightFoot = Animator.StringToHash("Pivot Right Foot");
+        static readonly int LandingId = Animator.StringToHash("Landing ID");
+        static readonly int Land = Animator.StringToHash("Land");
 
         [SerializeField] Animator _animator;
         [SerializeField] LocomotionScript _locomotion;
@@ -136,8 +138,8 @@ namespace Strawhenge.Navigation.Unity
 
         void OnLandingRequested(int landingId)
         {
-            _animator.SetInteger("Landing ID", landingId);
-            _animator.SetTrigger("Land");
+            _animator.SetInteger(LandingId, landingId);
+            _animator.SetTrigger(Land);
         }
 
         void OnLandingEnded()

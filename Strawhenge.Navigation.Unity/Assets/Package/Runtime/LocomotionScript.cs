@@ -220,7 +220,7 @@ namespace Strawhenge.Navigation.Unity
             if (_characterController.isGrounded)
                 _groundedY = transform.position.y;
 
-            var previousFallDistance = _fallDistance;
+            var fallDistance = _fallDistance;
             _fallDistance = Mathf.Max(0f, _groundedY - transform.position.y);
 
             var isFalling = !_characterController.isGrounded && _fallDistance >= _settings.FallDistance;
@@ -233,7 +233,7 @@ namespace Strawhenge.Navigation.Unity
                     return;
                 }
 
-                if (previousFallDistance > 3)
+                if (fallDistance > 3)
                 {
                     Land(2);
                 }
