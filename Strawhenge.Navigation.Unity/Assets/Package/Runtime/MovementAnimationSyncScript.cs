@@ -29,6 +29,8 @@ namespace Strawhenge.Navigation.Unity
             _locomotion.JumpBegan += OnJumpBegan;
             _locomotion.JumpEnded += OnJumpEnded;
             _locomotion.PivotRequested += OnPivotRequested;
+            _locomotion.FallBegan += OnFallBegan;
+            _locomotion.FallEnded += OnFallEnded;
 
             var pivotStateMachineBehavior = _animator.GetBehaviour<PivotStateMachineBehaviour>();
             pivotStateMachineBehavior.Ended += OnPivotEnded;
@@ -44,8 +46,6 @@ namespace Strawhenge.Navigation.Unity
 
         void LateUpdate()
         {
-            _animator.SetBool(Falling, _locomotion.FallDistance >= _minFallDistance);
-
             var velocity = transform.root.InverseTransformDirection(_locomotion.CurrentVelocity);
             velocity.y = 0;
 
@@ -118,6 +118,16 @@ namespace Strawhenge.Navigation.Unity
             _animator.applyRootMotion = false;
 
             _locomotion.CompletePivot(rotationDelta);
+        }
+
+        void OnFallBegan()
+        {
+            _animator.SetBool(Falling, true);
+        }
+
+        void OnFallEnded()
+        {
+            _animator.SetBool(Falling, false);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace Strawhenge.Navigation.Unity
 
         Quaternion _targetRotation;
 
+        bool _isFalling;
         float _fallTime;
         float _fallDistance;
         float _groundedY;
@@ -37,9 +38,11 @@ namespace Strawhenge.Navigation.Unity
 
         public event Action<int> PivotRequested;
 
-        public Vector3 CurrentVelocity => _characterController.velocity;
+        public event Action FallBegan;
+        
+        public event Action FallEnded;
 
-        public float FallDistance => _fallDistance;
+        public Vector3 CurrentVelocity => _characterController.velocity;
 
         public bool Walk { get; set; }
 
@@ -210,10 +213,20 @@ namespace Strawhenge.Navigation.Unity
 
             _fallDistance = Mathf.Max(0f, _groundedY - transform.position.y);
 
-            if (_characterController.isGrounded || _fallDistance < _settings.FallDistance)
-                _fallTime = 0f;
-            else
+            var isFalling = !_characterController.isGrounded && _fallDistance >= _settings.FallDistance;
+            if (isFalling != _isFalling)
+            {
+                _isFalling = isFalling;
+                if (_isFalling)
+                    FallBegan?.Invoke();
+                else
+                    FallEnded?.Invoke();
+            }
+
+            if (_isFalling)
                 _fallTime += Time.deltaTime;
+            else
+                _fallTime = 0f;
         }
 
         void CalculateHorizontalSpeed()
