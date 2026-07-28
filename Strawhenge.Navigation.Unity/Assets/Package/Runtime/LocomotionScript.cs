@@ -233,11 +233,14 @@ namespace Strawhenge.Navigation.Unity
                     return;
                 }
 
+                if (previousFallDistance > 3)
+                {
+                    Land(2);
+                }
+
                 if (_horizontalSpeed <= _settings.WalkSpeed)
                 {
-                    _isLanding = true;
-                    LandingRequested?.Invoke(
-                        previousFallDistance > 2 ? 2 : 1);
+                    Land(1);
                 }
 
                 FallEnded?.Invoke();
@@ -251,8 +254,14 @@ namespace Strawhenge.Navigation.Unity
 
         void CalculateHorizontalSpeed()
         {
-            if (_isAwaitingJumpTrigger || _isLanding)
+            if (_isAwaitingJumpTrigger)
                 return;
+
+            if (_isLanding)
+            {
+                _horizontalSpeed = 0;
+                return;
+            }
 
             var targetSpeed = GetTargetSpeed();
             var acceleration = GetAcceleration(targetSpeed);
@@ -288,8 +297,7 @@ namespace Strawhenge.Navigation.Unity
 
                 if (!_isLanding && _horizontalSpeed <= _settings.WalkSpeed)
                 {
-                    _isLanding = true;
-                    LandingRequested?.Invoke(1);
+                    Land(1);
                 }
             }
 
@@ -347,6 +355,12 @@ namespace Strawhenge.Navigation.Unity
         {
             _isPivoting = true;
             PivotRequested?.Invoke(pivotId);
+        }
+
+        void Land(int landId)
+        {
+            _isLanding = true;
+            LandingRequested?.Invoke(landId);
         }
     }
 }
