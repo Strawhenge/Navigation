@@ -41,27 +41,9 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public void GoTo(DestinationArgs args) => _state.GoTo(args, OnChangeState);
 
-        public void GoToExactly(Vector3 location, float speed, bool leisurely = false) =>
-            GoTo(location, speed, mustBeExact: true, callback: _ => { }, leisurely);
-
-        public void GoToExactly(Vector3 location, float speed, Action<DestinationResult> callback,
-            bool leisurely = false) =>
-            GoTo(location, speed, mustBeExact: true, callback, leisurely);
-
-        public void GoToApproximately(Vector3 location, float speed, bool leisurely = false) =>
-            GoTo(location, speed, mustBeExact: false, callback: _ => { }, leisurely);
-
-        public void GoToApproximately(Vector3 location, float speed, Action<DestinationResult> callback,
-            bool leisurely = false) =>
-            GoTo(location, speed, mustBeExact: false, callback, leisurely);
-
         public void Cancel() => _state.Cancel(OnChangeState);
 
         public void Update() => _state.Update(OnChangeState);
-
-        void GoTo(Vector3 location, float speed, bool mustBeExact, Action<DestinationResult> callback,
-            bool leisurely) =>
-            GoTo(new DestinationArgs(location, speed, mustBeExact, leisurely, callback));
 
         void OnChangeState(IState newState)
         {

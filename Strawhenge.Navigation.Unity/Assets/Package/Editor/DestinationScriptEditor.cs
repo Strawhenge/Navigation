@@ -39,13 +39,13 @@ namespace Strawhenge.Navigation.Unity.Editor
             EditorGUI.BeginDisabledGroup(!Application.isPlaying);
             EditorGUILayout.Separator();
 
-            if (GUILayout.Button(nameof(DestinationController.GoToExactly)))
+            if (GUILayout.Button(nameof(DestinationControllerExtensions.GoToExactly)))
             {
                 _info = null;
                 _target.DestinationController.GoToExactly(_location, _speed, Callback, _leisurely);
             }
 
-            if (GUILayout.Button(nameof(DestinationController.GoToApproximately)))
+            if (GUILayout.Button(nameof(DestinationControllerExtensions.GoToApproximately)))
             {
                 _info = null;
                 _target.DestinationController.GoToApproximately(_location, _speed, Callback, _leisurely);
