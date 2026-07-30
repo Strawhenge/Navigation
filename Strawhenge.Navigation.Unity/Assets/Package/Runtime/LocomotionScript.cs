@@ -233,13 +233,14 @@ namespace Strawhenge.Navigation.Unity
                     return;
                 }
 
-                if (fallDistance > 3)
+                foreach (var landing in _settings.FallLandings)
                 {
-                    Land(2);
-                }
-                else if (_horizontalSpeed <= _settings.WalkSpeed)
-                {
-                    Land(1);
+                    if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
+                        landing.FallDistanceRange.IsInRange(fallDistance))
+                    {
+                        Land(landing.Id);
+                        break;
+                    }
                 }
 
                 FallEnded?.Invoke();
@@ -294,9 +295,17 @@ namespace Strawhenge.Navigation.Unity
                 _isJumping = false;
                 JumpEnded?.Invoke();
 
-                if (!_isLanding && _horizontalSpeed <= _settings.WalkSpeed)
+                if (!_isLanding)
                 {
-                    Land(1);
+                    foreach (var landing in _settings.JumpLandings)
+                    {
+                        if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
+                            landing.FallDistanceRange.IsInRange(_fallDistance))
+                        {
+                            Land(landing.Id);
+                            break;
+                        }
+                    }
                 }
             }
 

@@ -3591,9 +3591,32 @@ MonoBehaviour:
     _jumpHeight: 1
     _coyoteTime: 0.2
     _deferJumpTrigger: 1
+    _jumpLandings:
+    - _id: 1
+      _fallDistanceRange:
+        _min: 0
+        _max: 3
+      _speedRange:
+        _min: 0
+        _max: 2
     _gravity: -9.81
     _groundedGravity: -2
     _fallDistance: 1
+    _fallLandings:
+    - _id: 2
+      _fallDistanceRange:
+        _min: 3
+        _max: Infinity
+      _speedRange:
+        _min: 0
+        _max: Infinity
+    - _id: 1
+      _fallDistanceRange:
+        _min: 0
+        _max: 3
+      _speedRange:
+        _min: 0
+        _max: 2
 --- !u!143 &6692772569148810662
 CharacterController:
   m_ObjectHideFlags: 0
