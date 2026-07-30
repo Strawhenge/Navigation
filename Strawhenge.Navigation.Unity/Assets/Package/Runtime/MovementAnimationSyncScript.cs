@@ -4,19 +4,6 @@ namespace Strawhenge.Navigation.Unity
 {
     public class MovementAnimationSyncScript : MonoBehaviour
     {
-        static readonly int MoveSpeed = Animator.StringToHash("Move Speed");
-        static readonly int Strafing = Animator.StringToHash("Strafing");
-        static readonly int StrafeX = Animator.StringToHash("Strafe X");
-        static readonly int StrafeY = Animator.StringToHash("Strafe Y");
-        static readonly int Falling = Animator.StringToHash("Falling");
-        static readonly int Jump = Animator.StringToHash("Jump");
-        static readonly int Jumping = Animator.StringToHash("Jumping");
-        static readonly int Pivot = Animator.StringToHash("Pivot");
-        static readonly int PivotId = Animator.StringToHash("Pivot ID");
-        static readonly int PivotRightFoot = Animator.StringToHash("Pivot Right Foot");
-        static readonly int LandingId = Animator.StringToHash("Landing ID");
-        static readonly int Land = Animator.StringToHash("Land");
-
         [SerializeField] Animator _animator;
         [SerializeField] LocomotionScript _locomotion;
         [SerializeField] float _dampeningTime = 0.1f;
@@ -57,31 +44,31 @@ namespace Strawhenge.Navigation.Unity
 
             if (_locomotion.Strafe)
             {
-                _animator.SetBool(Strafing, true);
-                _animator.SetFloat(MoveSpeed, 0);
+                _animator.SetBool(AnimatorParameters.Strafing, true);
+                _animator.SetFloat(AnimatorParameters.MoveSpeed, 0);
 
                 _animator
                     .SetFloat(
-                        StrafeX,
+                        AnimatorParameters.StrafeX,
                         velocity.x,
                         _dampeningTime,
                         Time.deltaTime);
 
                 _animator
                     .SetFloat(
-                        StrafeY,
+                        AnimatorParameters.StrafeY,
                         velocity.z,
                         _dampeningTime,
                         Time.deltaTime);
                 return;
             }
 
-            _animator.SetBool(Strafing, false);
-            _animator.SetFloat(StrafeX, 0);
-            _animator.SetFloat(StrafeY, 0);
+            _animator.SetBool(AnimatorParameters.Strafing, false);
+            _animator.SetFloat(AnimatorParameters.StrafeX, 0);
+            _animator.SetFloat(AnimatorParameters.StrafeY, 0);
 
             _animator.SetFloat(
-                MoveSpeed,
+                AnimatorParameters.MoveSpeed,
                 velocity.magnitude,
                 _dampeningTime,
                 Time.deltaTime);
@@ -89,22 +76,22 @@ namespace Strawhenge.Navigation.Unity
 
         void OnJumpTriggerRequested()
         {
-            _animator.SetTrigger(Jump);
+            _animator.SetTrigger(AnimatorParameters.Jump);
         }
 
         void OnJumpBegan()
         {
-            _animator.SetBool(Jumping, true);
+            _animator.SetBool(AnimatorParameters.Jumping, true);
         }
 
         void OnJumpEnded()
         {
-            _animator.SetBool(Jumping, false);
+            _animator.SetBool(AnimatorParameters.Jumping, false);
         }
 
         void OnPivotRequested(int pivotId)
         {
-            _animator.SetInteger(PivotId, pivotId);
+            _animator.SetInteger(AnimatorParameters.PivotId, pivotId);
 
             var leftOffset = _leftFoot.position - transform.root.position;
             var rightOffset = _rightFoot.position - transform.root.position;
@@ -112,10 +99,10 @@ namespace Strawhenge.Navigation.Unity
             var leftForward = Vector3.Dot(leftOffset, transform.root.forward);
             var rightForward = Vector3.Dot(rightOffset, transform.root.forward);
 
-            _animator.SetBool(PivotRightFoot, rightForward > leftForward);
+            _animator.SetBool(AnimatorParameters.PivotRightFoot, rightForward > leftForward);
 
             _animator.applyRootMotion = true;
-            _animator.SetTrigger(Pivot);
+            _animator.SetTrigger(AnimatorParameters.Pivot);
         }
 
         void OnPivotEnded()
@@ -128,18 +115,18 @@ namespace Strawhenge.Navigation.Unity
 
         void OnFallBegan()
         {
-            _animator.SetBool(Falling, true);
+            _animator.SetBool(AnimatorParameters.Falling, true);
         }
 
         void OnFallEnded()
         {
-            _animator.SetBool(Falling, false);
+            _animator.SetBool(AnimatorParameters.Falling, false);
         }
 
         void OnLandingRequested(int landingId)
         {
-            _animator.SetInteger(LandingId, landingId);
-            _animator.SetTrigger(Land);
+            _animator.SetInteger(AnimatorParameters.LandingId, landingId);
+            _animator.SetTrigger(AnimatorParameters.Land);
         }
 
         void OnLandingEnded()
