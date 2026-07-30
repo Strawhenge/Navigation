@@ -1,3 +1,4 @@
+using Strawhenge.Navigation.Unity.Destination;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -6,6 +7,7 @@ namespace Strawhenge.Navigation.Unity
     {
         [SerializeField] Animator _animator;
         [SerializeField] LocomotionScript _locomotion;
+        [SerializeField] DestinationScript _destination;
         [SerializeField] float _dampeningTime = 0.1f;
         [SerializeField] float _minFallDistance = 1f;
 
