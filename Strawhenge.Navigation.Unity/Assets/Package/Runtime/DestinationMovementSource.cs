@@ -23,7 +23,7 @@ namespace Strawhenge.Navigation.Unity
 
         public Vector3 CurrentVelocity => _destinationController.CurrentVelocity;
 
-        public bool Strafe { get; set; }
+        public bool Strafe { get; }
 
         public void TriggerJump()
         {

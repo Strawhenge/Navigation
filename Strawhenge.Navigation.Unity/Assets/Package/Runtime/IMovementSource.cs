@@ -14,10 +14,13 @@ namespace Strawhenge.Navigation.Unity
         event Action<int> LandingRequested;
 
         Vector3 CurrentVelocity { get; }
-        bool Strafe { get; set; }
+      
+        bool Strafe { get; }
 
         void TriggerJump();
+     
         void CompletePivot(Quaternion rotationDelta);
+     
         void CompleteLanding();
     }
 }
