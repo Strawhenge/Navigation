@@ -4,7 +4,7 @@ using UnityEngine.AI;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
-    class PrepareGoing : IState
+    class PrepareGoing : State
     {
         readonly IDestinationContext _context;
         readonly Agent _agent;
@@ -16,9 +16,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent = agent;
         }
 
-        public bool IsActive => true;
-
-        public Vector3 Velocity => Vector3.zero;
+        protected internal override Vector3 Velocity => Vector3.zero;
 
         public Idle IdleState { private get; set; }
 
@@ -28,26 +26,27 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public DestinationArgs CurrentArgs { private get; set; }
 
-        public void Cancel(Action<IState> changeState)
+        protected internal override void Cancel()
+
         {
-            changeState(IdleState);
+            ChangeState(IdleState);
 
             CurrentArgs.Callback(DestinationResult.Cancelled);
         }
 
-        public void GoTo(DestinationArgs args, Action<IState> changeState)
+        protected internal override void GoTo(DestinationArgs args)
         {
             CurrentArgs.Callback(
                 DestinationResult.CancelledByNewDestination);
             CurrentArgs = args;
         }
 
-        public void Update(Action<IState> changeState)
+        protected internal override void Update()
         {
             if (!_context.CanNavigate)
             {
                 CannotNavigateState.CurrentArgs = CurrentArgs;
-                changeState(CannotNavigateState);
+                ChangeState(CannotNavigateState);
                 return;
             }
 
@@ -65,7 +64,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             {
                 _agent.Disable();
 
-                changeState(IdleState);
+                ChangeState(IdleState);
 
                 CurrentArgs.Callback(
                     DestinationResult.Inaccessible);
@@ -85,7 +84,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             if (!IsAccessible(_path))
             {
-                changeState(IdleState);
+                ChangeState(IdleState);
 
                 CurrentArgs.Callback(
                     DestinationResult.Inaccessible);
@@ -98,7 +97,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.isStopped = false;
 
             GoingState.CurrentArgs = CurrentArgs;
-            changeState(GoingState);
+            ChangeState(GoingState);
         }
 
         bool ShouldWaitForNextUpdate() => _agent.NavMeshAgent.isOnOffMeshLink;

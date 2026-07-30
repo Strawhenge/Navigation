@@ -7,16 +7,20 @@ namespace Strawhenge.Navigation.Unity.Destination
     public class DestinationController
     {
         readonly NavMeshAgent _agent;
-        IState _state;
+        State _state;
 
         internal DestinationController(IDestinationContext context, Agent agent)
         {
             _agent = agent.NavMeshAgent;
 
             var idleState = new Idle(agent);
+            idleState.ChangeStateRequested += OnChangeState;
             var prepareGoingState = new PrepareGoing(context, agent);
+            prepareGoingState.ChangeStateRequested += OnChangeState;
             var goingState = new Going(context, agent);
+            goingState.ChangeStateRequested += OnChangeState;
             var cannotNavigateState = new CannotNavigate(context, agent);
+            cannotNavigateState.ChangeStateRequested += OnChangeState;
 
             idleState.PrepareGoingState = prepareGoingState;
             prepareGoingState.IdleState = idleState;
@@ -39,13 +43,13 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public bool IsLocationAccessible(Vector3 location) => _agent.IsLocationAccessible(location);
 
-        public void GoTo(DestinationArgs args) => _state.GoTo(args, OnChangeState);
+        public void GoTo(DestinationArgs args) => _state.GoTo(args);
 
-        public void Cancel() => _state.Cancel(OnChangeState);
+        public void Cancel() => _state.Cancel();
 
-        public void Update() => _state.Update(OnChangeState);
+        public void Update() => _state.Update();
 
-        void OnChangeState(IState newState)
+        void OnChangeState(State newState)
         {
             var oldState = _state;
             _state = newState;

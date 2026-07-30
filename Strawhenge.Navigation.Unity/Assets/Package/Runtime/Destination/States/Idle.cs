@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
-    class Idle : IState
+    class Idle : State
     {
         readonly Agent _agent;
 
@@ -12,23 +12,23 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent = agent;
         }
 
-        public bool IsActive => false;
+        protected internal override bool IsActive => false;
 
-        public Vector3 Velocity => Vector3.zero;
-        
-        public PrepareGoing PrepareGoingState {private get; set;}
+        protected internal override Vector3 Velocity => Vector3.zero;
 
-        public void Cancel(Action<IState> changeState)
+        public PrepareGoing PrepareGoingState { private get; set; }
+
+        protected internal override void Cancel()
         {
         }
 
-        public void GoTo(DestinationArgs args, Action<IState> changeState)
+        protected internal override void GoTo(DestinationArgs args)
         {
             PrepareGoingState.CurrentArgs = args;
-            changeState(PrepareGoingState);
+            ChangeState(PrepareGoingState);
         }
 
-        public void Update(Action<IState> changeState)
+        protected internal override void Update()
         {
             _agent.NavMeshAgent.enabled = false;
         }
