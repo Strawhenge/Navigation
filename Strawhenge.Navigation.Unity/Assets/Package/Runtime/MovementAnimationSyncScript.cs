@@ -35,7 +35,15 @@ namespace Strawhenge.Navigation.Unity
             UnsubscribeFromMovementSource(_movementSource);
         }
 
-        public void SetMovementSource(IMovementSource movementSource)
+        [ContextMenu(nameof(SetLocomotionSource))]
+        public void SetLocomotionSource() =>
+            SetMovementSource(_locomotion);
+
+        [ContextMenu(nameof(SetDestinationSource))]
+        public void SetDestinationSource() =>
+            SetMovementSource(new DestinationMovementSource(_destination.DestinationController));
+
+        void SetMovementSource(IMovementSource movementSource)
         {
             var nextSource = movementSource ?? _locomotion;
             if (ReferenceEquals(_movementSource, nextSource))
