@@ -18,18 +18,12 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal override Vector3 Velocity => Vector3.zero;
 
-        public Idle IdleState { private get; set; }
-
-        public CannotNavigate CannotNavigateState { private get; set; }
-
-        public Going GoingState { private get; set; }
-
         public DestinationArgs CurrentArgs { private get; set; }
 
         protected internal override void Cancel()
 
         {
-            ChangeState(IdleState);
+            ChangeState(States.Idle);
 
             CurrentArgs.Callback(DestinationResult.Cancelled);
         }
@@ -45,8 +39,8 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             if (!_context.CanNavigate)
             {
-                CannotNavigateState.CurrentArgs = CurrentArgs;
-                ChangeState(CannotNavigateState);
+                States.CannotNavigate.CurrentArgs = CurrentArgs;
+                ChangeState(States.CannotNavigate);
                 return;
             }
 
@@ -64,7 +58,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             {
                 _agent.Disable();
 
-                ChangeState(IdleState);
+                ChangeState(States.Idle);
 
                 CurrentArgs.Callback(
                     DestinationResult.Inaccessible);
@@ -84,7 +78,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             if (!IsAccessible(_path))
             {
-                ChangeState(IdleState);
+                ChangeState(States.Idle);
 
                 CurrentArgs.Callback(
                     DestinationResult.Inaccessible);
@@ -96,8 +90,8 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.SetPath(_path);
             _agent.NavMeshAgent.isStopped = false;
 
-            GoingState.CurrentArgs = CurrentArgs;
-            ChangeState(GoingState);
+            States.Going.CurrentArgs = CurrentArgs;
+            ChangeState(States.Going);
         }
 
         bool ShouldWaitForNextUpdate() => _agent.NavMeshAgent.isOnOffMeshLink;

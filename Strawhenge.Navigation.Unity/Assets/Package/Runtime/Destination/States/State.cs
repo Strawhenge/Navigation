@@ -7,6 +7,8 @@ namespace Strawhenge.Navigation.Unity.Destination
     {
         internal event Action<State> ChangeStateRequested;
 
+        public StatesContainer States { get; internal set; }
+
         protected internal virtual bool IsActive => true;
 
         protected internal abstract Vector3 Velocity { get; }

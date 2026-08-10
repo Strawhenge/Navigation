@@ -16,16 +16,14 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal override Vector3 Velocity => Vector3.zero;
 
-        public PrepareGoing PrepareGoingState { private get; set; }
-
         protected internal override void Cancel()
         {
         }
 
         protected internal override void GoTo(DestinationArgs args)
         {
-            PrepareGoingState.CurrentArgs = args;
-            ChangeState(PrepareGoingState);
+            States.PrepareGoing.CurrentArgs = args;
+            ChangeState(States.PrepareGoing);
         }
 
         protected internal override void Update()

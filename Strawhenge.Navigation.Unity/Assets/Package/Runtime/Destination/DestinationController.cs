@@ -13,25 +13,8 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             _agent = agent.NavMeshAgent;
 
-            var idleState = new Idle(agent);
-            idleState.ChangeStateRequested += OnChangeState;
-            var prepareGoingState = new PrepareGoing(context, agent);
-            prepareGoingState.ChangeStateRequested += OnChangeState;
-            var goingState = new Going(context, agent);
-            goingState.ChangeStateRequested += OnChangeState;
-            var cannotNavigateState = new CannotNavigate(context, agent);
-            cannotNavigateState.ChangeStateRequested += OnChangeState;
-
-            idleState.PrepareGoingState = prepareGoingState;
-            prepareGoingState.IdleState = idleState;
-            prepareGoingState.GoingState = goingState;
-            prepareGoingState.CannotNavigateState = cannotNavigateState;
-            goingState.IdleState = idleState;
-            goingState.CannotNavigateState = cannotNavigateState;
-            cannotNavigateState.IdleState = idleState;
-            cannotNavigateState.PrepareGoingState = prepareGoingState;
-
-            _state = idleState;
+            var statesContainer = new StatesContainer(context, agent, OnChangeState);
+            _state = statesContainer.Idle;
         }
 
         public event Action Activated;

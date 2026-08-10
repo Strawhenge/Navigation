@@ -16,23 +16,19 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal override Vector3 Velocity => Vector3.zero;
 
-        public Idle IdleState { private get; set; }
-
-        public PrepareGoing PrepareGoingState { private get; set; }
-
         public DestinationArgs CurrentArgs { private get; set; }
 
         protected internal override void Cancel()
         {
-            ChangeState(IdleState);
+            ChangeState(States.Idle);
 
             CurrentArgs.Callback(DestinationResult.Cancelled);
         }
 
         protected internal override void GoTo(DestinationArgs args)
         {
-            PrepareGoingState.CurrentArgs = args;
-            ChangeState(PrepareGoingState);
+            States.PrepareGoing.CurrentArgs = args;
+            ChangeState(States.PrepareGoing);
 
             CurrentArgs.Callback(
                 DestinationResult.CancelledByNewDestination);
@@ -44,8 +40,8 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             if (_context.CanNavigate)
             {
-                PrepareGoingState.CurrentArgs = CurrentArgs;
-                ChangeState(PrepareGoingState);
+                States.PrepareGoing.CurrentArgs = CurrentArgs;
+                ChangeState(States.PrepareGoing);
             }
         }
     }

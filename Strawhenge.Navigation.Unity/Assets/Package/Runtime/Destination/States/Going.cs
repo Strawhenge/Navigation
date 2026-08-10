@@ -20,10 +20,6 @@ namespace Strawhenge.Navigation.Unity.Destination
                 ? _agent.NavMeshAgent.velocity
                 : Vector3.zero;
 
-        public Idle IdleState { private get; set; }
-
-        public CannotNavigate CannotNavigateState { private get; set; }
-
         public DestinationArgs CurrentArgs { private get; set; }
 
         protected internal override void Cancel()
@@ -31,7 +27,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (!IsAgentUnavailable())
                 _agent.NavMeshAgent.isStopped = true;
 
-            ChangeState(IdleState);
+            ChangeState(States.Idle);
 
             CurrentArgs.Callback(DestinationResult.Cancelled);
         }
@@ -50,14 +46,14 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             if (!_context.CanNavigate || IsAgentUnavailable())
             {
-                CannotNavigateState.CurrentArgs = CurrentArgs;
-                ChangeState(CannotNavigateState);
+                States.CannotNavigate.CurrentArgs = CurrentArgs;
+                ChangeState(States.CannotNavigate);
                 return;
             }
 
             if (!IsPathAccessible())
             {
-                ChangeState(IdleState);
+                ChangeState(States.Idle);
 
                 CurrentArgs.Callback(
                     DestinationResult.Inaccessible);
@@ -70,7 +66,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                 if (CurrentArgs.LocationMustBeExact)
                     _agent.NavMeshAgent.Warp(CurrentArgs.Location);
 
-                ChangeState(IdleState);
+                ChangeState(States.Idle);
 
                 CurrentArgs.Callback(
                     DestinationResult.Arrived);
