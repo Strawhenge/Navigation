@@ -1,8 +1,14 @@
+using System;
+
 namespace Strawhenge.Navigation.Unity.Destination
 {
     class StatesContainer
     {
-        public StatesContainer(IDestinationContext context, Agent agent, System.Action<State> onChangeState)
+        public StatesContainer(
+            IDestinationContext context,
+            Agent agent,
+            Action<State> onChangeState,
+            Action onJumpBegan, Action onJumpEnded)
         {
             Idle = new Idle(agent);
             PrepareGoing = new PrepareGoing(context, agent);
@@ -21,6 +27,8 @@ namespace Strawhenge.Navigation.Unity.Destination
             Going.ChangeStateRequested += onChangeState;
             CannotNavigate.ChangeStateRequested += onChangeState;
             Jumping.ChangeStateRequested += onChangeState;
+            Jumping.JumpBegan += onJumpBegan;
+            Jumping.JumpEnded += onJumpEnded;
         }
 
         public Idle Idle { get; }

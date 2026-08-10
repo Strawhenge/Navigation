@@ -13,7 +13,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             _agent = agent.NavMeshAgent;
 
-            var statesContainer = new StatesContainer(context, agent, OnChangeState);
+            var statesContainer = new StatesContainer(context, agent, OnChangeState, OnJumpBegan, OnJumpEnded);
             _state = statesContainer.Idle;
         }
 
@@ -34,19 +34,14 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public void Update(float deltaTime) => _state.Update(deltaTime);
 
+        void OnJumpBegan() => JumpBegan?.Invoke();
+
+        void OnJumpEnded() => JumpEnded?.Invoke();
+
         void OnChangeState(State newState)
         {
             var oldState = _state;
             _state = newState;
-
-            var wasJumping = oldState is Jumping;
-            var isJumping = newState is Jumping;
-
-            if (!wasJumping && isJumping)
-                JumpBegan?.Invoke();
-
-            if (wasJumping && !isJumping)
-                JumpEnded?.Invoke();
 
             if (!oldState.IsActive && newState.IsActive)
                 Activated?.Invoke();

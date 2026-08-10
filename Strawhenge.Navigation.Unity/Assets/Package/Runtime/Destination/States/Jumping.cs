@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Destination
@@ -8,6 +9,9 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         readonly IDestinationContext _context;
         readonly Agent _agent;
+
+        internal event Action JumpBegan;
+        internal event Action JumpEnded;
 
         bool _isJumpInProgress;
         bool _cancelRequested;
@@ -77,6 +81,8 @@ namespace Strawhenge.Navigation.Unity.Destination
             _jumpHeight = Mathf.Clamp(horizontalDistance * 0.25f, 0.5f, 2.5f);
             _jumpT = 0f;
             _isJumpInProgress = true;
+
+            JumpBegan?.Invoke();
 
             _agent.NavMeshAgent.isStopped = true;
             _agent.NavMeshAgent.updatePosition = false;
@@ -155,6 +161,8 @@ namespace Strawhenge.Navigation.Unity.Destination
             _isJumpInProgress = false;
             _jumpT = 0f;
             _navigationInterrupted = false;
+
+            JumpEnded?.Invoke();
 
             if (_agent.NavMeshAgent.isActiveAndEnabled)
             {
