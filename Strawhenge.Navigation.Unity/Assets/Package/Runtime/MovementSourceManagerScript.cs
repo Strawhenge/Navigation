@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
 {
-    public sealed class MovementScript : MonoBehaviour
+    public sealed class MovementSourceManagerScript : MonoBehaviour
     {
         [SerializeField] LocomotionScript _locomotion;
         [SerializeField] DestinationScript _destination;

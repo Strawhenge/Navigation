@@ -5,7 +5,7 @@ namespace Strawhenge.Navigation.Unity
     public class MovementAnimationSyncScript : MonoBehaviour
     {
         [SerializeField] Animator _animator;
-        [SerializeField] MovementScript _movement;
+        [SerializeField] MovementSourceManagerScript _movementSourceManager;
         [SerializeField] float _dampeningTime = 0.1f;
         [SerializeField] float _minFallDistance = 1f;
 
@@ -33,18 +33,18 @@ namespace Strawhenge.Navigation.Unity
 
         public void OnJumpLaunch()
         {
-            _movement?.TriggerJump();
+            _movementSourceManager?.TriggerJump();
         }
 
         void LateUpdate()
         {
-            if (_movement == null)
+            if (_movementSourceManager == null)
                 return;
 
-            var velocity = transform.root.InverseTransformDirection(_movement.CurrentVelocity);
+            var velocity = transform.root.InverseTransformDirection(_movementSourceManager.CurrentVelocity);
             velocity.y = 0;
 
-            if (_movement.Strafe)
+            if (_movementSourceManager.Strafe)
             {
                 _animator.SetBool(AnimatorParameters.Strafing, true);
                 _animator.SetFloat(AnimatorParameters.MoveSpeed, 0);
@@ -78,30 +78,30 @@ namespace Strawhenge.Navigation.Unity
 
         void SubscribeToMovement()
         {
-            if (_movement == null)
+            if (_movementSourceManager == null)
                 return;
 
-            _movement.JumpTriggerRequested += OnJumpTriggerRequested;
-            _movement.JumpBegan += OnJumpBegan;
-            _movement.JumpEnded += OnJumpEnded;
-            _movement.PivotRequested += OnPivotRequested;
-            _movement.FallBegan += OnFallBegan;
-            _movement.FallEnded += OnFallEnded;
-            _movement.LandingRequested += OnLandingRequested;
+            _movementSourceManager.JumpTriggerRequested += OnJumpTriggerRequested;
+            _movementSourceManager.JumpBegan += OnJumpBegan;
+            _movementSourceManager.JumpEnded += OnJumpEnded;
+            _movementSourceManager.PivotRequested += OnPivotRequested;
+            _movementSourceManager.FallBegan += OnFallBegan;
+            _movementSourceManager.FallEnded += OnFallEnded;
+            _movementSourceManager.LandingRequested += OnLandingRequested;
         }
 
         void UnsubscribeFromMovement()
         {
-            if (_movement == null)
+            if (_movementSourceManager == null)
                 return;
 
-            _movement.JumpTriggerRequested -= OnJumpTriggerRequested;
-            _movement.JumpBegan -= OnJumpBegan;
-            _movement.JumpEnded -= OnJumpEnded;
-            _movement.PivotRequested -= OnPivotRequested;
-            _movement.FallBegan -= OnFallBegan;
-            _movement.FallEnded -= OnFallEnded;
-            _movement.LandingRequested -= OnLandingRequested;
+            _movementSourceManager.JumpTriggerRequested -= OnJumpTriggerRequested;
+            _movementSourceManager.JumpBegan -= OnJumpBegan;
+            _movementSourceManager.JumpEnded -= OnJumpEnded;
+            _movementSourceManager.PivotRequested -= OnPivotRequested;
+            _movementSourceManager.FallBegan -= OnFallBegan;
+            _movementSourceManager.FallEnded -= OnFallEnded;
+            _movementSourceManager.LandingRequested -= OnLandingRequested;
         }
 
         void OnJumpTriggerRequested()
@@ -140,7 +140,7 @@ namespace Strawhenge.Navigation.Unity
             var rotationDelta = _animator.deltaRotation;
             _animator.applyRootMotion = false;
 
-            _movement?.CompletePivot(rotationDelta);
+            _movementSourceManager?.CompletePivot(rotationDelta);
         }
 
         void OnFallBegan()
@@ -161,7 +161,7 @@ namespace Strawhenge.Navigation.Unity
 
         void OnLandingEnded()
         {
-            _movement?.CompleteLanding();
+            _movementSourceManager?.CompleteLanding();
         }
     }
 }
