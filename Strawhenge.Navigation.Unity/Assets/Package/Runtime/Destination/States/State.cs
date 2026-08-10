@@ -7,7 +7,7 @@ namespace Strawhenge.Navigation.Unity.Destination
     {
         internal event Action<State> ChangeStateRequested;
 
-        public StatesContainer States { get; internal set; }
+        protected StatesContainer States { get; private set; }
 
         protected internal virtual bool IsActive => true;
 
@@ -15,9 +15,11 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal abstract void GoTo(DestinationArgs args);
 
-        protected internal abstract void Update();
+        protected internal abstract void Update(float deltaTime);
 
         protected internal abstract void Cancel();
+
+        internal void SetStatesContainer(StatesContainer states) => States = states;
 
         protected void ChangeState(State state) => ChangeStateRequested?.Invoke(state);
     }

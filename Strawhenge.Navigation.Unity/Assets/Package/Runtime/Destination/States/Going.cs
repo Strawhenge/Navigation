@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AI;
 
 namespace Strawhenge.Navigation.Unity.Destination
@@ -42,7 +41,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.speed = args.Speed;
         }
 
-        protected internal override void Update()
+        protected internal override void Update(float deltaTime)
         {
             if (!_context.CanNavigate || IsAgentUnavailable())
             {
@@ -59,6 +58,20 @@ namespace Strawhenge.Navigation.Unity.Destination
                     DestinationResult.Inaccessible);
 
                 return;
+            }
+            
+            if (_agent.NavMeshAgent.isOnOffMeshLink)
+            {
+                switch (_agent.NavMeshAgent.currentOffMeshLinkData.linkType)
+                {
+                    case OffMeshLinkType.LinkTypeJumpAcross:
+                        States.Jumping.CurrentArgs = CurrentArgs;
+                        ChangeState(States.Jumping);
+                        return;
+                    default:
+                        _agent.NavMeshAgent.CompleteOffMeshLink();
+                        break;
+                }
             }
 
             if (IsAtDestination())

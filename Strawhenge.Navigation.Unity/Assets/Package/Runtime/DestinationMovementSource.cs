@@ -14,8 +14,17 @@ namespace Strawhenge.Navigation.Unity
         }
 
         public event Action JumpTriggerRequested;
-        public event Action JumpBegan;
-        public event Action JumpEnded;
+        public event Action JumpBegan
+        {
+            add => _destinationController.JumpBegan += value;
+            remove => _destinationController.JumpBegan -= value;
+        }
+
+        public event Action JumpEnded
+        {
+            add => _destinationController.JumpEnded += value;
+            remove => _destinationController.JumpEnded -= value;
+        }
         public event Action<int> PivotRequested;
         public event Action FallBegan;
         public event Action FallEnded;

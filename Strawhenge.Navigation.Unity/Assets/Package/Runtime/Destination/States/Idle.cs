@@ -26,7 +26,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             ChangeState(States.PrepareGoing);
         }
 
-        protected internal override void Update()
+        protected internal override void Update(float deltaTime)
         {
             _agent.NavMeshAgent.enabled = false;
         }

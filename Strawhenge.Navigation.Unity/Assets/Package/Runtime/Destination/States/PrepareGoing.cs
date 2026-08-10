@@ -35,7 +35,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             CurrentArgs = args;
         }
 
-        protected internal override void Update()
+        protected internal override void Update(float deltaTime)
         {
             if (!_context.CanNavigate)
             {

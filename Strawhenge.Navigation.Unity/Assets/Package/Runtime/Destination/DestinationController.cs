@@ -19,6 +19,8 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public event Action Activated;
         public event Action Deactivated;
+        public event Action JumpBegan;
+        public event Action JumpEnded;
 
         public bool IsActive => _state.IsActive;
 
@@ -30,12 +32,21 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public void Cancel() => _state.Cancel();
 
-        public void Update() => _state.Update();
+        public void Update(float deltaTime) => _state.Update(deltaTime);
 
         void OnChangeState(State newState)
         {
             var oldState = _state;
             _state = newState;
+
+            var wasJumping = oldState is Jumping;
+            var isJumping = newState is Jumping;
+
+            if (!wasJumping && isJumping)
+                JumpBegan?.Invoke();
+
+            if (wasJumping && !isJumping)
+                JumpEnded?.Invoke();
 
             if (!oldState.IsActive && newState.IsActive)
                 Activated?.Invoke();

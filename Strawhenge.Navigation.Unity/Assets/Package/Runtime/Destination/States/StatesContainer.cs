@@ -8,16 +8,19 @@ namespace Strawhenge.Navigation.Unity.Destination
             PrepareGoing = new PrepareGoing(context, agent);
             Going = new Going(context, agent);
             CannotNavigate = new CannotNavigate(context, agent);
+            Jumping = new Jumping(context, agent);
 
-            Idle.States = this;
-            PrepareGoing.States = this;
-            Going.States = this;
-            CannotNavigate.States = this;
+            Idle.SetStatesContainer(this);
+            PrepareGoing.SetStatesContainer(this);
+            Going.SetStatesContainer(this);
+            CannotNavigate.SetStatesContainer(this);
+            Jumping.SetStatesContainer(this);
 
             Idle.ChangeStateRequested += onChangeState;
             PrepareGoing.ChangeStateRequested += onChangeState;
             Going.ChangeStateRequested += onChangeState;
             CannotNavigate.ChangeStateRequested += onChangeState;
+            Jumping.ChangeStateRequested += onChangeState;
         }
 
         public Idle Idle { get; }
@@ -27,5 +30,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         public Going Going { get; }
 
         public CannotNavigate CannotNavigate { get; }
+
+        public Jumping Jumping { get; }
     }
 }

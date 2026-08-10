@@ -21,7 +21,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         void Update()
         {
-            DestinationController.Update();
+            DestinationController.Update(Time.deltaTime);
         }
 
         DestinationController Create()

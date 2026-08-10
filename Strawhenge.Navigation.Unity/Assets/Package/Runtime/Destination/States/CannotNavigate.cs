@@ -34,7 +34,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                 DestinationResult.CancelledByNewDestination);
         }
 
-        protected internal override void Update()
+        protected internal override void Update(float deltaTime)
         {
             _agent.Disable();
 
