@@ -15,7 +15,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         bool _isJumpInProgress;
         bool _cancelRequested;
-        bool _navigationInterrupted;
+        bool _agentUnavailable;
         DestinationArgs _pendingArgs;
         Vector3 _startPosition;
         Vector3 _endPosition;
@@ -49,8 +49,13 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal override void Update(float deltaTime)
         {
-            _navigationInterrupted |=
-                !_context.CanNavigate ||
+            if (!_context.CanNavigate)
+            {
+                InterruptForCannotNavigate();
+                return;
+            }
+
+            _agentUnavailable |=
                 !_agent.NavMeshAgent.isActiveAndEnabled ||
                 !_agent.NavMeshAgent.isOnNavMesh;
 
@@ -123,7 +128,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         void ResolveNextStateAfterJump()
         {
-            var navigationInterrupted = _navigationInterrupted;
+            var agentUnavailable = _agentUnavailable;
             EndManualTraversal();
 
             if (_cancelRequested)
@@ -145,7 +150,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                 return;
             }
 
-            if (navigationInterrupted)
+            if (agentUnavailable)
             {
                 States.PrepareGoing.CurrentArgs = CurrentArgs;
                 ChangeState(States.PrepareGoing);
@@ -160,7 +165,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             _isJumpInProgress = false;
             _jumpT = 0f;
-            _navigationInterrupted = false;
+            _agentUnavailable = false;
 
             JumpEnded?.Invoke();
 
@@ -170,6 +175,15 @@ namespace Strawhenge.Navigation.Unity.Destination
                 _agent.NavMeshAgent.updateRotation = true;
                 _agent.NavMeshAgent.isStopped = false;
             }
+        }
+
+        void InterruptForCannotNavigate()
+        {
+            if (_isJumpInProgress)
+                EndManualTraversal();
+
+            States.CannotNavigate.CurrentArgs = CurrentArgs;
+            ChangeState(States.CannotNavigate);
         }
 
         Vector3 GetCurrentPosition() =>
