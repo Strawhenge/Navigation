@@ -5,7 +5,8 @@ namespace Strawhenge.Navigation.Unity.Destination
 {
     class Falling : State
     {
-        const float FallSpeed = 5f; // TODO: Make this configurable
+        const float HorizontalSpeed = 5f; // TODO: Make this configurable
+        const float FallAcceleration = 9.81f; // TODO: Make this configurable
         const float GroundProbeDistance = 0.2f;
         const float EndAlignmentDistance = 0.05f;
 
@@ -21,8 +22,9 @@ namespace Strawhenge.Navigation.Unity.Destination
         DestinationArgs _pendingArgs;
         Vector3 _startPosition;
         Vector3 _endPosition;
-        float _fallT;
-        float _fallDuration;
+        float _horizontalT;
+        float _horizontalDuration;
+        float _verticalSpeed;
         bool _isDescending;
 
         public Falling(IDestinationContext context, Agent agent)
@@ -79,9 +81,12 @@ namespace Strawhenge.Navigation.Unity.Destination
             _startPosition = GetCurrentPosition();
             _endPosition = linkData.endPos + (Vector3.up * _agent.NavMeshAgent.baseOffset);
 
-            var fallDistance = Vector3.Distance(_startPosition, _endPosition);
-            _fallDuration = Mathf.Max(0.1f, fallDistance / FallSpeed);
-            _fallT = 0f;
+            var horizontalDistance = Vector2.Distance(
+                new Vector2(_startPosition.x, _startPosition.z),
+                new Vector2(_endPosition.x, _endPosition.z));
+            _horizontalDuration = Mathf.Max(0.01f, horizontalDistance / HorizontalSpeed);
+            _horizontalT = 0f;
+            _verticalSpeed = 0f;
             _isFallInProgress = true;
             _isDescending = false;
 
@@ -94,11 +99,11 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         void TraverseFall(float deltaTime)
         {
-            _fallT = Mathf.Min(1f, _fallT + (deltaTime / _fallDuration));
+            _horizontalT = Mathf.Min(1f, _horizontalT + (deltaTime / _horizontalDuration));
 
-            var x = Mathf.Lerp(_startPosition.x, _endPosition.x, _fallT);
-            var z = Mathf.Lerp(_startPosition.z, _endPosition.z, _fallT);
-            var y = Mathf.Lerp(_startPosition.y, _endPosition.y, _fallT);
+            var x = Mathf.Lerp(_startPosition.x, _endPosition.x, _horizontalT);
+            var z = Mathf.Lerp(_startPosition.z, _endPosition.z, _horizontalT);
+            var y = GetCurrentPosition().y;
 
             var position = new Vector3(x, y, z);
 
@@ -110,11 +115,22 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             if (!_isDescending && _endPosition.y < _startPosition.y)
                 position.y = _startPosition.y;
+            else if (_endPosition.y < _startPosition.y)
+            {
+                _verticalSpeed += FallAcceleration * deltaTime;
+                position.y = Mathf.Max(_endPosition.y, y - (_verticalSpeed * deltaTime));
+            }
+            else
+            {
+                position.y = Mathf.Lerp(_startPosition.y, _endPosition.y, _horizontalT);
+            }
 
             SetCurrentPosition(position);
             _agent.NavMeshAgent.nextPosition = position;
 
-            if (_fallT >= 1f)
+            var reachedEndHorizontally = _horizontalT >= 1f;
+            var reachedEndVertically = _endPosition.y >= _startPosition.y || position.y <= _endPosition.y + 0.001f;
+            if (reachedEndHorizontally && reachedEndVertically)
             {
                 if (_agent.NavMeshAgent.isOnOffMeshLink)
                     _agent.NavMeshAgent.CompleteOffMeshLink();
@@ -161,8 +177,9 @@ namespace Strawhenge.Navigation.Unity.Destination
         void EndManualTraversal()
         {
             _isFallInProgress = false;
-            _fallT = 0f;
+            _horizontalT = 0f;
             _agentUnavailable = false;
+            _verticalSpeed = 0f;
             _isDescending = false;
 
             FallEnded?.Invoke();
