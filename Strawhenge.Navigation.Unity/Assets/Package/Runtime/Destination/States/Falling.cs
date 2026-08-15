@@ -81,7 +81,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         void BeginFall()
         {
             var linkData = _agent.NavMeshAgent.currentOffMeshLinkData;
-            _startPosition = GetCurrentPosition();
+            _startPosition = _agent.GetCurrentPosition();
             _endPosition = linkData.endPos + (Vector3.up * _agent.NavMeshAgent.baseOffset);
 
             var horizontalDistance = Vector2.Distance(
@@ -102,13 +102,13 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         void TraverseFall(float deltaTime)
         {
-            var previousPosition = GetCurrentPosition();
+            var previousPosition = _agent.GetCurrentPosition();
 
             _horizontalT = Mathf.Min(1f, _horizontalT + (deltaTime / _horizontalDuration));
 
             var x = Mathf.Lerp(_startPosition.x, _endPosition.x, _horizontalT);
             var z = Mathf.Lerp(_startPosition.z, _endPosition.z, _horizontalT);
-            var y = GetCurrentPosition().y;
+            var y = _agent.GetCurrentPosition().y;
 
             var position = new Vector3(x, y, z);
 
@@ -136,7 +136,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                 FallBegan?.Invoke();
             }
 
-            SetCurrentPosition(position);
+            _agent.SetCurrentPosition(position);
             _agent.NavMeshAgent.nextPosition = position;
 
             _currentVelocity = deltaTime > Mathf.Epsilon
@@ -242,11 +242,6 @@ namespace Strawhenge.Navigation.Unity.Destination
             return horizontalDistance <= EndAlignmentDistance;
         }
 
-        Vector3 GetCurrentPosition() =>
-            _agent.NavMeshAgent.transform.position;
-
-        void SetCurrentPosition(Vector3 position) =>
-            _agent.NavMeshAgent.transform.position = position;
     }
 }
 

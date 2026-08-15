@@ -42,5 +42,11 @@ namespace Strawhenge.Navigation.Unity.Destination
             NavMeshAgent.enabled = false;
             _priorityManager.ReleasePriority(NavMeshAgent);
         }
+
+        public Vector3 GetCurrentPosition() =>
+            NavMeshAgent.transform.position;
+
+        public void SetCurrentPosition(Vector3 position) =>
+            NavMeshAgent.transform.position = position;
     }
 }

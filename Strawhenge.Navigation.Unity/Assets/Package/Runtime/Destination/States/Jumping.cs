@@ -74,7 +74,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         void BeginJump()
         {
             var linkData = _agent.NavMeshAgent.currentOffMeshLinkData;
-            _startPosition = GetCurrentPosition();
+            _startPosition = _agent.GetCurrentPosition();
             _endPosition = linkData.endPos + (Vector3.up * _agent.NavMeshAgent.baseOffset);
             FaceJumpDirection();
 
@@ -114,7 +114,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             var arc = 4f * _jumpT * (1f - _jumpT);
             position.y += _jumpHeight * arc;
 
-            SetCurrentPosition(position);
+            _agent.SetCurrentPosition(position);
             _agent.NavMeshAgent.nextPosition = position;
 
             if (_jumpT >= 1f)
@@ -186,10 +186,5 @@ namespace Strawhenge.Navigation.Unity.Destination
             ChangeState(States.CannotNavigate);
         }
 
-        Vector3 GetCurrentPosition() =>
-            _agent.NavMeshAgent.transform.position;
-
-        void SetCurrentPosition(Vector3 position) =>
-            _agent.NavMeshAgent.transform.position = position;
     }
 }
