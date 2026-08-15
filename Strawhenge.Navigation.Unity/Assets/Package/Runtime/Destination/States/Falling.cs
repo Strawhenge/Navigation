@@ -9,6 +9,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         const float FallAcceleration = 9.81f; // TODO: Make this configurable
         const float GroundProbeDistance = 0.2f;
         const float EndAlignmentDistance = 0.05f;
+        const float DownwardMovementEpsilon = 0.0001f;
 
         readonly IDestinationContext _context;
         readonly Agent _agent;
@@ -26,6 +27,8 @@ namespace Strawhenge.Navigation.Unity.Destination
         float _horizontalDuration;
         float _verticalSpeed;
         bool _isDescending;
+        Vector3 _currentVelocity;
+        bool _fallBeganRaised;
 
         public Falling(IDestinationContext context, Agent agent)
         {
@@ -35,7 +38,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public DestinationArgs CurrentArgs { private get; set; }
 
-        protected internal override Vector3 Velocity => Vector3.zero;
+        protected internal override Vector3 Velocity => _currentVelocity;
 
         protected internal override void Cancel()
         {
@@ -87,10 +90,10 @@ namespace Strawhenge.Navigation.Unity.Destination
             _horizontalDuration = Mathf.Max(0.01f, horizontalDistance / HorizontalSpeed);
             _horizontalT = 0f;
             _verticalSpeed = 0f;
+            _currentVelocity = Vector3.zero;
             _isFallInProgress = true;
             _isDescending = false;
-
-            FallBegan?.Invoke();
+            _fallBeganRaised = false;
 
             _agent.NavMeshAgent.isStopped = true;
             _agent.NavMeshAgent.updatePosition = false;
@@ -99,6 +102,8 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         void TraverseFall(float deltaTime)
         {
+            var previousPosition = GetCurrentPosition();
+
             _horizontalT = Mathf.Min(1f, _horizontalT + (deltaTime / _horizontalDuration));
 
             var x = Mathf.Lerp(_startPosition.x, _endPosition.x, _horizontalT);
@@ -125,8 +130,18 @@ namespace Strawhenge.Navigation.Unity.Destination
                 position.y = Mathf.Lerp(_startPosition.y, _endPosition.y, _horizontalT);
             }
 
+            if (!_fallBeganRaised && position.y < y - DownwardMovementEpsilon)
+            {
+                _fallBeganRaised = true;
+                FallBegan?.Invoke();
+            }
+
             SetCurrentPosition(position);
             _agent.NavMeshAgent.nextPosition = position;
+
+            _currentVelocity = deltaTime > Mathf.Epsilon
+                ? (position - previousPosition) / deltaTime
+                : Vector3.zero;
 
             var reachedEndHorizontally = _horizontalT >= 1f;
             var reachedEndVertically = _endPosition.y >= _startPosition.y || position.y <= _endPosition.y + 0.001f;
@@ -181,6 +196,8 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agentUnavailable = false;
             _verticalSpeed = 0f;
             _isDescending = false;
+            _currentVelocity = Vector3.zero;
+            _fallBeganRaised = false;
 
             FallEnded?.Invoke();
 
