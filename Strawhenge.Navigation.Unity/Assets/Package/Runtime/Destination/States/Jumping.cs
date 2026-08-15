@@ -173,19 +173,9 @@ namespace Strawhenge.Navigation.Unity.Destination
         }
 
         Vector3 GetCurrentPosition() =>
-            _agent.Rigidbody != null
-                ? _agent.Rigidbody.position
-                : _agent.NavMeshAgent.transform.position;
+            _agent.NavMeshAgent.transform.position;
 
-        void SetCurrentPosition(Vector3 position)
-        {
-            if (_agent.Rigidbody != null)
-            {
-                _agent.Rigidbody.position = position;
-                return;
-            }
-
+        void SetCurrentPosition(Vector3 position) =>
             _agent.NavMeshAgent.transform.position = position;
-        }
     }
 }
