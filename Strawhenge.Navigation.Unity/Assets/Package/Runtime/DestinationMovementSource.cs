@@ -26,8 +26,17 @@ namespace Strawhenge.Navigation.Unity
             remove => _destinationController.JumpEnded -= value;
         }
         public event Action<int> PivotRequested;
-        public event Action FallBegan;
-        public event Action FallEnded;
+        public event Action FallBegan
+        {
+            add => _destinationController.FallBegan += value;
+            remove => _destinationController.FallBegan -= value;
+        }
+
+        public event Action FallEnded
+        {
+            add => _destinationController.FallEnded += value;
+            remove => _destinationController.FallEnded -= value;
+        }
         public event Action<int> LandingRequested;
 
         public Vector3 CurrentVelocity => _destinationController.CurrentVelocity;

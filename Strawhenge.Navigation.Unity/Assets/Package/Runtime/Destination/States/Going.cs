@@ -68,6 +68,10 @@ namespace Strawhenge.Navigation.Unity.Destination
                         States.Jumping.CurrentArgs = CurrentArgs;
                         ChangeState(States.Jumping);
                         return;
+                    case OffMeshLinkType.LinkTypeDropDown:
+                        States.Falling.CurrentArgs = CurrentArgs;
+                        ChangeState(States.Falling);
+                        return;
                     default:
                         _agent.NavMeshAgent.CompleteOffMeshLink();
                         break;
