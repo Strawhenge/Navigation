@@ -3434,6 +3434,7 @@ GameObject:
   - component: {fileID: 6692772569148810663}
   - component: {fileID: 6692772569148810665}
   - component: {fileID: 6692772569148810667}
+  - component: {fileID: 6692772569148810668}
   m_Layer: 0
   m_Name: Y Bot
   m_TagString: Untagged
@@ -3715,6 +3716,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60cde6affb078d24e96b3e8d839c3e21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _locomotion: {fileID: 6692772569148810661}
+  _destination: {fileID: 6692772569148810665}
+--- !u!114 &6692772569148810668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6316951164242345758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c387b4fe2aa48129670838aea724ac7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _locomotion: {fileID: 6692772569148810661}

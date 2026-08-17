@@ -127,9 +127,17 @@ namespace Strawhenge.Navigation.Unity
             HandleMovement();
         }
 
-        void OnEnable() => IsActiveChanged?.Invoke(true);
+        void OnEnable()
+        {
+            _characterController.enabled = true;
+            IsActiveChanged?.Invoke(true);
+        }
 
-        void OnDisable() => IsActiveChanged?.Invoke(false);
+        void OnDisable()
+        {
+            _characterController.enabled = false;
+            IsActiveChanged?.Invoke(false);
+        }
 
         void HandleRotation()
         {
