@@ -45,7 +45,11 @@ namespace Strawhenge.Navigation.Unity
 
         public event Action<int> LandingRequested;
 
+        public event Action<bool> IsActiveChanged;
+
         public Vector3 CurrentVelocity => _characterController.velocity;
+
+        public bool IsActive => isActiveAndEnabled;
 
         public bool Walk { get; set; }
 
@@ -122,6 +126,10 @@ namespace Strawhenge.Navigation.Unity
             HandleRotation();
             HandleMovement();
         }
+
+        void OnEnable() => IsActiveChanged?.Invoke(true);
+
+        void OnDisable() => IsActiveChanged?.Invoke(false);
 
         void HandleRotation()
         {

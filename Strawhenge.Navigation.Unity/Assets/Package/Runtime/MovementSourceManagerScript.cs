@@ -1,5 +1,6 @@
 using Strawhenge.Navigation.Unity.Destination;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -9,7 +10,9 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] LocomotionScript _locomotion;
         [SerializeField] DestinationScript _destination;
 
-        IMovementSource _activeSource;
+        readonly List<IMovementSource> _movementSources = new();
+
+        IMovementSource _activeSource = NullMovementSource.Instance;
         DestinationMovementSource _destinationSource;
 
         public event Action JumpTriggerRequested;
@@ -20,51 +23,117 @@ namespace Strawhenge.Navigation.Unity
         public event Action FallEnded;
         public event Action<int> LandingRequested;
 
-        public Vector3 CurrentVelocity => _activeSource?.CurrentVelocity ?? Vector3.zero;
+        public Vector3 CurrentVelocity => _activeSource.CurrentVelocity;
 
-        public bool Strafe => _activeSource?.Strafe ?? false;
+        public bool IsActive => _activeSource.IsActive;
+
+        public bool Strafe => _activeSource.Strafe;
 
         void Awake()
         {
-            SetLocomotionSource();
+            InitializeMovementSources();
+            RefreshActiveSource();
         }
 
         void OnDestroy()
         {
             UnsubscribeFromSource(_activeSource);
+
+            foreach (var source in _movementSources)
+                UnsubscribeFromSourceActivity(source);
         }
 
-        public void TriggerJump() => _activeSource?.TriggerJump();
+        public void TriggerJump() => _activeSource.TriggerJump();
 
-        public void CompletePivot(Quaternion rotationDelta) => _activeSource?.CompletePivot(rotationDelta);
+        public void CompletePivot(Quaternion rotationDelta) => _activeSource.CompletePivot(rotationDelta);
 
-        public void CompleteLanding() => _activeSource?.CompleteLanding();
-
-        [ContextMenu(nameof(SetLocomotionSource))]
-        public void SetLocomotionSource()
-        {
-            SetMovementSource(_locomotion);
-        }
-
-        [ContextMenu(nameof(SetDestinationSource))]
-        public void SetDestinationSource()
-        {
-            if (_destination == null)
-                return;
-
-            _destinationSource ??= new DestinationMovementSource(_destination.DestinationController);
-            SetMovementSource(_destinationSource);
-        }
-
+        public void CompleteLanding() => _activeSource.CompleteLanding();
+      
         public void SetMovementSource(IMovementSource source)
         {
-            var nextSource = source ?? _locomotion;
-            if (ReferenceEquals(_activeSource, nextSource))
+            if (source == null)
                 return;
 
+            AddMovementSource(source);
+
+            _movementSources.Remove(source);
+            _movementSources.Insert(0, source);
+            RefreshActiveSource();
+        }
+
+        public void AddMovementSource(IMovementSource source)
+        {
+            if (source == null || ReferenceEquals(source, NullMovementSource.Instance) || _movementSources.Contains(source))
+                return;
+
+            _movementSources.Add(source);
+            SubscribeToSourceActivity(source);
+            RefreshActiveSource();
+        }
+
+        public void RemoveMovementSource(IMovementSource source)
+        {
+            if (source == null)
+                return;
+
+            if (!_movementSources.Remove(source))
+                return;
+
+            UnsubscribeFromSourceActivity(source);
+            if (ReferenceEquals(_activeSource, source))
+                RefreshActiveSource();
+        }
+
+        void InitializeMovementSources()
+        {
+            _movementSources.Clear();
+
+            if (_destination != null)
+            {
+                _destinationSource ??= new DestinationMovementSource(_destination.DestinationController);
+                AddMovementSource(_destinationSource);
+            }
+
+            if (_locomotion != null)
+                AddMovementSource(_locomotion);
+        }
+
+        void RefreshActiveSource()
+        {
+            var nextSource = GetFirstActiveSource();
+            if (ReferenceEquals(_activeSource, nextSource))
+                return;
+        
             UnsubscribeFromSource(_activeSource);
             _activeSource = nextSource;
             SubscribeToSource(_activeSource);
+        }
+
+        IMovementSource GetFirstActiveSource()
+        {
+            foreach (var source in _movementSources)
+            {
+                if (source.IsActive)
+                    return source;
+            }
+
+            return NullMovementSource.Instance;
+        }
+
+        void SubscribeToSourceActivity(IMovementSource source)
+        {
+            if (source == null)
+                return;
+
+            source.IsActiveChanged += OnSourceIsActiveChanged;
+        }
+
+        void UnsubscribeFromSourceActivity(IMovementSource source)
+        {
+            if (source == null)
+                return;
+
+            source.IsActiveChanged -= OnSourceIsActiveChanged;
         }
 
         void SubscribeToSource(IMovementSource source)
@@ -108,6 +177,8 @@ namespace Strawhenge.Navigation.Unity
         void OnFallEnded() => FallEnded?.Invoke();
 
         void OnLandingRequested(int landingId) => LandingRequested?.Invoke(landingId);
+
+        void OnSourceIsActiveChanged(bool isActive) => RefreshActiveSource();
     }
 }
 
