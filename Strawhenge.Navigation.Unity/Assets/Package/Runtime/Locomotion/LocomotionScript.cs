@@ -16,6 +16,7 @@ namespace Strawhenge.Navigation.Unity
             LocomotionSettingsScriptableObject> _settings;
 
         ILocomotionSettings _locomotionSettings;
+        Transform _rootTransform;
 
         Vector3 _input;
 
@@ -49,6 +50,8 @@ namespace Strawhenge.Navigation.Unity
                 Debug.LogWarning($"'{nameof(_settings)} not set - using defaults.");
                 _locomotionSettings = DefaultLocomotionSettings.Instance;
             }
+
+            _rootTransform = _characterController.transform;
         }
 
         void Update()
@@ -149,7 +152,7 @@ namespace Strawhenge.Navigation.Unity
         {
             if (!_isPivoting) return;
 
-            transform.root.rotation = rotationDelta * transform.root.rotation;
+            _rootTransform.rotation = rotationDelta * _rootTransform.rotation;
             _isPivoting = false;
         }
 
@@ -172,12 +175,12 @@ namespace Strawhenge.Navigation.Unity
             if (Strafe)
             {
                 _turnAngle = 0;
-                _targetRotation = transform.rotation;
+                _targetRotation = _rootTransform.rotation;
                 return;
             }
 
             _turnAngle = Vector3.SignedAngle(
-                transform.root.forward,
+                _rootTransform.forward,
                 _input.normalized,
                 Vector3.up
             );
@@ -194,8 +197,8 @@ namespace Strawhenge.Navigation.Unity
                 return;
             }
 
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
+            _rootTransform.rotation = Quaternion.RotateTowards(
+                _rootTransform.rotation,
                 _targetRotation,
                 _locomotionSettings.TurnSpeed * Time.deltaTime);
         }
@@ -254,10 +257,10 @@ namespace Strawhenge.Navigation.Unity
         void HandleFalling()
         {
             if (_characterController.isGrounded)
-                _groundedY = transform.position.y;
+                _groundedY = _rootTransform.position.y;
 
             var fallDistance = _fallDistance;
-            _fallDistance = Mathf.Max(0f, _groundedY - transform.position.y);
+            _fallDistance = Mathf.Max(0f, _groundedY - _rootTransform.position.y);
 
             var isFalling = !_characterController.isGrounded && _fallDistance >= _locomotionSettings.FallDistance;
             if (isFalling != _isFalling)
@@ -372,7 +375,7 @@ namespace Strawhenge.Navigation.Unity
 
         Vector3 GetVelocity()
         {
-            var velocity = (_input.magnitude > 0.1f ? _input : transform.forward) * _horizontalSpeed;
+            var velocity = (_input.magnitude > 0.1f ? _input : _rootTransform.forward) * _horizontalSpeed;
             velocity.y = _verticalSpeed;
             return velocity;
         }
