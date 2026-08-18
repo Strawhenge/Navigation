@@ -16,6 +16,7 @@ namespace Strawhenge.Navigation.Unity
         }
 
         public event Action JumpTriggerRequested;
+
         public event Action JumpBegan
         {
             add => _destinationController.JumpBegan += value;
@@ -27,7 +28,9 @@ namespace Strawhenge.Navigation.Unity
             add => _destinationController.JumpEnded += value;
             remove => _destinationController.JumpEnded -= value;
         }
+
         public event Action<int> PivotRequested;
+
         public event Action FallBegan
         {
             add => _destinationController.FallBegan += value;
@@ -39,6 +42,7 @@ namespace Strawhenge.Navigation.Unity
             add => _destinationController.FallEnded += value;
             remove => _destinationController.FallEnded -= value;
         }
+
         public event Action<int> LandingRequested;
 
         public event Action<bool> IsActiveChanged
@@ -75,7 +79,7 @@ namespace Strawhenge.Navigation.Unity
 
         public bool IsActive => _destinationController.IsActive;
 
-        public bool Strafe { get; }
+        public bool Strafe => _destinationController.IsStrafing;
 
         public void TriggerJump()
         {

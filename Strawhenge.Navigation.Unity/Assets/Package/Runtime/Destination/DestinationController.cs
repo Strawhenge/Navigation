@@ -12,7 +12,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         internal DestinationController(IDestinationContext context, Agent agent)
         {
             _agent = agent.NavMeshAgent;
-
+            
             var statesContainer = new StatesContainer(
                 context,
                 agent,
@@ -34,6 +34,8 @@ namespace Strawhenge.Navigation.Unity.Destination
         public bool IsActive => _state.IsActive;
 
         public Vector3 CurrentVelocity => _state.Velocity;
+
+        public bool IsStrafing => _state.IsActive && !_agent.updateRotation;
 
         public bool IsLocationAccessible(Vector3 location) => _agent.IsLocationAccessible(location);
 
