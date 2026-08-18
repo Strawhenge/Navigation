@@ -1,10 +1,11 @@
+using Strawhenge.Common.Unity.Helpers;
 using System;
 using System.Linq;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
 {
-    public class LocomotionScript : MonoBehaviour
+    public sealed class LocomotionScript : MonoBehaviour
     {
         [SerializeField] CharacterController _characterController;
         [SerializeField] SerializedLocomotionSettings _settings;
@@ -30,6 +31,31 @@ namespace Strawhenge.Navigation.Unity
         bool _isPivoting;
         bool _isAwaitingStationaryPivot;
         SerializedPivot _stationaryPivot;
+        
+        void Awake()
+        {
+            ComponentRefHelper
+                .EnsureHierarchyComponent(ref _characterController, nameof(_characterController), this);
+        }
+
+        void Update()
+        {
+            HandleFalling();
+            HandleRotation();
+            HandleMovement();
+        }
+
+        void OnEnable()
+        {
+            _characterController.enabled = true;
+            IsActiveChanged?.Invoke(true);
+        }
+
+        void OnDisable()
+        {
+            _characterController.enabled = false;
+            IsActiveChanged?.Invoke(false);
+        }
 
         public event Action JumpTriggerRequested;
 
@@ -118,25 +144,6 @@ namespace Strawhenge.Navigation.Unity
         {
             if (!_isLanding) return;
             _isLanding = false;
-        }
-
-        void Update()
-        {
-            HandleFalling();
-            HandleRotation();
-            HandleMovement();
-        }
-
-        void OnEnable()
-        {
-            _characterController.enabled = true;
-            IsActiveChanged?.Invoke(true);
-        }
-
-        void OnDisable()
-        {
-            _characterController.enabled = false;
-            IsActiveChanged?.Invoke(false);
         }
 
         void HandleRotation()
