@@ -14,12 +14,14 @@ namespace Strawhenge.Navigation.Unity.Destination
             float speed,
             bool locationMustBeExact,
             bool leisurely,
+            bool strafe,
             Action<DestinationResult> callback)
         {
             Location = location;
             Speed = speed;
             LocationMustBeExact = locationMustBeExact;
             Leisurely = leisurely;
+            Strafe = strafe;
             Callback = callback;
         }
 
@@ -38,6 +40,8 @@ namespace Strawhenge.Navigation.Unity.Destination
         internal bool LocationMustBeExact { get; private set; }
 
         internal bool Leisurely { get; private set; }
+        
+        internal bool Strafe { get; private set; }
 
         internal Action<DestinationResult> Callback { get; private set; }
     }

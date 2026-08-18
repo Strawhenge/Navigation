@@ -12,6 +12,8 @@ namespace Strawhenge.Navigation.Unity.Destination
         IDestinationArgsBuilder WithinDistance(float distance);
 
         IDestinationArgsBuilder Leisurely();
+        
+        IDestinationArgsBuilder Strafe();
 
         IDestinationArgsBuilder FromStartingPoint(Vector3 point);
 

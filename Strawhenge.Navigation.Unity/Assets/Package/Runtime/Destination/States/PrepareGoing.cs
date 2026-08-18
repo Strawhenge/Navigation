@@ -67,7 +67,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             _agent.NavMeshAgent.isStopped = true;
             _agent.NavMeshAgent.updatePosition = true;
-            _agent.NavMeshAgent.updateRotation = true;
+            _agent.NavMeshAgent.updateRotation = !CurrentArgs.Strafe;
 
             if (_agent.NavMeshAgent.stoppingDistance <= 0)
             {

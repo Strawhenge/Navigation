@@ -12,6 +12,7 @@ namespace Strawhenge.Navigation.Unity.Editor
         Vector3 _location;
         float _speed = 1;
         bool _leisurely;
+        bool _strafe;
         string _info;
 
         void OnEnable()
@@ -35,6 +36,7 @@ namespace Strawhenge.Navigation.Unity.Editor
 
             _speed = EditorGUILayout.FloatField("Speed", _speed);
             _leisurely = EditorGUILayout.Toggle("Leisurely", _leisurely);
+            _strafe = EditorGUILayout.Toggle("Strafe", _strafe);
 
             EditorGUI.BeginDisabledGroup(!Application.isPlaying);
             EditorGUILayout.Separator();
@@ -42,13 +44,13 @@ namespace Strawhenge.Navigation.Unity.Editor
             if (GUILayout.Button(nameof(DestinationControllerExtensions.GoToExactly)))
             {
                 _info = null;
-                _target.DestinationController.GoToExactly(_location, _speed, Callback, _leisurely);
+                _target.DestinationController.GoToExactly(_location, _speed, Callback, _leisurely, _strafe);
             }
 
             if (GUILayout.Button(nameof(DestinationControllerExtensions.GoToApproximately)))
             {
                 _info = null;
-                _target.DestinationController.GoToApproximately(_location, _speed, Callback, _leisurely);
+                _target.DestinationController.GoToApproximately(_location, _speed, Callback, _leisurely, _strafe);
             }
 
             if (GUILayout.Button(nameof(DestinationController.IsLocationAccessible)))

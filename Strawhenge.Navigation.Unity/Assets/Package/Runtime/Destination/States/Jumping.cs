@@ -172,7 +172,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (_agent.NavMeshAgent.isActiveAndEnabled)
             {
                 _agent.NavMeshAgent.updatePosition = true;
-                _agent.NavMeshAgent.updateRotation = true;
+                _agent.NavMeshAgent.updateRotation = !CurrentArgs.Strafe;
                 _agent.NavMeshAgent.isStopped = false;
             }
         }
@@ -185,6 +185,5 @@ namespace Strawhenge.Navigation.Unity.Destination
             States.CannotNavigate.CurrentArgs = CurrentArgs;
             ChangeState(States.CannotNavigate);
         }
-
     }
 }

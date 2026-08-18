@@ -12,6 +12,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             float? _distance;
             bool _leisurely;
+            bool _strafe;
             float _speed = 1;
             Vector3? _startingPoint;
             Action<DestinationResult> _callback = _ => { };
@@ -37,6 +38,12 @@ namespace Strawhenge.Navigation.Unity.Destination
             public IDestinationArgsBuilder Leisurely()
             {
                 _leisurely = true;
+                return this;
+            }
+
+            public IDestinationArgsBuilder Strafe()
+            {
+                _strafe = true;
                 return this;
             }
 
@@ -67,6 +74,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                     Speed = _speed,
                     LocationMustBeExact = _exact,
                     Leisurely = _leisurely,
+                    Strafe = _strafe,
                     TargetDistance = _distance,
                     Callback = _callback
                 };
