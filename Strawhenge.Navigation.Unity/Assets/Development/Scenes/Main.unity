@@ -3538,89 +3538,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _characterController: {fileID: 6692772569148810662}
   _settings:
-    _walkSpeed: 1.5
-    _runSpeed: 5
-    _sprintSpeed: 8
-    _acceleration: 10
-    _deceleration: 30
-    _turnSpeed: 360
-    _stationaryPivots:
-    - _id: 3
-      _speedRange:
-        _min: 0
-        _max: 1
-      _angleRanges:
-      - _min: -190
-        _max: -170
-    - _id: 4
-      _speedRange:
-        _min: 0
-        _max: 1
-      _angleRanges:
-      - _min: 170
-        _max: 190
-    - _id: 5
-      _speedRange:
-        _min: 0
-        _max: 1
-      _angleRanges:
-      - _min: -110
-        _max: -60
-    - _id: 6
-      _speedRange:
-        _min: 0
-        _max: 1
-      _angleRanges:
-      - _min: 60
-        _max: 110
-    _movingPivots:
-    - _id: 1
-      _speedRange:
-        _min: 2
-        _max: Infinity
-      _angleRanges:
-      - _min: -190
-        _max: -170
-      - _min: 170
-        _max: 190
-    - _id: 2
-      _speedRange:
-        _min: 1
-        _max: 2
-      _angleRanges:
-      - _min: -190
-        _max: -150
-      - _min: 150
-        _max: 190
-    _jumpHeight: 1
-    _coyoteTime: 0.2
-    _deferJumpTrigger: 1
-    _jumpLandings:
-    - _id: 1
-      _fallDistanceRange:
-        _min: 0
-        _max: 3
-      _speedRange:
-        _min: 0
-        _max: 2
-    _gravity: -9.81
-    _groundedGravity: -2
-    _fallDistance: 1
-    _fallLandings:
-    - _id: 2
-      _fallDistanceRange:
-        _min: 3
-        _max: Infinity
-      _speedRange:
-        _min: 0
-        _max: Infinity
-    - _id: 1
-      _fallDistanceRange:
-        _min: 0
-        _max: 3
-      _speedRange:
-        _min: 0
-        _max: 2
+    _serialized:
+      _walkSpeed: 1.5
+      _runSpeed: 5
+      _sprintSpeed: 8
+      _acceleration: 10
+      _deceleration: 30
+      _turnSpeed: 360
+      _stationaryPivots: []
+      _movingPivots: []
+      _jumpHeight: 1
+      _coyoteTime: 0.2
+      _deferJumpTrigger: 0
+      _jumpLandings: []
+      _gravity: -9.81
+      _groundedGravity: -2
+      _fallDistance: 1
+      _fallLandings: []
+    _scriptableObject: {fileID: 11400000, guid: a787ed6e6322d564c930586c134a40cd, type: 2}
+    _type: 2
 --- !u!143 &6692772569148810662
 CharacterController:
   m_ObjectHideFlags: 0
@@ -3737,6 +3673,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _locomotion: {fileID: 6692772569148810661}
   _destination: {fileID: 6692772569148810665}
+  _conditions: {fileID: 0}
 --- !u!114 &6692772569148810669
 MonoBehaviour:
   m_ObjectHideFlags: 0

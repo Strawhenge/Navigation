@@ -1,4 +1,5 @@
 using Strawhenge.Common.Unity.Helpers;
+using Strawhenge.Common.Unity.Serialization;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -8,7 +9,13 @@ namespace Strawhenge.Navigation.Unity
     public sealed class LocomotionScript : MonoBehaviour
     {
         [SerializeField] CharacterController _characterController;
-        [SerializeField] SerializedLocomotionSettings _settings;
+
+        [SerializeField] SerializedSource<
+            ILocomotionSettings,
+            SerializedLocomotionSettings,
+            LocomotionSettingsScriptableObject> _settings;
+
+        ILocomotionSettings _locomotionSettings;
 
         Vector3 _input;
 
@@ -31,11 +38,17 @@ namespace Strawhenge.Navigation.Unity
         bool _isPivoting;
         bool _isAwaitingStationaryPivot;
         SerializedPivot _stationaryPivot;
-        
+
         void Awake()
         {
             ComponentRefHelper
                 .EnsureHierarchyComponent(ref _characterController, nameof(_characterController), this);
+
+            if (!_settings.TryGetValue(out _locomotionSettings))
+            {
+                Debug.LogWarning($"'{nameof(_settings)} not set - using defaults.");
+                _locomotionSettings = DefaultLocomotionSettings.Instance;
+            }
         }
 
         void Update()
@@ -113,12 +126,12 @@ namespace Strawhenge.Navigation.Unity
 
         public void Jump()
         {
-            if (_isJumping || _isPivoting || _isLanding || _fallTime > _settings.CoyoteTime)
+            if (_isJumping || _isPivoting || _isLanding || _fallTime > _locomotionSettings.CoyoteTime)
                 return;
 
             _isAwaitingJumpTrigger = true;
 
-            if (_settings.DeferJumpTrigger)
+            if (_locomotionSettings.DeferJumpTrigger)
                 JumpTriggerRequested?.Invoke();
             else
                 TriggerJump();
@@ -184,12 +197,12 @@ namespace Strawhenge.Navigation.Unity
             transform.rotation = Quaternion.RotateTowards(
                 transform.rotation,
                 _targetRotation,
-                _settings.TurnSpeed * Time.deltaTime);
+                _locomotionSettings.TurnSpeed * Time.deltaTime);
         }
 
         bool CheckForStationaryPivots(out SerializedPivot matchingPivot)
         {
-            foreach (var pivot in _settings.StationaryPivots)
+            foreach (var pivot in _locomotionSettings.StationaryPivots)
             {
                 if (pivot.SpeedRange.IsInRange(_horizontalSpeed) &&
                     pivot.AngleRanges.Any(angleRange => angleRange.IsInRange(_turnAngle)))
@@ -211,7 +224,7 @@ namespace Strawhenge.Navigation.Unity
                 return false;
             }
 
-            foreach (var pivot in _settings.MovingPivots)
+            foreach (var pivot in _locomotionSettings.MovingPivots)
             {
                 if (pivot.SpeedRange.IsInRange(_horizontalSpeed) &&
                     pivot.AngleRanges.Any(angleRange => angleRange.IsInRange(_turnAngle)))
@@ -246,7 +259,7 @@ namespace Strawhenge.Navigation.Unity
             var fallDistance = _fallDistance;
             _fallDistance = Mathf.Max(0f, _groundedY - transform.position.y);
 
-            var isFalling = !_characterController.isGrounded && _fallDistance >= _settings.FallDistance;
+            var isFalling = !_characterController.isGrounded && _fallDistance >= _locomotionSettings.FallDistance;
             if (isFalling != _isFalling)
             {
                 _isFalling = isFalling;
@@ -256,7 +269,7 @@ namespace Strawhenge.Navigation.Unity
                     return;
                 }
 
-                foreach (var landing in _settings.FallLandings)
+                foreach (var landing in _locomotionSettings.FallLandings)
                 {
                     if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
                         landing.FallDistanceRange.IsInRange(fallDistance))
@@ -295,9 +308,9 @@ namespace Strawhenge.Navigation.Unity
                 acceleration * Time.deltaTime);
 
             if (Mathf.Abs(_turnAngle) >= 120f)
-                speed = Mathf.Min(speed, _settings.WalkSpeed);
+                speed = Mathf.Min(speed, _locomotionSettings.WalkSpeed);
             else if (Mathf.Abs(_turnAngle) >= 40f)
-                speed = Mathf.Min(speed, _settings.RunSpeed);
+                speed = Mathf.Min(speed, _locomotionSettings.RunSpeed);
 
             _horizontalSpeed = speed;
         }
@@ -308,7 +321,7 @@ namespace Strawhenge.Navigation.Unity
             {
                 _jump = false;
                 _isJumping = true;
-                _verticalSpeed = Mathf.Sqrt(_settings.JumpHeight * -2f * _settings.Gravity);
+                _verticalSpeed = Mathf.Sqrt(_locomotionSettings.JumpHeight * -2f * _locomotionSettings.Gravity);
                 JumpBegan?.Invoke();
                 return;
             }
@@ -320,7 +333,7 @@ namespace Strawhenge.Navigation.Unity
 
                 if (!_isLanding)
                 {
-                    foreach (var landing in _settings.JumpLandings)
+                    foreach (var landing in _locomotionSettings.JumpLandings)
                     {
                         if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
                             landing.FallDistanceRange.IsInRange(_fallDistance))
@@ -334,12 +347,12 @@ namespace Strawhenge.Navigation.Unity
 
             if (!_characterController.isGrounded)
             {
-                _verticalSpeed += _settings.Gravity * Time.deltaTime;
+                _verticalSpeed += _locomotionSettings.Gravity * Time.deltaTime;
                 return;
             }
 
             _verticalSpeed = _verticalSpeed < 0f
-                ? _settings.GroundedGravity
+                ? _locomotionSettings.GroundedGravity
                 : _verticalSpeed;
         }
 
@@ -369,17 +382,17 @@ namespace Strawhenge.Navigation.Unity
             if (_input.sqrMagnitude < 0.001f)
                 return 0f;
             if (Sprint)
-                return Strafe ? _settings.RunSpeed : _settings.SprintSpeed;
+                return Strafe ? _locomotionSettings.RunSpeed : _locomotionSettings.SprintSpeed;
             if (Walk)
-                return _settings.WalkSpeed;
-            return _settings.RunSpeed;
+                return _locomotionSettings.WalkSpeed;
+            return _locomotionSettings.RunSpeed;
         }
 
         float GetAcceleration(float targetSpeed)
         {
             return targetSpeed > _horizontalSpeed
-                ? _settings.Acceleration
-                : _settings.Deceleration;
+                ? _locomotionSettings.Acceleration
+                : _locomotionSettings.Deceleration;
         }
 
         void Pivot(int pivotId)

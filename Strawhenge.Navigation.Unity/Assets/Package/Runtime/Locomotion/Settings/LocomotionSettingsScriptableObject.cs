@@ -1,10 +1,9 @@
-using System;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
 {
-    [Serializable]
-    public class SerializedLocomotionSettings : ILocomotionSettings
+    [CreateAssetMenu(menuName = "Strawhenge/Navigation/Locomotion Settings")]
+    public class LocomotionSettingsScriptableObject : ScriptableObject, ILocomotionSettings
     {
         [SerializeField, Header("Speed")] float _walkSpeed = DefaultLocomotionSettings.WalkSpeed;
         [SerializeField] float _runSpeed = DefaultLocomotionSettings.RunSpeed;
@@ -51,7 +50,7 @@ namespace Strawhenge.Navigation.Unity
         public float CoyoteTime => _coyoteTime;
 
         public bool DeferJumpTrigger => _deferJumpTrigger;
-        
+
         public SerializedLanding[] JumpLandings => _jumpLandings;
 
         public float Gravity => _gravity;
@@ -59,7 +58,7 @@ namespace Strawhenge.Navigation.Unity
         public float GroundedGravity => _groundedGravity;
 
         public float FallDistance => _fallDistance;
-        
+
         public SerializedLanding[] FallLandings => _fallLandings;
     }
 }
