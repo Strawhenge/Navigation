@@ -48,7 +48,7 @@ namespace Strawhenge.Navigation.Unity
         public void CompletePivot(Quaternion rotationDelta) => _activeSource.CompletePivot(rotationDelta);
 
         public void CompleteLanding() => _activeSource.CompleteLanding();
-      
+
         public void SetMovementSource(IMovementSource source)
         {
             if (source == null)
@@ -63,7 +63,8 @@ namespace Strawhenge.Navigation.Unity
 
         public void AddMovementSource(IMovementSource source)
         {
-            if (source == null || ReferenceEquals(source, NullMovementSource.Instance) || _movementSources.Contains(source))
+            if (source == null || ReferenceEquals(source, NullMovementSource.Instance) ||
+                _movementSources.Contains(source))
                 return;
 
             _movementSources.Add(source);
@@ -95,7 +96,7 @@ namespace Strawhenge.Navigation.Unity
             }
 
             if (_locomotion != null)
-                AddMovementSource(_locomotion);
+                AddMovementSource(new LocomotionMovementSource(_locomotion));
         }
 
         void RefreshActiveSource()
@@ -103,7 +104,7 @@ namespace Strawhenge.Navigation.Unity
             var nextSource = GetFirstActiveSource();
             if (ReferenceEquals(_activeSource, nextSource))
                 return;
-        
+
             UnsubscribeFromSource(_activeSource);
             _activeSource = nextSource;
             SubscribeToSource(_activeSource);
@@ -181,6 +182,3 @@ namespace Strawhenge.Navigation.Unity
         void OnSourceIsActiveChanged(bool isActive) => RefreshActiveSource();
     }
 }
-
-
-
