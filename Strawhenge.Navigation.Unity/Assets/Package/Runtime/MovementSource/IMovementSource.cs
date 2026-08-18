@@ -18,7 +18,7 @@ namespace Strawhenge.Navigation.Unity
 
         bool IsActive { get; }
       
-        bool Strafe { get; }
+        bool IsStrafing { get; }
 
         void TriggerJump();
      

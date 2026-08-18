@@ -64,7 +64,7 @@ namespace Strawhenge.Navigation.Unity
        
         public bool IsActive => _locomotion.IsActive;
       
-        public bool Strafe => _locomotion.Strafe;
+        public bool IsStrafing => _locomotion.Strafe;
         
         public void TriggerJump()
         {

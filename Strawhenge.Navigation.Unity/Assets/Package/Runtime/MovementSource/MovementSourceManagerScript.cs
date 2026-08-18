@@ -27,7 +27,7 @@ namespace Strawhenge.Navigation.Unity
 
         public bool IsActive => _activeSource.IsActive;
 
-        public bool Strafe => _activeSource.Strafe;
+        public bool Strafe => _activeSource.IsStrafing;
 
         void Awake()
         {

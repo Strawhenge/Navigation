@@ -79,7 +79,7 @@ namespace Strawhenge.Navigation.Unity
 
         public bool IsActive => _destinationController.IsActive;
 
-        public bool Strafe => _destinationController.IsStrafing;
+        public bool IsStrafing => _destinationController.IsStrafing;
 
         public void TriggerJump()
         {
