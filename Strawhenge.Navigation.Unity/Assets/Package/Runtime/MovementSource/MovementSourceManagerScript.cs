@@ -1,4 +1,3 @@
-using Strawhenge.Navigation.Unity.Destination;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,13 +6,11 @@ namespace Strawhenge.Navigation.Unity
 {
     public sealed class MovementSourceManagerScript : MonoBehaviour
     {
-        [SerializeField] LocomotionScript _locomotion;
-        [SerializeField] DestinationScript _destination;
+        [SerializeField] MovementSourceScript[] _movementSourceScripts;
 
         readonly List<IMovementSource> _movementSources = new();
 
         IMovementSource _activeSource = NullMovementSource.Instance;
-        DestinationMovementSource _destinationSource;
 
         public event Action JumpTriggerRequested;
         public event Action JumpBegan;
@@ -49,54 +46,27 @@ namespace Strawhenge.Navigation.Unity
 
         public void CompleteLanding() => _activeSource.CompleteLanding();
 
-        public void SetMovementSource(IMovementSource source)
-        {
-            if (source == null)
-                return;
-
-            AddMovementSource(source);
-
-            _movementSources.Remove(source);
-            _movementSources.Insert(0, source);
-            RefreshActiveSource();
-        }
-
-        public void AddMovementSource(IMovementSource source)
-        {
-            if (source == null || ReferenceEquals(source, NullMovementSource.Instance) ||
-                _movementSources.Contains(source))
-                return;
-
-            _movementSources.Add(source);
-            SubscribeToSourceActivity(source);
-            RefreshActiveSource();
-        }
-
-        public void RemoveMovementSource(IMovementSource source)
-        {
-            if (source == null)
-                return;
-
-            if (!_movementSources.Remove(source))
-                return;
-
-            UnsubscribeFromSourceActivity(source);
-            if (ReferenceEquals(_activeSource, source))
-                RefreshActiveSource();
-        }
-
         void InitializeMovementSources()
         {
             _movementSources.Clear();
 
-            if (_destination != null)
-            {
-                _destinationSource ??= new DestinationMovementSource(_destination.DestinationController);
-                AddMovementSource(_destinationSource);
-            }
+            if (_movementSourceScripts == null)
+                return;
 
-            if (_locomotion != null)
-                AddMovementSource(new LocomotionMovementSource(_locomotion));
+            foreach (var movementSourceScript in _movementSourceScripts)
+            {
+                if (movementSourceScript == null)
+                    continue;
+
+                var movementSource = movementSourceScript.MovementSource;
+                if (movementSource == null ||
+                    ReferenceEquals(movementSource, NullMovementSource.Instance) ||
+                    _movementSources.Contains(movementSource))
+                    continue;
+
+                _movementSources.Add(movementSource);
+                SubscribeToSourceActivity(movementSource);
+            }
         }
 
         void RefreshActiveSource()
