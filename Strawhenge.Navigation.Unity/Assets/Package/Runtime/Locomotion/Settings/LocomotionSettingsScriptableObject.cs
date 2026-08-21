@@ -1,3 +1,5 @@
+using Strawhenge.Common.Unity.Serialization;
+using System.Linq;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -15,8 +17,16 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _deceleration = DefaultLocomotionSettings.Deceleration;
 
         [SerializeField, Header("Turning")] float _turnSpeed = DefaultLocomotionSettings.TurnSpeed;
-        [SerializeField] SerializedPivotProfile[] _stationaryPivots;
-        [SerializeField] SerializedPivotProfile[] _movingPivots;
+
+        [SerializeField] SerializedSource<
+            IPivotProfile,
+            SerializedPivotProfile,
+            PivotProfileScriptableObject>[] _stationaryPivots;
+
+        [SerializeField] SerializedSource<
+            IPivotProfile,
+            SerializedPivotProfile,
+            PivotProfileScriptableObject>[] _movingPivots;
 
         [SerializeField, Header("Jumping")] float _jumpHeight = DefaultLocomotionSettings.JumpHeight;
         [SerializeField] float _coyoteTime = DefaultLocomotionSettings.CoyoteTime;
@@ -41,9 +51,15 @@ namespace Strawhenge.Navigation.Unity
 
         public float TurnSpeed => _turnSpeed;
 
-        public IPivotProfile[] StationaryPivots => _stationaryPivots;
+        public IPivotProfile[] StationaryPivots => _stationaryPivots
+            .Select(pivot => pivot.TryGetValue(out var value) ? value : null)
+            .Where(pivot => pivot != null)
+            .ToArray();
 
-        public IPivotProfile[] MovingPivots => _movingPivots;
+        public IPivotProfile[] MovingPivots => _movingPivots
+            .Select(pivot => pivot.TryGetValue(out var value) ? value : null)
+            .Where(pivot => pivot != null)
+            .ToArray();
 
         public float JumpHeight => _jumpHeight;
 

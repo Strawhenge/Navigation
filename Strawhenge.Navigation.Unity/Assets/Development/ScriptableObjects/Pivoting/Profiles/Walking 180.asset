@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9c0fd2bc04c50347a0dd3c02cb3edd5, type: 3}
+  m_Name: Walking 180
+  m_EditorClassIdentifier: 
+  _pivot: {fileID: 11400000, guid: a52105f91568e2f4c99a153b76709d10, type: 2}
+  _speedRange:
+    _min: 1
+    _max: 2
+  _angleRanges:
+  - _min: -190
+    _max: -150
+  - _min: 150
+    _max: 190

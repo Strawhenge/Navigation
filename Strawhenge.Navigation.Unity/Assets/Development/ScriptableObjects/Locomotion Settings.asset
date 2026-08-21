@@ -19,59 +19,55 @@ MonoBehaviour:
   _deceleration: 30
   _turnSpeed: 360
   _stationaryPivots:
-  - _pivot: {fileID: 11400000, guid: e5a461be881c57f40b730cde7ac4e3ba, type: 2}
-    _id: 3
-    _speedRange:
-      _min: 0
-      _max: 1
-    _angleRanges:
-    - _min: -190
-      _max: -170
-  - _pivot: {fileID: 11400000, guid: baa75f959fbaa5b4c857d143f69ec367, type: 2}
-    _id: 4
-    _speedRange:
-      _min: 0
-      _max: 1
-    _angleRanges:
-    - _min: 170
-      _max: 190
-  - _pivot: {fileID: 11400000, guid: 8c49ba6b6b017e24c8174d6359c3bb8a, type: 2}
-    _id: 5
-    _speedRange:
-      _min: 0
-      _max: 1
-    _angleRanges:
-    - _min: -110
-      _max: -60
-  - _pivot: {fileID: 11400000, guid: 115b2ad98c89f6049b7b880149a07599, type: 2}
-    _id: 6
-    _speedRange:
-      _min: 0
-      _max: 1
-    _angleRanges:
-    - _min: 60
-      _max: 110
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: 00c25214e74021c488d61c8be34e591e, type: 2}
+    _type: 2
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: 4590b5d14b5dfc344b594f6c90bf6b54, type: 2}
+    _type: 2
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: c32c250deb31de443a7a3126437b2307, type: 2}
+    _type: 2
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: f532752fcacb26e4fb10e4e4f518ee98, type: 2}
+    _type: 2
   _movingPivots:
-  - _pivot: {fileID: 11400000, guid: 6cdf8e745b230d14a9756baa9272438b, type: 2}
-    _id: 1
-    _speedRange:
-      _min: 2
-      _max: Infinity
-    _angleRanges:
-    - _min: -190
-      _max: -170
-    - _min: 170
-      _max: 190
-  - _pivot: {fileID: 11400000, guid: a52105f91568e2f4c99a153b76709d10, type: 2}
-    _id: 2
-    _speedRange:
-      _min: 1
-      _max: 2
-    _angleRanges:
-    - _min: -190
-      _max: -150
-    - _min: 150
-      _max: 190
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: 4534cc0eca9a9a24b8a26fb1aac7a7cb, type: 2}
+    _type: 2
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: 77c40bec15543ee47a830fa01077dbec, type: 2}
+    _type: 2
   _jumpHeight: 1
   _coyoteTime: 0.2
   _deferJumpTrigger: 0
