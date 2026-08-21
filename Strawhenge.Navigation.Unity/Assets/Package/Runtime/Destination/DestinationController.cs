@@ -12,7 +12,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         internal DestinationController(IDestinationContext context, Agent agent)
         {
             _agent = agent.NavMeshAgent;
-            
+
             var statesContainer = new StatesContainer(
                 context,
                 agent,
@@ -43,7 +43,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public void Cancel() => _state.Cancel();
 
-        public void Update(float deltaTime) => _state.Update(deltaTime);
+        internal void Update(float deltaTime) => _state.Update(deltaTime);
 
         void OnJumpBegan() => JumpBegan?.Invoke();
 
