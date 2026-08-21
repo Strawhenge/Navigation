@@ -70,7 +70,7 @@ MonoBehaviour:
     _type: 2
   _jumpHeight: 1
   _coyoteTime: 0.2
-  _deferJumpTrigger: 0
+  _deferJumpTrigger: 1
   _jumpLandings:
   - _serialized:
       _landing: {fileID: 0}
