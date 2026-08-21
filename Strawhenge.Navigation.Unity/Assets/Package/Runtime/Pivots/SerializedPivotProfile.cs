@@ -8,13 +8,13 @@ using UnityEngine;
 namespace Strawhenge.Navigation.Unity
 {
     [Serializable]
-    public class SerializedPivot
+    public class SerializedPivotProfile
     {
-        [SerializeField] int _id;
+        [SerializeField] PivotScriptableObject _pivot;
         [SerializeField] SerializedFloatRange _speedRange;
         [SerializeField] SerializedFloatRange[] _angleRanges;
-        
-        public int Id => _id;
+
+        public int Id => _pivot.Id;
 
         public FloatRange SpeedRange => _speedRange.Value;
 

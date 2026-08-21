@@ -34,9 +34,9 @@ namespace Strawhenge.Navigation.Unity
 
         float ILocomotionSettings.TurnSpeed => TurnSpeed;
 
-        SerializedPivot[] ILocomotionSettings.StationaryPivots => Array.Empty<SerializedPivot>();
+        SerializedPivotProfile[] ILocomotionSettings.StationaryPivots => Array.Empty<SerializedPivotProfile>();
 
-        SerializedPivot[] ILocomotionSettings.MovingPivots => Array.Empty<SerializedPivot>();
+        SerializedPivotProfile[] ILocomotionSettings.MovingPivots => Array.Empty<SerializedPivotProfile>();
 
         float ILocomotionSettings.JumpHeight => JumpHeight;
 
