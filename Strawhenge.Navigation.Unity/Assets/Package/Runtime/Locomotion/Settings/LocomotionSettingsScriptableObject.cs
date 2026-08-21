@@ -7,16 +7,17 @@ namespace Strawhenge.Navigation.Unity
     [CreateAssetMenu(menuName = "Strawhenge/Navigation/Locomotion Settings")]
     public class LocomotionSettingsScriptableObject : ScriptableObject, ILocomotionSettings
     {
-        [SerializeField, Header("Speed")] float _walkSpeed = DefaultLocomotionSettings.WalkSpeed;
+        [Header("Speed")]
+        [SerializeField] float _walkSpeed = DefaultLocomotionSettings.WalkSpeed;
         [SerializeField] float _runSpeed = DefaultLocomotionSettings.RunSpeed;
         [SerializeField] float _sprintSpeed = DefaultLocomotionSettings.SprintSpeed;
 
-        [SerializeField, Header("Acceleration")]
-        float _acceleration = DefaultLocomotionSettings.Acceleration;
-
+        [Header("Acceleration")]
+        [SerializeField] float _acceleration = DefaultLocomotionSettings.Acceleration;
         [SerializeField] float _deceleration = DefaultLocomotionSettings.Deceleration;
 
-        [SerializeField, Header("Turning")] float _turnSpeed = DefaultLocomotionSettings.TurnSpeed;
+        [Header("Turning")]
+        [SerializeField] float _turnSpeed = DefaultLocomotionSettings.TurnSpeed;
 
         [SerializeField] SerializedSource<
             IPivotProfile,
@@ -28,18 +29,23 @@ namespace Strawhenge.Navigation.Unity
             SerializedPivotProfile,
             PivotProfileScriptableObject>[] _movingPivots;
 
-        [SerializeField, Header("Jumping")] float _jumpHeight = DefaultLocomotionSettings.JumpHeight;
+        [Header("Jumping")]
+        [SerializeField] float _jumpHeight = DefaultLocomotionSettings.JumpHeight;
         [SerializeField] float _coyoteTime = DefaultLocomotionSettings.CoyoteTime;
         [SerializeField] bool _deferJumpTrigger;
+
         [SerializeField] SerializedSource<
             ILandingProfile,
             SerializedLandingProfile,
             LandingProfileScriptableObject>[] _jumpLandings;
 
-        [SerializeField, Header("Gravity")] float _gravity = DefaultLocomotionSettings.Gravity;
+        [Header("Gravity")]
+        [SerializeField] float _gravity = DefaultLocomotionSettings.Gravity;
         [SerializeField] float _groundedGravity = DefaultLocomotionSettings.GroundedGravity;
 
-        [SerializeField, Header("Falling")] float _fallDistance = DefaultLocomotionSettings.FallDistance;
+        [Header("Falling")]
+        [SerializeField] float _fallDistance = DefaultLocomotionSettings.FallDistance;
+
         [SerializeField] SerializedSource<
             ILandingProfile,
             SerializedLandingProfile,
