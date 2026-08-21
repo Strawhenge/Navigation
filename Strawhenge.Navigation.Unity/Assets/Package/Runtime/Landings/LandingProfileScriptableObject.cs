@@ -1,12 +1,11 @@
 using Strawhenge.Common.Ranges;
 using Strawhenge.Common.Unity.Serialization;
-using System;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
 {
-    [Serializable]
-    public class SerializedLandingProfile : ILandingProfile
+    [CreateAssetMenu(menuName = "Strawhenge/Navigation/Landing Profile")]
+    public class LandingProfileScriptableObject : ScriptableObject, ILandingProfile
     {
         [SerializeField] LandingScriptableObject _landing;
         [SerializeField] SerializedFloatRange _fallDistanceRange;

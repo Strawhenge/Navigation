@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b5a8dc936ca459694260fcefe839388, type: 3}
+  m_Name: Hard Landing
+  m_EditorClassIdentifier: 
+  _landing: {fileID: 11400000, guid: 165f40ca3b64d9d49a8675b863e2abde, type: 2}
+  _fallDistanceRange:
+    _min: 3
+    _max: Infinity
+  _speedRange:
+    _min: -Infinity
+    _max: Infinity
