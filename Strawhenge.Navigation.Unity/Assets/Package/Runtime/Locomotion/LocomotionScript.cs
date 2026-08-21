@@ -38,7 +38,7 @@ namespace Strawhenge.Navigation.Unity
         float _turnAngle;
         bool _isPivoting;
         bool _isAwaitingStationaryPivot;
-        SerializedPivotProfile _stationaryPivot;
+        IPivotProfile _stationaryPivot;
 
         void Awake()
         {
@@ -203,7 +203,7 @@ namespace Strawhenge.Navigation.Unity
                 _locomotionSettings.TurnSpeed * Time.deltaTime);
         }
 
-        bool CheckForStationaryPivots(out SerializedPivotProfile matchingPivot)
+        bool CheckForStationaryPivots(out IPivotProfile matchingPivot)
         {
             foreach (var pivot in _locomotionSettings.StationaryPivots)
             {
@@ -219,7 +219,7 @@ namespace Strawhenge.Navigation.Unity
             return false;
         }
 
-        bool CheckForMovingPivots(out SerializedPivotProfile matchingPivot)
+        bool CheckForMovingPivots(out IPivotProfile matchingPivot)
         {
             if (_isAwaitingStationaryPivot)
             {

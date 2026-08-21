@@ -42,9 +42,9 @@ namespace Strawhenge.Navigation.Unity
 
         public float TurnSpeed => _turnSpeed;
 
-        public SerializedPivotProfile[] StationaryPivots => _stationaryPivots;
+        public IPivotProfile[] StationaryPivots => _stationaryPivots;
 
-        public SerializedPivotProfile[] MovingPivots => _movingPivots;
+        public IPivotProfile[] MovingPivots => _movingPivots;
 
         public float JumpHeight => _jumpHeight;
 

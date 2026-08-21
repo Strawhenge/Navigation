@@ -14,9 +14,9 @@ namespace Strawhenge.Navigation.Unity
      
         float TurnSpeed { get; }
       
-        SerializedPivotProfile[] StationaryPivots { get; }
-      
-        SerializedPivotProfile[] MovingPivots { get; }
+        IPivotProfile[] StationaryPivots { get; }
+        
+        IPivotProfile[] MovingPivots { get; }
       
         float JumpHeight { get; }
       
