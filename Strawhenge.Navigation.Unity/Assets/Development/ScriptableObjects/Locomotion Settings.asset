@@ -72,7 +72,8 @@ MonoBehaviour:
   _coyoteTime: 0.2
   _deferJumpTrigger: 0
   _jumpLandings:
-  - _id: 1
+  - _landing: {fileID: 11400000, guid: e9047f37b73880a4a9c46aef2b8ea41b, type: 2}
+    _id: 1
     _fallDistanceRange:
       _min: 0
       _max: 3
@@ -83,14 +84,16 @@ MonoBehaviour:
   _groundedGravity: -2
   _fallDistance: 1
   _fallLandings:
-  - _id: 2
+  - _landing: {fileID: 11400000, guid: 165f40ca3b64d9d49a8675b863e2abde, type: 2}
+    _id: 2
     _fallDistanceRange:
       _min: 3
       _max: Infinity
     _speedRange:
       _min: 0
       _max: 0
-  - _id: 1
+  - _landing: {fileID: 11400000, guid: e9047f37b73880a4a9c46aef2b8ea41b, type: 2}
+    _id: 1
     _fallDistanceRange:
       _min: 0
       _max: 3
