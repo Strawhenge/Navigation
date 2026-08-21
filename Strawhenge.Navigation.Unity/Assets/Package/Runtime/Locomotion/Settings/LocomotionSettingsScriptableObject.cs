@@ -67,7 +67,7 @@ namespace Strawhenge.Navigation.Unity
 
         public bool DeferJumpTrigger => _deferJumpTrigger;
 
-        public SerializedLandingProfile[] JumpLandings => _jumpLandings;
+        public ILandingProfile[] JumpLandings => _jumpLandings;
 
         public float Gravity => _gravity;
 
@@ -75,6 +75,6 @@ namespace Strawhenge.Navigation.Unity
 
         public float FallDistance => _fallDistance;
 
-        public SerializedLandingProfile[] FallLandings => _fallLandings;
+        public ILandingProfile[] FallLandings => _fallLandings;
     }
 }

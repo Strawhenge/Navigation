@@ -24,7 +24,7 @@ namespace Strawhenge.Navigation.Unity
       
         bool DeferJumpTrigger { get; }
        
-        SerializedLandingProfile[] JumpLandings { get; }
+        ILandingProfile[] JumpLandings { get; }
        
         float Gravity { get; }
       
@@ -32,6 +32,6 @@ namespace Strawhenge.Navigation.Unity
       
         float FallDistance { get; }
        
-        SerializedLandingProfile[] FallLandings { get; }
+        ILandingProfile[] FallLandings { get; }
     }
 }
