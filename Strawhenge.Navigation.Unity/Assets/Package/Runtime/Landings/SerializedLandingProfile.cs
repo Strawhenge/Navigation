@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Strawhenge.Navigation.Unity
 {
     [Serializable]
-    public class SerializedLanding
+    public class SerializedLandingProfile
     {
         [SerializeField] int _id;
         [SerializeField] SerializedFloatRange _fallDistanceRange;

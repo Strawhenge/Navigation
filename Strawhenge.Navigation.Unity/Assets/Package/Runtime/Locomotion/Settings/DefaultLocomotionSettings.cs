@@ -44,7 +44,7 @@ namespace Strawhenge.Navigation.Unity
 
         bool ILocomotionSettings.DeferJumpTrigger => false;
 
-        SerializedLanding[] ILocomotionSettings.JumpLandings => Array.Empty<SerializedLanding>();
+        SerializedLandingProfile[] ILocomotionSettings.JumpLandings => Array.Empty<SerializedLandingProfile>();
 
         float ILocomotionSettings.Gravity => Gravity;
 
@@ -52,6 +52,6 @@ namespace Strawhenge.Navigation.Unity
 
         float ILocomotionSettings.FallDistance => FallDistance;
 
-        SerializedLanding[] ILocomotionSettings.FallLandings => Array.Empty<SerializedLanding>();
+        SerializedLandingProfile[] ILocomotionSettings.FallLandings => Array.Empty<SerializedLandingProfile>();
     }
 }
