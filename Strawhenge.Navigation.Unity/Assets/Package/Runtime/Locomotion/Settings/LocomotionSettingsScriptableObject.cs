@@ -31,13 +31,19 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField, Header("Jumping")] float _jumpHeight = DefaultLocomotionSettings.JumpHeight;
         [SerializeField] float _coyoteTime = DefaultLocomotionSettings.CoyoteTime;
         [SerializeField] bool _deferJumpTrigger;
-        [SerializeField] SerializedLandingProfile[] _jumpLandings;
+        [SerializeField] SerializedSource<
+            ILandingProfile,
+            SerializedLandingProfile,
+            LandingProfileScriptableObject>[] _jumpLandings;
 
         [SerializeField, Header("Gravity")] float _gravity = DefaultLocomotionSettings.Gravity;
         [SerializeField] float _groundedGravity = DefaultLocomotionSettings.GroundedGravity;
 
         [SerializeField, Header("Falling")] float _fallDistance = DefaultLocomotionSettings.FallDistance;
-        [SerializeField] SerializedLandingProfile[] _fallLandings;
+        [SerializeField] SerializedSource<
+            ILandingProfile,
+            SerializedLandingProfile,
+            LandingProfileScriptableObject>[] _fallLandings;
 
         public float WalkSpeed => _walkSpeed;
 
@@ -67,7 +73,10 @@ namespace Strawhenge.Navigation.Unity
 
         public bool DeferJumpTrigger => _deferJumpTrigger;
 
-        public ILandingProfile[] JumpLandings => _jumpLandings;
+        public ILandingProfile[] JumpLandings => _jumpLandings
+            .Select(landing => landing.TryGetValue(out var value) ? value : null)
+            .Where(landing => landing != null)
+            .ToArray();
 
         public float Gravity => _gravity;
 
@@ -75,6 +84,9 @@ namespace Strawhenge.Navigation.Unity
 
         public float FallDistance => _fallDistance;
 
-        public ILandingProfile[] FallLandings => _fallLandings;
+        public ILandingProfile[] FallLandings => _fallLandings
+            .Select(landing => landing.TryGetValue(out var value) ? value : null)
+            .Where(landing => landing != null)
+            .ToArray();
     }
 }
