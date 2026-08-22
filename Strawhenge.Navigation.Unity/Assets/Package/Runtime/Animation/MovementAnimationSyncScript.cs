@@ -1,4 +1,5 @@
 using UnityEngine;
+using Strawhenge.Common.Unity;
 
 namespace Strawhenge.Navigation.Unity
 {
