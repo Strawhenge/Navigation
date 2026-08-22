@@ -14,12 +14,9 @@ namespace Strawhenge.Navigation.Unity.Destination
             _priorityManager = priorityManager;
 
             NavMeshAgent = agent;
-            Rigidbody = agent.GetComponent<Rigidbody>();
         }
 
         public NavMeshAgent NavMeshAgent { get; }
-
-        public Rigidbody Rigidbody { get; }
 
         public void Enable(bool leisurely)
         {

@@ -47,12 +47,10 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (ShouldWaitForNextUpdate())
                 return;
 
-            _agent.Rigidbody.isKinematic = true;
-
             _agent.Enable(CurrentArgs.Leisurely);
 
             _agent.NavMeshAgent.Warp(
-                CurrentArgs.StartingLocation ?? _agent.Rigidbody.position);
+                CurrentArgs.StartingLocation ?? _agent.GetCurrentPosition());
 
             if (!_agent.NavMeshAgent.isOnNavMesh)
             {
