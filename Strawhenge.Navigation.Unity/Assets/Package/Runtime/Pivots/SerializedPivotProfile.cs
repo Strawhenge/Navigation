@@ -14,10 +14,12 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] SerializedFloatRange _speedRange;
         [SerializeField] SerializedFloatRange[] _angleRanges;
 
-        public int Id => _pivot.Id;
+        // Not _pivot?.Id: '?.' skips Unity's null check, so a missing asset could count as assigned.
+        public int? Id => _pivot != null ? _pivot.Id : null;
 
         public FloatRange SpeedRange => _speedRange.Value;
 
-        public IEnumerable<FloatRange> AngleRanges => _angleRanges.Select(angleRange => angleRange.Value);
+        public IEnumerable<FloatRange> AngleRanges =>
+            _angleRanges?.Select(angleRange => angleRange.Value) ?? Enumerable.Empty<FloatRange>();
     }
 }

@@ -12,7 +12,7 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] SerializedFloatRange _fallDistanceRange;
         [SerializeField] SerializedFloatRange _speedRange;
 
-        public int Id => _landing.Id;
+        public int? Id => _landing != null ? _landing.Id : null;
 
         public FloatRange FallDistanceRange => _fallDistanceRange.Value;
 

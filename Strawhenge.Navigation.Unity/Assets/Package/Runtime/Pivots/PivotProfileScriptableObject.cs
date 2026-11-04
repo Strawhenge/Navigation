@@ -11,7 +11,7 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] SerializedFloatRange _speedRange;
         [SerializeField] SerializedFloatRange[] _angleRanges;
 
-        public int Id => _pivot != null ? _pivot.Id : 0;
+        public int? Id => _pivot != null ? _pivot.Id : null;
 
         public Strawhenge.Common.Ranges.FloatRange SpeedRange => _speedRange.Value;
 

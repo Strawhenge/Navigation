@@ -2,7 +2,8 @@ namespace Strawhenge.Navigation.Unity
 {
     public interface IPivotProfile
     {
-        int Id { get; }
+        // Null when the profile has no pivot asset; such profiles are ignored when settings resolve them.
+        int? Id { get; }
 
         Strawhenge.Common.Ranges.FloatRange SpeedRange { get; }
 
