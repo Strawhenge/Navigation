@@ -51,6 +51,9 @@ namespace Strawhenge.Navigation.Unity.Destination
             pending?.Callback(DestinationResult.CancelledByNewDestination);
         }
 
+        // After the traversal, go through PrepareGoing rather than Going, since the agent's path is gone.
+        protected internal override void OnAgentReactivated() => _agentUnavailable = true;
+
         protected internal override void Update(float deltaTime)
         {
             if (!_context.CanNavigate)

@@ -67,6 +67,14 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.destination = args.Location;
         }
 
+        protected internal override void OnAgentReactivated()
+        {
+            // Same request, so no callback: PrepareGoing re-enables the agent, warps it to where it is,
+            // reserves its slot and calculates the path again.
+            States.PrepareGoing.CurrentArgs = CurrentArgs;
+            ChangeState(States.PrepareGoing);
+        }
+
         protected internal override void Update(float deltaTime)
         {
             if (!_context.CanNavigate || IsAgentUnavailable())
