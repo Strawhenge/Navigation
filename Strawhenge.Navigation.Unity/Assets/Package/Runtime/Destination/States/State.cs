@@ -11,6 +11,9 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal virtual bool IsActive => true;
 
+        // Whether this is the controller's current state. Maintained by DestinationController.
+        internal bool IsCurrent { get; set; }
+
         protected internal abstract Vector3 Velocity { get; }
 
         protected internal abstract void GoTo(DestinationArgs args);

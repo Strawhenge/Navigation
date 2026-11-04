@@ -30,9 +30,10 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal override void GoTo(DestinationArgs args)
         {
-            CurrentArgs.Callback(
-                DestinationResult.CancelledByNewDestination);
+            var previous = CurrentArgs;
             CurrentArgs = args;
+
+            previous.Callback(DestinationResult.CancelledByNewDestination);
         }
 
         protected internal override void Update(float deltaTime)
