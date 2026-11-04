@@ -176,21 +176,8 @@ namespace Strawhenge.Navigation.Unity.Tests
             ground.transform.localScale = new Vector3(10, 1, 10); // 100 m x 100 m
             _created.Add(ground);
 
-            // Built inactive so the settings are in place before Awake runs.
-            var character = new GameObject("Character");
-            character.SetActive(false);
-            _created.Add(character);
-
-            // Default CharacterController: height 2, centred on the transform,
-            // so its feet sit 0.1 m above the ground.
-            character.transform.position = new Vector3(0, 1.1f, 0);
-            var characterController = character.AddComponent<CharacterController>();
-
-            _locomotion = character.AddComponent<LocomotionScript>();
-            _locomotion.SetCharacterController(characterController);
-            _locomotion.SetSettings(settings);
-
-            character.SetActive(true);
+            // Feet 0.1 m above the ground.
+            _locomotion = LocomotionTestCharacter.Create(settings, new Vector3(0, 1.1f, 0), _created);
         }
 
         static IEnumerator Settle()
@@ -232,54 +219,6 @@ namespace Strawhenge.Navigation.Unity.Tests
                 elapsed += Time.deltaTime;
                 yield return null;
             }
-        }
-
-        sealed class FakeLocomotionSettings : ILocomotionSettings
-        {
-            public float WalkSpeed { get; set; } = DefaultLocomotionSettings.WalkSpeed;
-            public float RunSpeed { get; set; } = DefaultLocomotionSettings.RunSpeed;
-            public float SprintSpeed { get; set; } = DefaultLocomotionSettings.SprintSpeed;
-            public float Acceleration { get; set; } = DefaultLocomotionSettings.Acceleration;
-            public float Deceleration { get; set; } = DefaultLocomotionSettings.Deceleration;
-            public float TurnSpeed { get; set; } = DefaultLocomotionSettings.TurnSpeed;
-            public IPivotProfile[] StationaryPivots { get; set; } = Array.Empty<IPivotProfile>();
-            public IPivotProfile[] MovingPivots { get; set; } = Array.Empty<IPivotProfile>();
-            public float JumpHeight { get; set; } = DefaultLocomotionSettings.JumpHeight;
-            public float CoyoteTime { get; set; } = DefaultLocomotionSettings.CoyoteTime;
-            public bool DeferJumpTrigger { get; set; }
-            public ILandingProfile[] JumpLandings { get; set; } = Array.Empty<ILandingProfile>();
-            public float Gravity { get; set; } = DefaultLocomotionSettings.Gravity;
-            public float GroundedGravity { get; set; } = DefaultLocomotionSettings.GroundedGravity;
-            public float FallDistance { get; set; } = DefaultLocomotionSettings.FallDistance;
-            public ILandingProfile[] FallLandings { get; set; } = Array.Empty<ILandingProfile>();
-        }
-
-        sealed class FakePivotProfile : IPivotProfile
-        {
-            public FakePivotProfile(int id, FloatRange speedRange, params FloatRange[] angleRanges)
-            {
-                Id = id;
-                SpeedRange = speedRange;
-                AngleRanges = angleRanges;
-            }
-
-            public int Id { get; }
-            public FloatRange SpeedRange { get; }
-            public IEnumerable<FloatRange> AngleRanges { get; }
-        }
-
-        sealed class FakeLandingProfile : ILandingProfile
-        {
-            public FakeLandingProfile(int id, FloatRange fallDistanceRange, FloatRange speedRange)
-            {
-                Id = id;
-                FallDistanceRange = fallDistanceRange;
-                SpeedRange = speedRange;
-            }
-
-            public int Id { get; }
-            public FloatRange FallDistanceRange { get; }
-            public FloatRange SpeedRange { get; }
         }
     }
 }
