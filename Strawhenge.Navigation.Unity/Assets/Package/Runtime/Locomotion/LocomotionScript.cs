@@ -30,7 +30,7 @@ namespace Strawhenge.Navigation.Unity
         Quaternion _targetRotation;
 
         bool _isFalling;
-        float _fallTime;
+        float _timeSinceGrounded;
         float _fallDistance;
         float _groundedY;
         bool _isLanding;
@@ -146,7 +146,7 @@ namespace Strawhenge.Navigation.Unity
 
         public void Jump()
         {
-            if (_isJumping || _isPivoting || _isLanding || _fallTime > _locomotionSettings.CoyoteTime)
+            if (_isJumping || _isPivoting || _isLanding || _timeSinceGrounded > _locomotionSettings.CoyoteTime)
                 return;
 
             _isAwaitingJumpTrigger = true;
@@ -278,6 +278,12 @@ namespace Strawhenge.Navigation.Unity
 
         void HandleFalling()
         {
+            // Coyote time counts from leaving the ground, however far the character has dropped.
+            // The fall itself (FallBegan, landings) still waits for FallDistance.
+            _timeSinceGrounded = _characterController.isGrounded
+                ? 0f
+                : _timeSinceGrounded + Time.deltaTime;
+
             if (_characterController.isGrounded)
                 _groundedY = _rootTransform.position.y;
 
@@ -306,11 +312,6 @@ namespace Strawhenge.Navigation.Unity
 
                 FallEnded?.Invoke();
             }
-
-            if (_isFalling)
-                _fallTime += Time.deltaTime;
-            else
-                _fallTime = 0f;
         }
 
         void CalculateHorizontalSpeed()
