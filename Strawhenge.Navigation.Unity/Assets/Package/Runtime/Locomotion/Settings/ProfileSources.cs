@@ -9,10 +9,11 @@ namespace Strawhenge.Navigation.Unity
     static class ProfileSources
     {
         // Resolves serialized profile sources to the profiles that can be used. Unset sources are skipped,
-        // and profiles with no pivot / landing asset are skipped with a warning (once, as the settings
-        // cache the result), so they never match.
+        // and profiles with no ID (no pivot / landing asset) are skipped with a warning (once, as the
+        // settings cache the result), so they never match.
         public static T[] Resolve<T, TSerialized, TScriptableObject>(
             SerializedSource<T, TSerialized, TScriptableObject>[] sources,
+            Func<T, int?> getId,
             string fieldName,
             Object context)
             where T : class
@@ -29,7 +30,7 @@ namespace Strawhenge.Navigation.Unity
                 if (sources[i] == null || !sources[i].TryGetValue(out var profile))
                     continue;
 
-                if (profile is IProfileCompleteness { IsComplete: false })
+                if (getId(profile) == null)
                 {
                     var name = profile is Object asset ? $"'{asset.name}'" : $"{fieldName}[{i}]";
                     Debug.LogWarning($"Profile {name} has no pivot or landing asset assigned - ignoring it.", context);

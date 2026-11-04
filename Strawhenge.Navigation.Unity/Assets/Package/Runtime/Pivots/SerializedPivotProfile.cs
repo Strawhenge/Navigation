@@ -8,15 +8,14 @@ using UnityEngine;
 namespace Strawhenge.Navigation.Unity
 {
     [Serializable]
-    public class SerializedPivotProfile : IPivotProfile, IProfileCompleteness
+    public class SerializedPivotProfile : IPivotProfile
     {
         [SerializeField] PivotScriptableObject _pivot;
         [SerializeField] SerializedFloatRange _speedRange;
         [SerializeField] SerializedFloatRange[] _angleRanges;
 
-        public int Id => _pivot.Id;
-
-        bool IProfileCompleteness.IsComplete => _pivot != null;
+        // Not _pivot?.Id: '?.' skips Unity's null check, so a missing asset could count as assigned.
+        public int? Id => _pivot != null ? _pivot.Id : null;
 
         public FloatRange SpeedRange => _speedRange.Value;
 

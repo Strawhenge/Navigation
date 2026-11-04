@@ -11,7 +11,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             SpeedRange = speedRange;
         }
 
-        public int Id { get; }
+        public int? Id { get; }
         public FloatRange FallDistanceRange { get; }
         public FloatRange SpeedRange { get; }
     }

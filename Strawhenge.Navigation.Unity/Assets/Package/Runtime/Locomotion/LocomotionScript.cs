@@ -133,7 +133,7 @@ namespace Strawhenge.Navigation.Unity
                 if (_input.magnitude < 0.001f)
                 {
                     _isAwaitingStationaryPivot = false;
-                    Pivot(_stationaryPivot.Id);
+                    Pivot(_stationaryPivot.Id.Value);
                     _stationaryPivot = null;
                 }
                 else if (input.magnitude > _input.magnitude)
@@ -230,7 +230,7 @@ namespace Strawhenge.Navigation.Unity
 
                 if (CheckForMovingPivots(out var movingPivot))
                 {
-                    Pivot(movingPivot.Id);
+                    Pivot(movingPivot.Id.Value);
                     return;
                 }
             }
@@ -339,7 +339,7 @@ namespace Strawhenge.Navigation.Unity
                     if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
                         landing.FallDistanceRange.IsInRange(fallDistance))
                     {
-                        Land(landing.Id);
+                        Land(landing.Id.Value);
                         break;
                     }
                 }
@@ -398,7 +398,7 @@ namespace Strawhenge.Navigation.Unity
                         if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
                             landing.FallDistanceRange.IsInRange(_fallDistance))
                         {
-                            Land(landing.Id);
+                            Land(landing.Id.Value);
                             break;
                         }
                     }

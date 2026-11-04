@@ -12,7 +12,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             AngleRanges = angleRanges;
         }
 
-        public int Id { get; }
+        public int? Id { get; }
         public FloatRange SpeedRange { get; }
         public IEnumerable<FloatRange> AngleRanges { get; }
     }

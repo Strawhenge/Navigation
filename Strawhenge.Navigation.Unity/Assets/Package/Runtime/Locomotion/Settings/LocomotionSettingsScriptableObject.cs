@@ -68,10 +68,10 @@ namespace Strawhenge.Navigation.Unity
         public float TurnSpeed => _turnSpeed;
 
         public IPivotProfile[] StationaryPivots =>
-            _stationaryPivotProfiles ??= ProfileSources.Resolve(_stationaryPivots, nameof(_stationaryPivots), this);
+            _stationaryPivotProfiles ??= ProfileSources.Resolve(_stationaryPivots, pivot => pivot.Id, nameof(_stationaryPivots), this);
 
         public IPivotProfile[] MovingPivots =>
-            _movingPivotProfiles ??= ProfileSources.Resolve(_movingPivots, nameof(_movingPivots), this);
+            _movingPivotProfiles ??= ProfileSources.Resolve(_movingPivots, pivot => pivot.Id, nameof(_movingPivots), this);
 
         public float JumpHeight => _jumpHeight;
 
@@ -80,7 +80,7 @@ namespace Strawhenge.Navigation.Unity
         public bool DeferJumpTrigger => _deferJumpTrigger;
 
         public ILandingProfile[] JumpLandings =>
-            _jumpLandingProfiles ??= ProfileSources.Resolve(_jumpLandings, nameof(_jumpLandings), this);
+            _jumpLandingProfiles ??= ProfileSources.Resolve(_jumpLandings, landing => landing.Id, nameof(_jumpLandings), this);
 
         public float Gravity => _gravity;
 
@@ -89,6 +89,6 @@ namespace Strawhenge.Navigation.Unity
         public float FallDistance => _fallDistance;
 
         public ILandingProfile[] FallLandings =>
-            _fallLandingProfiles ??= ProfileSources.Resolve(_fallLandings, nameof(_fallLandings), this);
+            _fallLandingProfiles ??= ProfileSources.Resolve(_fallLandings, landing => landing.Id, nameof(_fallLandings), this);
     }
 }
