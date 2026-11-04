@@ -22,6 +22,12 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal abstract void Cancel();
 
+        // The character's GameObject was reactivated. Unity resets a NavMeshAgent when its GameObject
+        // is deactivated, so its path is gone: states that rely on it must set it up again.
+        protected internal virtual void OnAgentReactivated()
+        {
+        }
+
         internal void SetStatesContainer(StatesContainer states) => States = states;
 
         protected void ChangeState(State state) => ChangeStateRequested?.Invoke(state);

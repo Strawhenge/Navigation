@@ -11,6 +11,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         readonly INavMeshAgentModes _agentModes;
         readonly AgentPriorityManager _priorityManager;
         bool _hasPriority;
+        bool _isSuspended;
 
         public Agent(NavMeshAgent agent, INavMeshAgentModes agentModes, AgentPriorityManager priorityManager)
         {
@@ -29,6 +30,51 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             NavMeshAgent.enabled = true;
 
+            ReservePriority(leisurely);
+
+            NavMeshAgent.areaMask = GetAreaMask(leisurely);
+            IsLeisurely = leisurely;
+        }
+
+        public void Disable()
+        {
+            NavMeshAgent.enabled = false;
+            _isSuspended = false;
+
+            if (!_hasPriority)
+                return;
+
+            _priorityManager.ReleasePriority(NavMeshAgent);
+            _hasPriority = false;
+        }
+
+        // The character's GameObject was deactivated mid-trip: free the avoidance priority slot,
+        // and take a slot back on Resume. The current state sets the agent up again on reactivation
+        // (State.OnAgentReactivated).
+        public void Suspend()
+        {
+            if (!_hasPriority)
+                return;
+
+            _priorityManager.ReleasePriority(NavMeshAgent);
+            _hasPriority = false;
+            _isSuspended = true;
+        }
+
+        // Reactivated: reserve a slot again for the mode in use, unless something already has.
+        public void Resume()
+        {
+            if (!_isSuspended)
+                return;
+
+            _isSuspended = false;
+
+            if (!_hasPriority)
+                ReservePriority(IsLeisurely);
+        }
+
+        void ReservePriority(bool leisurely)
+        {
             // Release first so re-enabling (or switching mode) never holds two slots.
             if (_hasPriority)
                 _priorityManager.ReleasePriority(NavMeshAgent);
@@ -39,20 +85,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                 _priorityManager.ReserveHighPriority(NavMeshAgent);
 
             _hasPriority = true;
-
-            NavMeshAgent.areaMask = GetAreaMask(leisurely);
-            IsLeisurely = leisurely;
-        }
-
-        public void Disable()
-        {
-            NavMeshAgent.enabled = false;
-
-            if (!_hasPriority)
-                return;
-
-            _priorityManager.ReleasePriority(NavMeshAgent);
-            _hasPriority = false;
+            _isSuspended = false;
         }
 
         public int GetAreaMask(bool leisurely) =>
