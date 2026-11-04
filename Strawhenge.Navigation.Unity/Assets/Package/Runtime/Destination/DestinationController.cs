@@ -1,17 +1,16 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
     public class DestinationController
     {
-        readonly NavMeshAgent _agent;
+        readonly Agent _agent;
         State _state;
 
         internal DestinationController(IDestinationContext context, Agent agent)
         {
-            _agent = agent.NavMeshAgent;
+            _agent = agent;
 
             var statesContainer = new StatesContainer(
                 context,
@@ -36,9 +35,12 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public Vector3 CurrentVelocity => _state.Velocity;
 
-        public bool IsStrafing => _state.IsActive && !_agent.updateRotation;
+        public bool IsStrafing => _state.IsActive && !_agent.NavMeshAgent.updateRotation;
 
-        public bool IsLocationAccessible(Vector3 location) => _agent.IsLocationAccessible(location);
+        // True if there is a complete path from the agent's current position, using the area mask of
+        // the given mode. Has no side effects on the agent.
+        public bool IsLocationAccessible(Vector3 location, bool leisurely = false) =>
+            _agent.IsLocationAccessible(location, leisurely);
 
         public void GoTo(DestinationArgs args) => _state.GoTo(args);
 
