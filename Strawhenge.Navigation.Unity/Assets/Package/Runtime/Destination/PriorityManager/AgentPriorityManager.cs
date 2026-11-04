@@ -86,13 +86,5 @@ namespace Strawhenge.Navigation.Unity.Destination
                 }
             }
         }
-
-        public void Clear()
-        {
-            _awaitingPriority.Clear();
-
-            for (var i = 0; i < _navMeshAgents.Length; i++)
-                _navMeshAgents[i] = null;
-        }
     }
 }
