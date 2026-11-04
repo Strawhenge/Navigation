@@ -49,7 +49,8 @@ namespace Strawhenge.Navigation.Unity.Destination
         }
 
         // The character's GameObject was deactivated mid-trip: free the avoidance priority slot,
-        // but leave the agent and the trip as they are, and take a slot back on Resume.
+        // and take a slot back on Resume. The current state sets the agent up again on reactivation
+        // (State.OnAgentReactivated).
         public void Suspend()
         {
             if (!_hasPriority)

@@ -20,7 +20,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         }
 
         // Deactivating the GameObject mid-trip frees the agent's avoidance priority slot; reactivating it
-        // takes one back and carries on. Disable the GameObject rather than just this component: with
+        // takes one back, sets the agent up again and carries on with the trip. Disable the GameObject rather than just this component: with
         // only this disabled, the NavMeshAgent keeps walking with nothing ticking the controller.
         void OnEnable()
         {
