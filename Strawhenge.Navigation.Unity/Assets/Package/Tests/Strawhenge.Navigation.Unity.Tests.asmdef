@@ -1,0 +1,24 @@
+{
+    "name": "Strawhenge.Navigation.Unity.Tests",
+    "rootNamespace": "Strawhenge.Navigation.Unity.Tests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Strawhenge.Navigation.Unity"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "Strawhenge.Common.dll",
+        "FunctionalUtilities.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

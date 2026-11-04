@@ -45,7 +45,7 @@ namespace Strawhenge.Navigation.Unity
             ComponentRefHelper
                 .EnsureHierarchyComponent(ref _characterController, nameof(_characterController), this);
 
-            if (!_settings.TryGetValue(out _locomotionSettings))
+            if (_locomotionSettings == null && !_settings.TryGetValue(out _locomotionSettings))
             {
                 Debug.LogWarning($"'{nameof(_settings)} not set - using defaults.");
                 _locomotionSettings = DefaultLocomotionSettings.Instance;
@@ -69,8 +69,25 @@ namespace Strawhenge.Navigation.Unity
 
         void OnDisable()
         {
+            CancelAnimatorWaits();
+
             _characterController.enabled = false;
             IsActiveChanged?.Invoke(false);
+        }
+
+        // While disabled, MovementSourceManagerScript routes the Animator's completion calls
+        // (CompletePivot, CompleteLanding, TriggerJump) to another movement source, so anything
+        // still waiting on them would block this script forever once it is re-enabled.
+        void CancelAnimatorWaits()
+        {
+            _isPivoting = false;
+            _isAwaitingStationaryPivot = false;
+            _stationaryPivot = null;
+
+            _isLanding = false;
+
+            _isAwaitingJumpTrigger = false;
+            _jump = false;
         }
 
         public event Action JumpTriggerRequested;
@@ -161,6 +178,11 @@ namespace Strawhenge.Navigation.Unity
             if (!_isLanding) return;
             _isLanding = false;
         }
+
+        internal void SetCharacterController(CharacterController characterController) =>
+            _characterController = characterController;
+
+        internal void SetSettings(ILocomotionSettings settings) => _locomotionSettings = settings;
 
         void HandleRotation()
         {
