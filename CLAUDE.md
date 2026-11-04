@@ -87,6 +87,10 @@ Setup problems never crash and never leave locomotion waiting for an animation t
 - **No pivot or landing behaviour:** that request is completed straight away (a pivot with `Quaternion.identity`).
 - **Non-humanoid rig:** no foot bones, so `Pivot Right Foot` stays false.
 
+Two timeouts stop a pivot, landing or deferred jump from waiting forever. Both are serialized fields, so they can be tuned per character:
+- **`MovementAnimationSyncScript._animationStartTimeout` (0.3 s):** the pivot or landing animation must *start* in this time. The behaviours raise `Started` from `OnStateEnter`, not `OnStateMachineEnter`, which transitions straight to a state skip. Otherwise it's skipped: the trigger is reset, root motion turned off, the request completed (a pivot with `Quaternion.identity`), and a warning logged once per ID. This is the usual "no transition for this ID" case. It only counts while the Animator is active. When `MovementSourceManagerScript.ActiveSourceChanged` fires, a pending animation is abandoned without completing it.
+- **`LocomotionScript._animatorWaitTimeout` (2 s):** a safety net in `LocomotionScript` itself, for waits nobody completes (no sync script, nothing wired up, an animation that never finishes). Pivots and landings are completed, a deferred jump is **cancelled** rather than launched late, and a warning is logged. It must be longer than the longest pivot or landing clip.
+
 ## Code conventions
 
 Follow the existing style. The ReSharper settings are in `Strawhenge.Navigation.Unity.sln.DotSettings`.
