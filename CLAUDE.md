@@ -69,6 +69,7 @@ Assembly definitions reference dependencies by GUID, and the runtime asmdef has 
 
 ### Locomotion
 - `LocomotionScript` is driven by `Move(Vector3 worldDirection)`, `Jump()` and the `Walk` / `Sprint` / `Strafe` flags.
+- Coyote time is time since the `CharacterController` was last grounded (`_timeSinceGrounded`), whatever the drop. Falling (`FallBegan`, fall landings) is separate and starts only after dropping `FallDistance`, so stairs and small bumps don't trigger it.
 - Settings come from `SerializedSource<ILocomotionSettings, SerializedLocomotionSettings, LocomotionSettingsScriptableObject>`, so they can be inline or an asset. If neither is set, `DefaultLocomotionSettings` is used.
 - Pivots and landings are a handshake with the Animator. Locomotion raises `PivotRequested(id)` / `LandingRequested(id)` and blocks movement or rotation until `CompletePivot(rotationDelta)` / `CompleteLanding()` is called back. Those calls come from `MovementAnimationSyncScript` via `PivotStateMachineBehaviour` / `LandingStateMachineBehaviour` (`OnStateMachineExit`).
 - When `DeferJumpTrigger` is set, the jump waits for an animation event that calls `MovementAnimationSyncScript.OnJumpLaunch()` → `TriggerJump()`.
