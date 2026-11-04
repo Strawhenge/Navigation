@@ -16,6 +16,7 @@ namespace Strawhenge.Navigation.Unity.Tests
     public class LocationAccessibleTests
     {
         const float PositionTolerance = 0.0001f;
+        const int BridgeArea = 3; // First user-defined NavMesh area.
 
         static readonly Vector3 ReachableLocation = new(5, 0, 0);
         static readonly Vector3 IslandLocation = new(100, 0, 0);
@@ -100,6 +101,34 @@ namespace Strawhenge.Navigation.Unity.Tests
             LogAssert.NoUnexpectedReceived();
         }
 
+        [UnityTest]
+        public IEnumerator Uses_the_area_mask_of_the_requested_mode()
+        {
+            // Start and goal are joined only by a bridge in an area that leisurely mode excludes.
+            var start = new Vector3(5, 0, 0);
+            var goal = new Vector3(25, 0, 0);
+
+            BuildNavMesh(
+                Box(center: start, size: new Vector2(10, 10)),
+                Box(center: new Vector3(15, 0, 0), size: new Vector2(10, 10), area: BridgeArea),
+                Box(center: goal, size: new Vector2(10, 10)));
+
+            CreateController(
+                position: start,
+                new FakeNavMeshAgentModes(
+                    defaultAreaMask: NavMesh.AllAreas,
+                    leisurelyAreaMask: NavMesh.AllAreas & ~(1 << BridgeArea)));
+            yield return null;
+
+            Assert.IsTrue(
+                _controller.IsLocationAccessible(goal),
+                "Setup failed or default mode ignored: the default mask allows the bridge.");
+
+            Assert.IsFalse(
+                _controller.IsLocationAccessible(goal, leisurely: true),
+                "Leisurely mode excludes the bridge area, so the goal should not be accessible.");
+        }
+
         // Ground: 50 m x 50 m around the origin. Island: 10 m x 10 m at x = 100, not connected.
         void BuildGroundAndIsland() =>
             BuildNavMesh(
@@ -135,7 +164,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             };
         }
 
-        void CreateController(Vector3 position)
+        void CreateController(Vector3 position, INavMeshAgentModes modes = null)
         {
             var character = new GameObject("Agent");
             character.SetActive(false);
@@ -149,8 +178,24 @@ namespace Strawhenge.Navigation.Unity.Tests
             _navMeshAgent.enabled = false;
             character.SetActive(true);
 
-            var agent = new Agent(_navMeshAgent, NullNavMeshAgentModes.Instance, new AgentPriorityManager());
+            var agent = new Agent(
+                _navMeshAgent,
+                modes ?? new FixedNavMeshAgentModes(NavMesh.AllAreas),
+                new AgentPriorityManager());
             _controller = new DestinationController(NullDestinationContext.Instance, agent);
+        }
+
+        sealed class FakeNavMeshAgentModes : INavMeshAgentModes
+        {
+            public FakeNavMeshAgentModes(int defaultAreaMask, int leisurelyAreaMask)
+            {
+                DefaultAreaMask = defaultAreaMask;
+                LeisurelyAreaMask = leisurelyAreaMask;
+            }
+
+            public int DefaultAreaMask { get; }
+
+            public int LeisurelyAreaMask { get; }
         }
     }
 }

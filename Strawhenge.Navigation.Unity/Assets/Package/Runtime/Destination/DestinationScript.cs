@@ -36,7 +36,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (modes == null)
             {
                 Debug.LogWarning($"Missing '{nameof(_modes)}'.", this);
-                modes = NullNavMeshAgentModes.Instance;
+                modes = new FixedNavMeshAgentModes(_navMeshAgent.areaMask);
             }
 
             var agent = new Agent(

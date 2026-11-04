@@ -25,7 +25,7 @@ Navigation/                              <- git root
     │   │   │   ├── States/              <- Idle, PrepareGoing, Going, Jumping, Falling, CannotNavigate
     │   │   │   ├── DestinationArgs/     <- args + fluent builder
     │   │   │   ├── Context/             <- IDestinationContext (CanNavigate gate)
-    │   │   │   ├── Modes/               <- INavMeshAgentModes (area masks for Default / Leisurely)
+    │   │   │   ├── Modes/               <- INavMeshAgentModes (area masks for Default / Leisurely), FixedNavMeshAgentModes
     │   │   │   └── PriorityManager/     <- avoidance-priority allocation across agents
     │   │   ├── Locomotion/              <- LocomotionScript, toggle, settings
     │   │   ├── Pivots/                  <- pivot ids + profiles (speed range + angle ranges)
@@ -62,7 +62,8 @@ Assembly definitions reference dependencies by GUID, and the runtime asmdef has 
 - **Update state, then invoke callbacks.** Callbacks often call `GoTo` / `Cancel` straight away (e.g. a patrol going to its next waypoint), so finish every change first (`CurrentArgs`, `_pendingArgs`, `ChangeState(...)`) and run callbacks last. Otherwise the nested call reaches the old state: the old request is called back again (endlessly, if its callback keeps redirecting) and the newest request is lost. In `Jumping` / `Falling`, `TryResolveQueuedRequest()` applies a queued `Cancel` / `GoTo` this way. Steering the `NavMeshAgent` for a request (e.g. `Going.GoTo` setting `destination`) happens after the callbacks, and only if that request is still current (`State.IsCurrent` and the same `CurrentArgs`). Setting the destination twice in one call chain leaves the agent heading for the first one.
 - States are plain classes that share a `StatesContainer`. They switch with `ChangeState(...)` and hand over `CurrentArgs` to the next state before switching. While Jumping or Falling is mid-traversal, a new `GoTo` or `Cancel` is queued (`_pendingArgs` / `_cancelRequested`) and resolved when the traversal ends.
 - The `NavMeshAgent` stays **disabled** while idle and is enabled in `PrepareGoing` through `Agent.Enable(leisurely)`, which also reserves an avoidance priority and applies the area-mask mode.
-- `Leisurely` gives low avoidance priority plus the "leisurely" area mask. `Strafe` sets `updateRotation = false`.
+- `Leisurely` gives low avoidance priority plus the "leisurely" area mask. `Strafe` sets `updateRotation = false`. `Agent.GetAreaMask(leisurely)` is the single place a mode's mask is chosen; `INavMeshAgentModes` only supplies the masks. Without a modes asset, `DestinationScript` uses `FixedNavMeshAgentModes` with the NavMeshAgent's inspector mask.
+- `IsLocationAccessible(location, leisurely = false)` queries the NavMesh directly (`NavMesh.SamplePosition` within one agent height, then `NavMesh.CalculatePath`) with the mode's area mask. It must never enable, move or reconfigure the agent, and only a **complete** path counts as accessible. (A `CanGoTo(DestinationArgs)` that also accepts partial paths for approximate requests may come later.)
 - Jumps and drops along off-mesh links are moved by hand (`updatePosition = false`). The speed and gravity constants for this are hard-coded TODOs in `Jumping` / `Falling`.
 
 ### Locomotion
@@ -82,7 +83,7 @@ Follow the existing style. The ReSharper settings are in `Strawhenge.Navigation.
 - Leave out `private`/`internal` where they're the default (`readonly Foo _foo;`, `class Agent`).
 - Serialized fields are `[SerializeField] T _camelCase;`, never public fields. Expose them through get-only properties.
 - Naming suffixes: `...Script` for MonoBehaviours, `...ScriptableObject` for ScriptableObjects, `Serialized...` for `[Serializable]` inline equivalents. Interfaces sit behind all three (`IPivotProfile`, `ILandingProfile`, `ILocomotionSettings`).
-- Null objects: `NullX` with `static Instance { get; } = new();` and a private ctor, used instead of null checks (`NullDestinationContext`, `NullNavMeshAgentModes`, `NullMovementSource`).
+- Null objects: `NullX` with `static Instance { get; } = new();` and a private ctor, used instead of null checks (`NullDestinationContext`, `NullMovementSource`). When "nothing" still has to return a value, use a fallback that keeps the existing behaviour instead (e.g. `FixedNavMeshAgentModes` with the agent's own area mask).
 - Resolve component references with `ComponentRefHelper.EnsureHierarchyComponent` / `EnsureRootHierarchyComponent` from Common. Warn with `Debug.LogWarning(..., this)` and fall back to defaults rather than throwing.
 - Keep logic in plain C# classes and keep MonoBehaviours as thin wiring. Use `internal` for things only the package needs (e.g. `DestinationController.Update`).
 - Namespaces: `Strawhenge.Navigation.Unity` for most code, `Strawhenge.Navigation.Unity.Destination` for the Destination folder, `...Unity.Editor` for the editor. Folders below that level don't add namespace segments, so ignore the CheckNamespace warning.
