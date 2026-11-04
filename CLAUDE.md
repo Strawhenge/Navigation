@@ -73,13 +73,19 @@ Assembly definitions reference dependencies by GUID, and the runtime asmdef has 
 - `LocomotionScript` is driven by `Move(Vector3 worldDirection)`, `Jump()` and the `Walk` / `Sprint` / `Strafe` flags.
 - Coyote time is time since the `CharacterController` was last grounded (`_timeSinceGrounded`), whatever the drop. Falling (`FallBegan`, fall landings) is separate and starts only after dropping `FallDistance`, so stairs and small bumps don't trigger it.
 - Settings come from `SerializedSource<ILocomotionSettings, SerializedLocomotionSettings, LocomotionSettingsScriptableObject>`, so they can be inline or an asset. If neither is set, `DefaultLocomotionSettings` is used.
+- When a pivot completes with no rotation (the pivot fallback, or a clip without root rotation), `LocomotionScript` skips pivots until the turn leaves every pivot's angle range (`_suppressPivotsUntilTurned`) and turns normally. Otherwise the same pivot would match again every frame and the character would never turn.
 - Pivots and landings are a handshake with the Animator. Locomotion raises `PivotRequested(id)` / `LandingRequested(id)` and blocks movement or rotation until `CompletePivot(rotationDelta)` / `CompleteLanding()` is called back. Those calls come from `MovementAnimationSyncScript` via `PivotStateMachineBehaviour` / `LandingStateMachineBehaviour` (`OnStateMachineExit`).
 - When `DeferJumpTrigger` is set, the jump waits for an animation event that calls `MovementAnimationSyncScript.OnJumpLaunch()` → `TriggerJump()`.
 - While `LocomotionScript` is disabled, the Animator's completion calls go to whichever movement source is active instead, so they never arrive. `OnDisable` therefore calls `CancelAnimatorWaits()` to clear the pivot, landing and jump-trigger waits (and any queued stationary pivot or jump not yet applied). Any new "wait for the Animator" flag must be reset there too.
 - `LocomotionToggleScript` turns `LocomotionScript` off while the destination controller is active, or when a `BaseLocomotionToggleConditionsScript` says so.
 
 ### Animation contract
-`MovementAnimationSyncScript` expects these Animator parameter names (see `AnimatorParameters`): `Move Speed`, `Strafing`, `Strafe X`, `Strafe Y`, `Falling`, `Jump`, `Jumping`, `Pivot`, `Pivot ID`, `Pivot Right Foot`, `Landing ID`, `Land`. The controller must contain a `PivotStateMachineBehaviour` and a `LandingStateMachineBehaviour`. `Assets/Development/Character.controller` is the reference setup. Renaming a parameter breaks every consumer's controller.
+`MovementAnimationSyncScript` expects these Animator parameter names (see `AnimatorParameters`): `Move Speed`, `Strafing`, `Strafe X`, `Strafe Y`, `Falling`, `Jump`, `Jumping`, `Pivot`, `Pivot ID`, `Pivot Right Foot`, `Landing ID`, `Land`. The controller must contain a `PivotStateMachineBehaviour` and a `LandingStateMachineBehaviour`. `Assets/Development/Character.controller` is the reference setup.
+
+Setup problems never crash and never leave locomotion waiting for an animation that can't happen. `MovementAnimationSyncScript` warns once in `Awake` and falls back:
+- **No Animator:** movement plays without animation, and a deferred jump triggers straight away.
+- **No pivot or landing behaviour:** that request is completed straight away (a pivot with `Quaternion.identity`).
+- **Non-humanoid rig:** no foot bones, so `Pivot Right Foot` stays false. Renaming a parameter breaks every consumer's controller.
 
 ## Code conventions
 
