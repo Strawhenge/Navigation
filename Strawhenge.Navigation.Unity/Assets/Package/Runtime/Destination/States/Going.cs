@@ -34,6 +34,18 @@ namespace Strawhenge.Navigation.Unity.Destination
         protected internal override void GoTo(DestinationArgs args)
         {
             var previous = CurrentArgs;
+
+            // Starting from another point needs a warp and a fresh path: start over in PrepareGoing.
+            // Other redirects are applied in place, so the agent keeps moving.
+            if (args.StartingLocation.HasValue)
+            {
+                States.PrepareGoing.CurrentArgs = args;
+                ChangeState(States.PrepareGoing);
+
+                previous.Callback(DestinationResult.CancelledByNewDestination);
+                return;
+            }
+
             CurrentArgs = args;
 
             previous.Callback(DestinationResult.CancelledByNewDestination);
@@ -44,8 +56,15 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (!IsCurrent || !ReferenceEquals(CurrentArgs, args))
                 return;
 
-            _agent.NavMeshAgent.destination = args.Location;
+            // Re-reserves avoidance priority and applies the mode's area mask. Before the destination,
+            // so the new path is calculated with the new mask. Compared with the mode actually applied,
+            // since in a chain of redirects the previous request may never have been applied.
+            if (args.Leisurely != _agent.IsLeisurely)
+                _agent.Enable(args.Leisurely);
+
+            _agent.NavMeshAgent.updateRotation = !args.Strafe;
             _agent.NavMeshAgent.speed = args.Speed;
+            _agent.NavMeshAgent.destination = args.Location;
         }
 
         protected internal override void Update(float deltaTime)
