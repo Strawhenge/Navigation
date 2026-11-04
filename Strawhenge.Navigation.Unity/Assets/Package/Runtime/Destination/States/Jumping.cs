@@ -35,16 +35,20 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal override void Cancel()
         {
-            _pendingArgs?.Callback(DestinationResult.Cancelled);
+            var pending = _pendingArgs;
             _pendingArgs = null;
             _cancelRequested = true;
+
+            pending?.Callback(DestinationResult.Cancelled);
         }
 
         protected internal override void GoTo(DestinationArgs args)
         {
-            _pendingArgs?.Callback(DestinationResult.CancelledByNewDestination);
+            var pending = _pendingArgs;
             _pendingArgs = args;
             _cancelRequested = false;
+
+            pending?.Callback(DestinationResult.CancelledByNewDestination);
         }
 
         protected internal override void Update(float deltaTime)
@@ -131,24 +135,8 @@ namespace Strawhenge.Navigation.Unity.Destination
             var agentUnavailable = _agentUnavailable;
             EndManualTraversal();
 
-            if (_cancelRequested)
-            {
-                _cancelRequested = false;
-                CurrentArgs.Callback(DestinationResult.Cancelled);
-                ChangeState(States.Idle);
+            if (TryResolveQueuedRequest())
                 return;
-            }
-
-            if (_pendingArgs != null)
-            {
-                var pendingArgs = _pendingArgs;
-                _pendingArgs = null;
-
-                CurrentArgs.Callback(DestinationResult.CancelledByNewDestination);
-                States.PrepareGoing.CurrentArgs = pendingArgs;
-                ChangeState(States.PrepareGoing);
-                return;
-            }
 
             if (agentUnavailable)
             {
@@ -182,8 +170,40 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (_isJumpInProgress)
                 EndManualTraversal();
 
+            if (TryResolveQueuedRequest())
+                return;
+
             States.CannotNavigate.CurrentArgs = CurrentArgs;
             ChangeState(States.CannotNavigate);
+        }
+
+        // Applies a Cancel or GoTo queued during the traversal, changing state before any callback
+        // so a callback that calls GoTo or Cancel reaches the new state.
+        // Returns false if nothing was queued, so the caller picks the next state.
+        bool TryResolveQueuedRequest()
+        {
+            var current = CurrentArgs;
+
+            if (_cancelRequested)
+            {
+                _cancelRequested = false;
+                ChangeState(States.Idle);
+
+                current.Callback(DestinationResult.Cancelled);
+                return true;
+            }
+
+            if (_pendingArgs != null)
+            {
+                States.PrepareGoing.CurrentArgs = _pendingArgs;
+                _pendingArgs = null;
+                ChangeState(States.PrepareGoing);
+
+                current.Callback(DestinationResult.CancelledByNewDestination);
+                return true;
+            }
+
+            return false;
         }
     }
 }
