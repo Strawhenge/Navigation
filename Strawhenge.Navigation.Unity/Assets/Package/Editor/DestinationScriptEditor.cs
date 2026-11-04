@@ -55,7 +55,7 @@ namespace Strawhenge.Navigation.Unity.Editor
 
             if (GUILayout.Button(nameof(DestinationController.IsLocationAccessible)))
             {
-                _info = _target.DestinationController.IsLocationAccessible(_location).ToString();
+                _info = _target.DestinationController.IsLocationAccessible(_location, _leisurely).ToString();
             }
 
             if (GUILayout.Button(nameof(DestinationController.Cancel)))

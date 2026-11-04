@@ -1,11 +1,9 @@
-﻿using UnityEngine.AI;
-
-namespace Strawhenge.Navigation.Unity.Destination
+﻿namespace Strawhenge.Navigation.Unity.Destination
 {
     public interface INavMeshAgentModes
     {
-        void Default(NavMeshAgent agent);
+        int DefaultAreaMask { get; }
 
-        void Leisurely(NavMeshAgent agent);
+        int LeisurelyAreaMask { get; }
     }
 }

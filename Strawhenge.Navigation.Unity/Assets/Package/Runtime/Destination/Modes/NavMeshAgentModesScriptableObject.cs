@@ -1,6 +1,5 @@
 ﻿using Strawhenge.Common.Unity.Serialization;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
@@ -10,14 +9,8 @@ namespace Strawhenge.Navigation.Unity.Destination
         [SerializeField] NavMeshAreaMask _default;
         [SerializeField] NavMeshAreaMask _leisurely;
 
-        public void Default(NavMeshAgent agent)
-        {
-            agent.areaMask = _default.Value;
-        }
+        public int DefaultAreaMask => _default.Value;
 
-        public void Leisurely(NavMeshAgent agent)
-        {
-            agent.areaMask = _leisurely.Value;
-        }
+        public int LeisurelyAreaMask => _leisurely.Value;
     }
 }
