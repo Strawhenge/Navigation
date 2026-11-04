@@ -22,6 +22,9 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public NavMeshAgent NavMeshAgent { get; }
 
+        // The mode last applied by Enable.
+        public bool IsLeisurely { get; private set; }
+
         public void Enable(bool leisurely)
         {
             NavMeshAgent.enabled = true;
@@ -38,6 +41,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _hasPriority = true;
 
             NavMeshAgent.areaMask = GetAreaMask(leisurely);
+            IsLeisurely = leisurely;
         }
 
         public void Disable()
