@@ -1,5 +1,6 @@
 using UnityEngine;
 using Strawhenge.Common.Unity;
+using Strawhenge.Common.Unity.Helpers;
 
 namespace Strawhenge.Navigation.Unity
 {
@@ -12,17 +13,48 @@ namespace Strawhenge.Navigation.Unity
 
         Transform _leftFoot;
         Transform _rightFoot;
+        PivotStateMachineBehaviour _pivotBehaviour;
+        LandingStateMachineBehaviour _landingBehaviour;
 
+        // Setup problems are warned about once here, and fall back to moving without that animation,
+        // so the character never waits for an animation that can't happen.
         void Awake()
         {
-            var pivotStateMachineBehavior = _animator.GetBehaviour<PivotStateMachineBehaviour>();
-            pivotStateMachineBehavior.Ended += OnPivotEnded;
+            ComponentRefHelper.EnsureHierarchyComponent(ref _animator, nameof(_animator), this);
 
-            var landingStateMachineBehavior = _animator.GetBehaviour<LandingStateMachineBehaviour>();
-            landingStateMachineBehavior.Ended += OnLandingEnded;
+            if (_animator == null)
+            {
+                Debug.LogWarning("No Animator - movement will play without animation.", this);
+            }
+            else
+            {
+                var controllerName = _animator.runtimeAnimatorController != null
+                    ? $"'{_animator.runtimeAnimatorController.name}'"
+                    : "The Animator (no controller assigned)";
 
-            _leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
-            _rightFoot = _animator.GetBoneTransform(HumanBodyBones.RightFoot);
+                _pivotBehaviour = _animator.GetBehaviour<PivotStateMachineBehaviour>();
+                if (_pivotBehaviour != null)
+                    _pivotBehaviour.Ended += OnPivotEnded;
+                else
+                    Debug.LogWarning(
+                        $"{controllerName} has no {nameof(PivotStateMachineBehaviour)} - pivots will be skipped.",
+                        this);
+
+                _landingBehaviour = _animator.GetBehaviour<LandingStateMachineBehaviour>();
+                if (_landingBehaviour != null)
+                    _landingBehaviour.Ended += OnLandingEnded;
+                else
+                    Debug.LogWarning(
+                        $"{controllerName} has no {nameof(LandingStateMachineBehaviour)} - landings will be skipped.",
+                        this);
+
+                // Foot bones only exist on humanoid rigs; without them 'Pivot Right Foot' stays false.
+                if (_animator.isHuman)
+                {
+                    _leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+                    _rightFoot = _animator.GetBoneTransform(HumanBodyBones.RightFoot);
+                }
+            }
 
             SubscribeToMovement();
         }
@@ -30,6 +62,12 @@ namespace Strawhenge.Navigation.Unity
         void OnDestroy()
         {
             UnsubscribeFromMovement();
+
+            if (_pivotBehaviour != null)
+                _pivotBehaviour.Ended -= OnPivotEnded;
+
+            if (_landingBehaviour != null)
+                _landingBehaviour.Ended -= OnLandingEnded;
         }
 
         public void OnJumpLaunch()
@@ -39,7 +77,7 @@ namespace Strawhenge.Navigation.Unity
 
         void LateUpdate()
         {
-            if (_movementSourceManager == null)
+            if (_movementSourceManager == null || _animator == null)
                 return;
 
             var velocity = transform.root.InverseTransformDirection(_movementSourceManager.CurrentVelocity);
@@ -107,30 +145,50 @@ namespace Strawhenge.Navigation.Unity
 
         void OnJumpTriggerRequested()
         {
+            // The jump normally launches from an animation event (OnJumpLaunch).
+            if (_animator == null)
+            {
+                _movementSourceManager?.TriggerJump();
+                return;
+            }
+
             _animator.SetTrigger(AnimatorParameters.Jump);
         }
 
         void OnJumpBegan()
         {
-            _animator.SetBool(AnimatorParameters.Jumping, true);
+            if (_animator != null)
+                _animator.SetBool(AnimatorParameters.Jumping, true);
         }
 
         void OnJumpEnded()
         {
-            _animator.SetBool(AnimatorParameters.Jumping, false);
+            if (_animator != null)
+                _animator.SetBool(AnimatorParameters.Jumping, false);
         }
 
         void OnPivotRequested(int pivotId)
         {
+            // Nothing would ever complete the pivot, so complete it now, without turning.
+            // LocomotionScript then turns normally instead.
+            if (_pivotBehaviour == null)
+            {
+                _movementSourceManager?.CompletePivot(Quaternion.identity);
+                return;
+            }
+
             _animator.SetInteger(AnimatorParameters.PivotId, pivotId);
 
-            var leftOffset = _leftFoot.position - transform.root.position;
-            var rightOffset = _rightFoot.position - transform.root.position;
+            if (_leftFoot != null && _rightFoot != null)
+            {
+                var leftOffset = _leftFoot.position - transform.root.position;
+                var rightOffset = _rightFoot.position - transform.root.position;
 
-            var leftForward = Vector3.Dot(leftOffset, transform.root.forward);
-            var rightForward = Vector3.Dot(rightOffset, transform.root.forward);
+                var leftForward = Vector3.Dot(leftOffset, transform.root.forward);
+                var rightForward = Vector3.Dot(rightOffset, transform.root.forward);
 
-            _animator.SetBool(AnimatorParameters.PivotRightFoot, rightForward > leftForward);
+                _animator.SetBool(AnimatorParameters.PivotRightFoot, rightForward > leftForward);
+            }
 
             _animator.applyRootMotion = true;
             _animator.SetTrigger(AnimatorParameters.Pivot);
@@ -146,16 +204,25 @@ namespace Strawhenge.Navigation.Unity
 
         void OnFallBegan()
         {
-            _animator.SetBool(AnimatorParameters.Falling, true);
+            if (_animator != null)
+                _animator.SetBool(AnimatorParameters.Falling, true);
         }
 
         void OnFallEnded()
         {
-            _animator.SetBool(AnimatorParameters.Falling, false);
+            if (_animator != null)
+                _animator.SetBool(AnimatorParameters.Falling, false);
         }
 
         void OnLandingRequested(int landingId)
         {
+            // Nothing would ever complete the landing, so complete it now.
+            if (_landingBehaviour == null)
+            {
+                _movementSourceManager?.CompleteLanding();
+                return;
+            }
+
             _animator.SetInteger(AnimatorParameters.LandingId, landingId);
             _animator.SetTrigger(AnimatorParameters.Land);
         }

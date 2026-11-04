@@ -38,6 +38,7 @@ namespace Strawhenge.Navigation.Unity
         float _turnAngle;
         bool _isPivoting;
         bool _isAwaitingStationaryPivot;
+        bool _suppressPivotsUntilTurned;
         IPivotProfile _stationaryPivot;
 
         void Awake()
@@ -83,6 +84,7 @@ namespace Strawhenge.Navigation.Unity
             _isPivoting = false;
             _isAwaitingStationaryPivot = false;
             _stationaryPivot = null;
+            _suppressPivotsUntilTurned = false;
 
             _isLanding = false;
 
@@ -171,6 +173,12 @@ namespace Strawhenge.Navigation.Unity
 
             _rootTransform.rotation = rotationDelta * _rootTransform.rotation;
             _isPivoting = false;
+
+            // A pivot that didn't turn the character (no animation played it, e.g. no
+            // PivotStateMachineBehaviour, or a clip without root rotation) would match again next frame
+            // and stop the character ever turning. Turn normally until out of every pivot's angle range.
+            if (rotationDelta == Quaternion.identity)
+                _suppressPivotsUntilTurned = true;
         }
 
         public void CompleteLanding()
@@ -207,22 +215,48 @@ namespace Strawhenge.Navigation.Unity
                 Vector3.up
             );
 
-            if (CheckForStationaryPivots(out var stationaryPivot))
+            if (_suppressPivotsUntilTurned)
             {
-                _isAwaitingStationaryPivot = true;
-                _stationaryPivot = stationaryPivot;
+                if (!IsInAnyPivotAngleRange())
+                    _suppressPivotsUntilTurned = false;
             }
-
-            if (CheckForMovingPivots(out var movingPivot))
+            else
             {
-                Pivot(movingPivot.Id);
-                return;
+                if (CheckForStationaryPivots(out var stationaryPivot))
+                {
+                    _isAwaitingStationaryPivot = true;
+                    _stationaryPivot = stationaryPivot;
+                }
+
+                if (CheckForMovingPivots(out var movingPivot))
+                {
+                    Pivot(movingPivot.Id);
+                    return;
+                }
             }
 
             _rootTransform.rotation = Quaternion.RotateTowards(
                 _rootTransform.rotation,
                 _targetRotation,
                 _locomotionSettings.TurnSpeed * Time.deltaTime);
+        }
+
+        bool IsInAnyPivotAngleRange() =>
+            IsInAngleRange(_locomotionSettings.StationaryPivots) ||
+            IsInAngleRange(_locomotionSettings.MovingPivots);
+
+        bool IsInAngleRange(IPivotProfile[] pivots)
+        {
+            foreach (var pivot in pivots)
+            {
+                foreach (var angleRange in pivot.AngleRanges)
+                {
+                    if (angleRange.IsInRange(_turnAngle))
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         bool CheckForStationaryPivots(out IPivotProfile matchingPivot)
