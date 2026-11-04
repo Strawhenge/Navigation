@@ -45,7 +45,7 @@ namespace Strawhenge.Navigation.Unity
             ComponentRefHelper
                 .EnsureHierarchyComponent(ref _characterController, nameof(_characterController), this);
 
-            if (!_settings.TryGetValue(out _locomotionSettings))
+            if (_locomotionSettings == null && !_settings.TryGetValue(out _locomotionSettings))
             {
                 Debug.LogWarning($"'{nameof(_settings)} not set - using defaults.");
                 _locomotionSettings = DefaultLocomotionSettings.Instance;
@@ -161,6 +161,8 @@ namespace Strawhenge.Navigation.Unity
             if (!_isLanding) return;
             _isLanding = false;
         }
+
+        internal void SetSettings(ILocomotionSettings settings) => _locomotionSettings = settings;
 
         void HandleRotation()
         {
