@@ -28,7 +28,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal override void Update(float deltaTime)
         {
-            _agent.NavMeshAgent.enabled = false;
+            _agent.Disable();
         }
     }
 }
