@@ -12,6 +12,9 @@ namespace Strawhenge.Navigation.Unity
 
         IMovementSource _activeSource = NullMovementSource.Instance;
 
+        // Raised when a different movement source becomes the active one.
+        public event Action ActiveSourceChanged;
+
         public event Action JumpTriggerRequested;
         public event Action JumpBegan;
         public event Action JumpEnded;
@@ -78,6 +81,8 @@ namespace Strawhenge.Navigation.Unity
             UnsubscribeFromSource(_activeSource);
             _activeSource = nextSource;
             SubscribeToSource(_activeSource);
+
+            ActiveSourceChanged?.Invoke();
         }
 
         IMovementSource GetFirstActiveSource()

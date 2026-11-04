@@ -1,6 +1,7 @@
 using Strawhenge.Common.Unity.Helpers;
 using Strawhenge.Common.Unity.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -14,6 +15,10 @@ namespace Strawhenge.Navigation.Unity
             ILocomotionSettings,
             SerializedLocomotionSettings,
             LocomotionSettingsScriptableObject> _settings;
+
+        [Tooltip("Longest wait for a pivot or landing to be completed, or a deferred jump to be launched, " +
+                 "before carrying on without it. Must be longer than the longest pivot or landing animation.")]
+        [SerializeField] float _animatorWaitTimeout = 2f;
 
         ILocomotionSettings _locomotionSettings;
         Transform _rootTransform;
@@ -41,6 +46,15 @@ namespace Strawhenge.Navigation.Unity
         bool _suppressPivotsUntilTurned;
         IPivotProfile _stationaryPivot;
 
+        int _pivotId;
+        float _pivotWaitTime;
+        int _landingId;
+        float _landingWaitTime;
+        float _jumpTriggerWaitTime;
+        readonly HashSet<int> _timedOutPivotIds = new();
+        readonly HashSet<int> _timedOutLandingIds = new();
+        bool _jumpTriggerTimedOut;
+
         void Awake()
         {
             ComponentRefHelper
@@ -57,6 +71,7 @@ namespace Strawhenge.Navigation.Unity
 
         void Update()
         {
+            HandleAnimatorWaitTimeouts();
             HandleFalling();
             HandleRotation();
             HandleMovement();
@@ -152,6 +167,7 @@ namespace Strawhenge.Navigation.Unity
                 return;
 
             _isAwaitingJumpTrigger = true;
+            _jumpTriggerWaitTime = 0f;
 
             if (_locomotionSettings.DeferJumpTrigger)
                 JumpTriggerRequested?.Invoke();
@@ -191,6 +207,67 @@ namespace Strawhenge.Navigation.Unity
             _characterController = characterController;
 
         internal void SetSettings(ILocomotionSettings settings) => _locomotionSettings = settings;
+
+        // Safety net for waits nobody completes: no MovementAnimationSyncScript, nothing wired up, or an
+        // animation that never finishes. MovementAnimationSyncScript gives up much sooner on an animation that
+        // never starts; this covers everything else.
+        void HandleAnimatorWaitTimeouts()
+        {
+            var deltaTime = Time.deltaTime;
+
+            if (_isPivoting)
+            {
+                _pivotWaitTime += deltaTime;
+
+                if (_pivotWaitTime > _animatorWaitTimeout)
+                {
+                    WarnTimedOut(_timedOutPivotIds, _pivotId, "Pivot");
+                    CompletePivot(Quaternion.identity);
+                }
+            }
+
+            if (_isLanding)
+            {
+                _landingWaitTime += deltaTime;
+
+                if (_landingWaitTime > _animatorWaitTimeout)
+                {
+                    WarnTimedOut(_timedOutLandingIds, _landingId, "Landing");
+                    CompleteLanding();
+                }
+            }
+
+            if (_isAwaitingJumpTrigger)
+            {
+                _jumpTriggerWaitTime += deltaTime;
+
+                if (_jumpTriggerWaitTime > _animatorWaitTimeout)
+                {
+                    if (!_jumpTriggerTimedOut)
+                    {
+                        _jumpTriggerTimedOut = true;
+                        Debug.LogWarning(
+                            $"Deferred jump wasn't launched within {_animatorWaitTimeout} s - cancelling it. " +
+                            "Check the jump animation calls MovementAnimationSyncScript.OnJumpLaunch.",
+                            this);
+                    }
+
+                    // Cancelled rather than launched: a jump this long after the button press would be unexpected.
+                    _isAwaitingJumpTrigger = false;
+                }
+            }
+        }
+
+        void WarnTimedOut(HashSet<int> timedOutIds, int id, string kind)
+        {
+            if (!timedOutIds.Add(id))
+                return;
+
+            Debug.LogWarning(
+                $"{kind} ID {id} wasn't completed within {_animatorWaitTimeout} s - carrying on without it. " +
+                $"Check a {nameof(MovementAnimationSyncScript)} is set up and the Animator has a transition for it.",
+                this);
+        }
 
         void HandleRotation()
         {
@@ -458,12 +535,16 @@ namespace Strawhenge.Navigation.Unity
         void Pivot(int pivotId)
         {
             _isPivoting = true;
+            _pivotId = pivotId;
+            _pivotWaitTime = 0f;
             PivotRequested?.Invoke(pivotId);
         }
 
         void Land(int landId)
         {
             _isLanding = true;
+            _landingId = landId;
+            _landingWaitTime = 0f;
             LandingRequested?.Invoke(landId);
         }
     }
