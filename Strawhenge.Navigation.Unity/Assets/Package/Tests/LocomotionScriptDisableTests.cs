@@ -145,9 +145,10 @@ namespace Strawhenge.Navigation.Unity.Tests
             // Default CharacterController: height 2, centred on the transform,
             // so its feet sit 0.1 m above the ground.
             character.transform.position = new Vector3(0, 1.1f, 0);
-            character.AddComponent<CharacterController>();
+            var characterController = character.AddComponent<CharacterController>();
 
             _locomotion = character.AddComponent<LocomotionScript>();
+            _locomotion.SetCharacterController(characterController);
             _locomotion.SetSettings(settings);
 
             character.SetActive(true);

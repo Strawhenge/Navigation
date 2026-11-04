@@ -162,6 +162,9 @@ namespace Strawhenge.Navigation.Unity
             _isLanding = false;
         }
 
+        internal void SetCharacterController(CharacterController characterController) =>
+            _characterController = characterController;
+
         internal void SetSettings(ILocomotionSettings settings) => _locomotionSettings = settings;
 
         void HandleRotation()
