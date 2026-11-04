@@ -5,13 +5,15 @@ using UnityEngine;
 namespace Strawhenge.Navigation.Unity
 {
     [CreateAssetMenu(menuName = "Strawhenge/Navigation/Landing Profile")]
-    public class LandingProfileScriptableObject : ScriptableObject, ILandingProfile
+    public class LandingProfileScriptableObject : ScriptableObject, ILandingProfile, IProfileCompleteness
     {
         [SerializeField] LandingScriptableObject _landing;
         [SerializeField] SerializedFloatRange _fallDistanceRange;
         [SerializeField] SerializedFloatRange _speedRange;
 
         public int Id => _landing.Id;
+
+        bool IProfileCompleteness.IsComplete => _landing != null;
 
         public FloatRange FallDistanceRange => _fallDistanceRange.Value;
 

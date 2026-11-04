@@ -5,13 +5,15 @@ using UnityEngine;
 namespace Strawhenge.Navigation.Unity
 {
     [CreateAssetMenu(menuName = "Strawhenge/Navigation/Pivot Profile")]
-    public class PivotProfileScriptableObject : ScriptableObject, IPivotProfile
+    public class PivotProfileScriptableObject : ScriptableObject, IPivotProfile, IProfileCompleteness
     {
         [SerializeField] PivotScriptableObject _pivot;
         [SerializeField] SerializedFloatRange _speedRange;
         [SerializeField] SerializedFloatRange[] _angleRanges;
 
         public int Id => _pivot != null ? _pivot.Id : 0;
+
+        bool IProfileCompleteness.IsComplete => _pivot != null;
 
         public Strawhenge.Common.Ranges.FloatRange SpeedRange => _speedRange.Value;
 

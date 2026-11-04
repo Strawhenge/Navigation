@@ -1,5 +1,4 @@
 using Strawhenge.Common.Unity.Serialization;
-using System.Linq;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -69,15 +68,10 @@ namespace Strawhenge.Navigation.Unity
         public float TurnSpeed => _turnSpeed;
 
         public IPivotProfile[] StationaryPivots =>
-            _stationaryPivotProfiles ??= _stationaryPivots
-                .Select(pivot => pivot.TryGetValue(out var value) ? value : null)
-                .Where(pivot => pivot != null)
-                .ToArray();
+            _stationaryPivotProfiles ??= ProfileSources.Resolve(_stationaryPivots, nameof(_stationaryPivots), this);
 
-        public IPivotProfile[] MovingPivots => _movingPivotProfiles ??= _movingPivots
-            .Select(pivot => pivot.TryGetValue(out var value) ? value : null)
-            .Where(pivot => pivot != null)
-            .ToArray();
+        public IPivotProfile[] MovingPivots =>
+            _movingPivotProfiles ??= ProfileSources.Resolve(_movingPivots, nameof(_movingPivots), this);
 
         public float JumpHeight => _jumpHeight;
 
@@ -86,10 +80,7 @@ namespace Strawhenge.Navigation.Unity
         public bool DeferJumpTrigger => _deferJumpTrigger;
 
         public ILandingProfile[] JumpLandings =>
-            _jumpLandingProfiles ??= _jumpLandings
-                .Select(landing => landing.TryGetValue(out var value) ? value : null)
-                .Where(landing => landing != null)
-                .ToArray();
+            _jumpLandingProfiles ??= ProfileSources.Resolve(_jumpLandings, nameof(_jumpLandings), this);
 
         public float Gravity => _gravity;
 
@@ -98,9 +89,6 @@ namespace Strawhenge.Navigation.Unity
         public float FallDistance => _fallDistance;
 
         public ILandingProfile[] FallLandings =>
-            _fallLandingProfiles ??= _fallLandings
-                .Select(landing => landing.TryGetValue(out var value) ? value : null)
-                .Where(landing => landing != null)
-                .ToArray();
+            _fallLandingProfiles ??= ProfileSources.Resolve(_fallLandings, nameof(_fallLandings), this);
     }
 }

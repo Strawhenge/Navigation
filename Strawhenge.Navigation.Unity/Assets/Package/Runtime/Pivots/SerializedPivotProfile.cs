@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Strawhenge.Navigation.Unity
 {
     [Serializable]
-    public class SerializedPivotProfile : IPivotProfile
+    public class SerializedPivotProfile : IPivotProfile, IProfileCompleteness
     {
         [SerializeField] PivotScriptableObject _pivot;
         [SerializeField] SerializedFloatRange _speedRange;
@@ -16,8 +16,11 @@ namespace Strawhenge.Navigation.Unity
 
         public int Id => _pivot.Id;
 
+        bool IProfileCompleteness.IsComplete => _pivot != null;
+
         public FloatRange SpeedRange => _speedRange.Value;
 
-        public IEnumerable<FloatRange> AngleRanges => _angleRanges.Select(angleRange => angleRange.Value);
+        public IEnumerable<FloatRange> AngleRanges =>
+            _angleRanges?.Select(angleRange => angleRange.Value) ?? Enumerable.Empty<FloatRange>();
     }
 }
