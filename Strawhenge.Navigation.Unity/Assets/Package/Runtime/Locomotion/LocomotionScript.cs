@@ -69,8 +69,25 @@ namespace Strawhenge.Navigation.Unity
 
         void OnDisable()
         {
+            CancelAnimatorWaits();
+
             _characterController.enabled = false;
             IsActiveChanged?.Invoke(false);
+        }
+
+        // While disabled, MovementSourceManagerScript routes the Animator's completion calls
+        // (CompletePivot, CompleteLanding, TriggerJump) to another movement source, so anything
+        // still waiting on them would block this script forever once it is re-enabled.
+        void CancelAnimatorWaits()
+        {
+            _isPivoting = false;
+            _isAwaitingStationaryPivot = false;
+            _stationaryPivot = null;
+
+            _isLanding = false;
+
+            _isAwaitingJumpTrigger = false;
+            _jump = false;
         }
 
         public event Action JumpTriggerRequested;
