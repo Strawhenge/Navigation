@@ -53,6 +53,23 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return AssertMovesForward();
         }
 
+        // Baseline for the pending-jump test below: proves Jump() starts a jump in this harness,
+        // so that test cannot pass just because the jump was never accepted.
+        [UnityTest]
+        public IEnumerator Jumps_when_jump_is_pressed()
+        {
+            CreateCharacter(new FakeLocomotionSettings());
+            yield return Settle();
+
+            var jumpBegan = false;
+            _locomotion.JumpBegan += () => jumpBegan = true;
+
+            _locomotion.Jump();
+            yield return WaitUntilOrTimeout(() => jumpBegan);
+
+            Assert.IsTrue(jumpBegan, "Jump() did not start a jump.");
+        }
+
         [UnityTest]
         public IEnumerator Moves_after_being_disabled_mid_pivot()
         {
@@ -129,6 +146,28 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return DisableAndReEnable();
 
             yield return AssertMovesForward();
+        }
+
+        [UnityTest]
+        public IEnumerator Does_not_jump_after_being_disabled_with_a_jump_pending()
+        {
+            CreateCharacter(new FakeLocomotionSettings());
+            yield return Settle();
+
+            var jumpBegan = false;
+            _locomotion.JumpBegan += () => jumpBegan = true;
+
+            // Same frame: the jump is accepted but not applied until the next Update.
+            _locomotion.Jump();
+            _locomotion.enabled = false;
+            yield return null;
+            _locomotion.enabled = true;
+
+            yield return new WaitForSeconds(MoveTime);
+
+            Assert.IsFalse(
+                jumpBegan,
+                "A jump pressed before locomotion was disabled was applied after re-enabling.");
         }
 
         void CreateCharacter(ILocomotionSettings settings)
