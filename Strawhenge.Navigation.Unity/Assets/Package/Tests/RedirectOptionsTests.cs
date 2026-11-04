@@ -228,18 +228,5 @@ namespace Strawhenge.Navigation.Unity.Tests
 
             _controller = new DestinationController(NullDestinationContext.Instance, agent);
         }
-
-        sealed class FakeNavMeshAgentModes : INavMeshAgentModes
-        {
-            public FakeNavMeshAgentModes(int defaultAreaMask, int leisurelyAreaMask)
-            {
-                DefaultAreaMask = defaultAreaMask;
-                LeisurelyAreaMask = leisurelyAreaMask;
-            }
-
-            public int DefaultAreaMask { get; }
-
-            public int LeisurelyAreaMask { get; }
-        }
     }
 }

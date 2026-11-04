@@ -35,6 +35,8 @@ Navigation/                              <- git root
     │   │   └── AssemblyInfo.cs          <- InternalsVisibleTo the test assembly
     │   ├── Editor/                      <- asmdef: Strawhenge.Navigation.Unity.Editor (editor-only)
     │   └── Tests/                       <- asmdef: Strawhenge.Navigation.Unity.Tests (PlayMode tests)
+    │       ├── Fakes/                   <- Fake... test doubles, one per file
+    │       └── Helpers/                 <- shared test setup (e.g. LocomotionTestCharacter)
     └── Assets/Development/              <- dev/test harness, NOT part of the package
         ├── Scenes/Main.unity            <- test scene (terrain, ramps, steps, NavMesh)
         ├── Scripts/                     <- ControlsScript (Input System -> LocomotionScript), CameraScript
@@ -69,6 +71,7 @@ Assembly definitions reference dependencies by GUID, and the runtime asmdef has 
 
 ### Locomotion
 - `LocomotionScript` is driven by `Move(Vector3 worldDirection)`, `Jump()` and the `Walk` / `Sprint` / `Strafe` flags.
+- Coyote time is time since the `CharacterController` was last grounded (`_timeSinceGrounded`), whatever the drop. Falling (`FallBegan`, fall landings) is separate and starts only after dropping `FallDistance`, so stairs and small bumps don't trigger it.
 - Settings come from `SerializedSource<ILocomotionSettings, SerializedLocomotionSettings, LocomotionSettingsScriptableObject>`, so they can be inline or an asset. If neither is set, `DefaultLocomotionSettings` is used.
 - Pivots and landings are a handshake with the Animator. Locomotion raises `PivotRequested(id)` / `LandingRequested(id)` and blocks movement or rotation until `CompletePivot(rotationDelta)` / `CompleteLanding()` is called back. Those calls come from `MovementAnimationSyncScript` via `PivotStateMachineBehaviour` / `LandingStateMachineBehaviour` (`OnStateMachineExit`).
 - When `DeferJumpTrigger` is set, the jump waits for an animation event that calls `MovementAnimationSyncScript.OnJumpLaunch()` → `TriggerJump()`.
@@ -83,6 +86,7 @@ Assembly definitions reference dependencies by GUID, and the runtime asmdef has 
 Follow the existing style. The ReSharper settings are in `Strawhenge.Navigation.Unity.sln.DotSettings`.
 - Leave out `private`/`internal` where they're the default (`readonly Foo _foo;`, `class Agent`).
 - Serialized fields are `[SerializeField] T _camelCase;`, never public fields. Expose them through get-only properties.
+- **One type per file**, named after the type (`FakePivotProfile.cs` holds `FakePivotProfile`). Don't put several classes, interfaces or enums in one file, and don't nest classes inside other classes. The only exception is a private implementation type kept in its own partial-class file, as `DestinationArgs.Builder.cs` does for `DestinationArgs.ArgsBuilder`.
 - Naming suffixes: `...Script` for MonoBehaviours, `...ScriptableObject` for ScriptableObjects, `Serialized...` for `[Serializable]` inline equivalents. Interfaces sit behind all three (`IPivotProfile`, `ILandingProfile`, `ILocomotionSettings`).
 - Null objects: `NullX` with `static Instance { get; } = new();` and a private ctor, used instead of null checks (`NullDestinationContext`, `NullMovementSource`). When "nothing" still has to return a value, use a fallback that keeps the existing behaviour instead (e.g. `FixedNavMeshAgentModes` with the agent's own area mask).
 - Resolve component references with `ComponentRefHelper.EnsureHierarchyComponent` / `EnsureRootHierarchyComponent` from Common. Warn with `Debug.LogWarning(..., this)` and fall back to defaults rather than throwing.
@@ -108,7 +112,7 @@ PlayMode tests live in `Assets/Package/Tests/` (asmdef `Strawhenge.Navigation.Un
 - The asmdef follows Common's test assembly: `UNITY_INCLUDE_TESTS` define constraint (projects that consume the package don't compile it), `overrideReferences: true`, and precompiled `nunit.framework.dll`, `Strawhenge.Common.dll` (where `FloatRange` lives) and `FunctionalUtilities.dll`.
 - Build objects in code rather than loading scenes or prefabs. Create the GameObject inactive, add its components, configure them, then activate it so `Awake` sees the configuration. Destroy everything in `[UnityTearDown]` and wait a frame.
 - Test hooks are `internal` and exposed through `Runtime/AssemblyInfo.cs` (`InternalsVisibleTo`). `LocomotionScript.SetCharacterController(...)` and `SetSettings(...)` exist for this; `Awake` keeps settings that were already set. Add similar small hooks rather than using reflection.
-- Fakes (`FakeLocomotionSettings`, `FakePivotProfile`, `FakeLandingProfile`) are nested in the test class. Settings default to `DefaultLocomotionSettings`, so each test sets only what it needs.
+- Fakes go in `Tests/Fakes/` and setup helpers in `Tests/Helpers/`, one per file, even when only one test class uses them. Test classes hold only their tests and private setup methods. Current fakes: `FakeLocomotionSettings` (defaults to `DefaultLocomotionSettings`, so each test sets only what it needs), `FakePivotProfile`, `FakeLandingProfile`, `FakeNavMeshAgentModes`. Current helpers: `LocomotionTestCharacter.Create(...)`.
 - Assert behaviour through public API and events (position, `PivotRequested`, `JumpBegan`, ...), not private fields. Check that each test's setup worked ("Setup failed: ..."), and back any "doesn't happen" assertion with a baseline test showing it does happen normally.
 - Bug-fix workflow: put the failing tests on a `test/...` branch (PR into `master`), and the fix on a `fix/...` branch from it (PR into the test branch). Merge the fix PR first, then the test PR, so `master` never has failing tests.
 - Unity generates `.meta` files for new files and folders. Commit them once Unity has imported the files; don't hand-write them.
