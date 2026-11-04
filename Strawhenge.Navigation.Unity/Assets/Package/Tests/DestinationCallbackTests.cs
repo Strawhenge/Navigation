@@ -140,7 +140,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             _navMeshAgent.enabled = false;
             character.SetActive(true);
 
-            var agent = new Agent(_navMeshAgent, NullNavMeshAgentModes.Instance, new AgentPriorityManager());
+            var agent = new Agent(_navMeshAgent, new FixedNavMeshAgentModes(NavMesh.AllAreas), new AgentPriorityManager());
             _controller = new DestinationController(NullDestinationContext.Instance, agent);
         }
 
