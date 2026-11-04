@@ -31,8 +31,10 @@ Navigation/                              <- git root
     │   │   ├── Pivots/                  <- pivot ids + profiles (speed range + angle ranges)
     │   │   ├── Landings/                <- landing ids + profiles (speed range + fall distance range)
     │   │   ├── MovementSource/          <- IMovementSource, Destination/Locomotion adapters, manager
-    │   │   └── Animation/               <- MovementAnimationSyncScript, StateMachineBehaviours, parameters
-    │   └── Editor/                      <- asmdef: Strawhenge.Navigation.Unity.Editor (editor-only)
+    │   │   ├── Animation/               <- MovementAnimationSyncScript, StateMachineBehaviours, parameters
+    │   │   └── AssemblyInfo.cs          <- InternalsVisibleTo the test assembly
+    │   ├── Editor/                      <- asmdef: Strawhenge.Navigation.Unity.Editor (editor-only)
+    │   └── Tests/                       <- asmdef: Strawhenge.Navigation.Unity.Tests (PlayMode tests)
     └── Assets/Development/              <- dev/test harness, NOT part of the package
         ├── Scenes/Main.unity            <- test scene (terrain, ramps, steps, NavMesh)
         ├── Scripts/                     <- ControlsScript (Input System -> LocomotionScript), CameraScript
@@ -67,6 +69,7 @@ Assembly definitions reference dependencies by GUID, and the runtime asmdef has 
 - Settings come from `SerializedSource<ILocomotionSettings, SerializedLocomotionSettings, LocomotionSettingsScriptableObject>`, so they can be inline or an asset. If neither is set, `DefaultLocomotionSettings` is used.
 - Pivots and landings are a handshake with the Animator. Locomotion raises `PivotRequested(id)` / `LandingRequested(id)` and blocks movement or rotation until `CompletePivot(rotationDelta)` / `CompleteLanding()` is called back. Those calls come from `MovementAnimationSyncScript` via `PivotStateMachineBehaviour` / `LandingStateMachineBehaviour` (`OnStateMachineExit`).
 - When `DeferJumpTrigger` is set, the jump waits for an animation event that calls `MovementAnimationSyncScript.OnJumpLaunch()` → `TriggerJump()`.
+- While `LocomotionScript` is disabled, the Animator's completion calls go to whichever movement source is active instead, so they never arrive. `OnDisable` therefore calls `CancelAnimatorWaits()` to clear the pivot, landing and jump-trigger waits (and any queued stationary pivot or jump not yet applied). Any new "wait for the Animator" flag must be reset there too.
 - `LocomotionToggleScript` turns `LocomotionScript` off while the destination controller is active, or when a `BaseLocomotionToggleConditionsScript` says so.
 
 ### Animation contract
@@ -93,8 +96,24 @@ Follow the existing style. The ReSharper settings are in `Strawhenge.Navigation.
 - Renaming or moving a MonoBehaviour/ScriptableObject class is safe only if the file name still matches the class name and the `.meta` goes with it.
 - Don't edit `Library/`, `Temp/`, `Logs/`, `obj/`, `UserSettings/` or the generated `*.csproj`/`*.sln` files. They're regenerated (and git-ignored).
 - Hand-edit YAML assets (`.unity`, `.controller`, `.asset`) only when you have to, and keep the change minimal.
-- Nothing can be compiled or run outside the Unity Editor here, and there are no tests yet (`com.unity.test-framework` is installed but unused). After a change, ask the user to let Unity recompile and check the Console, and to try it in `Assets/Development/Scenes/Main.unity`. The `DestinationScript` inspector has play-mode buttons (GoToExactly / GoToApproximately / IsLocationAccessible / Cancel) for manual testing, and the `LocomotionScript` inspector shows private fields live.
+- Nothing can be compiled or run outside the Unity Editor here. After a change, ask the user to let Unity recompile, check the Console and run the tests (see Testing). For manual checks, use `Assets/Development/Scenes/Main.unity`. The `DestinationScript` inspector has play-mode buttons (GoToExactly / GoToApproximately / IsLocationAccessible / Cancel), and the `LocomotionScript` inspector shows private fields live.
 - Package code must not reference anything in `Assets/Development`. Dependencies flow Development → Package only.
+
+## Testing
+
+PlayMode tests live in `Assets/Package/Tests/` (asmdef `Strawhenge.Navigation.Unity.Tests`). The user runs them from **Window → General → Test Runner → PlayMode → Run All**. Claude can't run Unity, so ask the user for the results.
+- The asmdef follows Common's test assembly: `UNITY_INCLUDE_TESTS` define constraint (projects that consume the package don't compile it), `overrideReferences: true`, and precompiled `nunit.framework.dll`, `Strawhenge.Common.dll` (where `FloatRange` lives) and `FunctionalUtilities.dll`.
+- Build objects in code rather than loading scenes or prefabs. Create the GameObject inactive, add its components, configure them, then activate it so `Awake` sees the configuration. Destroy everything in `[UnityTearDown]` and wait a frame.
+- Test hooks are `internal` and exposed through `Runtime/AssemblyInfo.cs` (`InternalsVisibleTo`). `LocomotionScript.SetCharacterController(...)` and `SetSettings(...)` exist for this; `Awake` keeps settings that were already set. Add similar small hooks rather than using reflection.
+- Fakes (`FakeLocomotionSettings`, `FakePivotProfile`, `FakeLandingProfile`) are nested in the test class. Settings default to `DefaultLocomotionSettings`, so each test sets only what it needs.
+- Assert behaviour through public API and events (position, `PivotRequested`, `JumpBegan`, ...), not private fields. Check that each test's setup worked ("Setup failed: ..."), and back any "doesn't happen" assertion with a baseline test showing it does happen normally.
+- Bug-fix workflow: put the failing tests on a `test/...` branch (PR into `master`), and the fix on a `fix/...` branch from it (PR into the test branch). Merge the fix PR first, then the test PR, so `master` never has failing tests.
+- Unity generates `.meta` files for new files and folders. Commit them once Unity has imported the files; don't hand-write them.
+
+## Git workflow
+
+- Work on a branch and open a pull request for the user to review. Don't merge it yourself.
+- The repo stores LF line endings, and Windows checkouts use `core.autocrlf=true`, so files on disk are CRLF. Some files have a UTF-8 BOM. Preserve both when editing.
 
 ## Known gaps / TODOs
 
