@@ -7,6 +7,7 @@ namespace Strawhenge.Navigation.Unity.Destination
     {
         readonly INavMeshAgentModes _agentModes;
         readonly AgentPriorityManager _priorityManager;
+        bool _hasPriority;
 
         public Agent(NavMeshAgent agent, INavMeshAgentModes agentModes, AgentPriorityManager priorityManager)
         {
@@ -22,6 +23,10 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             NavMeshAgent.enabled = true;
 
+            // Release first so re-enabling (or switching mode) never holds two slots.
+            if (_hasPriority)
+                _priorityManager.ReleasePriority(NavMeshAgent);
+
             if (leisurely)
             {
                 _priorityManager.ReserveLowPriority(NavMeshAgent);
@@ -32,12 +37,19 @@ namespace Strawhenge.Navigation.Unity.Destination
                 _priorityManager.ReserveHighPriority(NavMeshAgent);
                 _agentModes.Default(NavMeshAgent);
             }
+
+            _hasPriority = true;
         }
 
         public void Disable()
         {
             NavMeshAgent.enabled = false;
+
+            if (!_hasPriority)
+                return;
+
             _priorityManager.ReleasePriority(NavMeshAgent);
+            _hasPriority = false;
         }
 
         public Vector3 GetCurrentPosition() =>
