@@ -35,10 +35,17 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             var previous = CurrentArgs;
             CurrentArgs = args;
-            _agent.NavMeshAgent.destination = args.Location;
-            _agent.NavMeshAgent.speed = args.Speed;
 
             previous.Callback(DestinationResult.CancelledByNewDestination);
+
+            // The callback may already have started a newer request, which steered the agent itself,
+            // or cancelled. Steer the agent only if this request is still current: setting the
+            // destination twice in one call chain left the agent heading for the first of the two.
+            if (!IsCurrent || !ReferenceEquals(CurrentArgs, args))
+                return;
+
+            _agent.NavMeshAgent.destination = args.Location;
+            _agent.NavMeshAgent.speed = args.Speed;
         }
 
         protected internal override void Update(float deltaTime)

@@ -22,6 +22,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                 OnFallBegan,
                 OnFallEnded);
             _state = statesContainer.Idle;
+            _state.IsCurrent = true;
         }
 
         public event Action Activated;
@@ -57,6 +58,9 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             var oldState = _state;
             _state = newState;
+
+            oldState.IsCurrent = false;
+            newState.IsCurrent = true;
 
             if (!oldState.IsActive && newState.IsActive)
                 Activated?.Invoke();
