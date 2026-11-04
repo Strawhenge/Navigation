@@ -48,6 +48,11 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         internal void Update(float deltaTime) => _state.Update(deltaTime);
 
+        // While the GameObject is inactive: frees the avoidance priority slot, keeping the trip.
+        internal void Suspend() => _agent.Suspend();
+
+        internal void Resume() => _agent.Resume();
+
         void OnJumpBegan() => JumpBegan?.Invoke();
 
         void OnJumpEnded() => JumpEnded?.Invoke();
