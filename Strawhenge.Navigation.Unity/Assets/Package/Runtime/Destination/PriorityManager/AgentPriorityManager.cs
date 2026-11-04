@@ -18,24 +18,9 @@ namespace Strawhenge.Navigation.Unity.Destination
             _navMeshAgents = new NavMeshAgent[max];
         }
 
+        // Unity's avoidancePriority: 0 is the most important, 99 the least.
+        // Low priority therefore fills from the top of the range, high priority from the bottom.
         public void ReserveLowPriority(NavMeshAgent agent)
-        {
-            for (int i = 0; i < _navMeshAgents.Length; i++)
-            {
-                if (_navMeshAgents[i] == null)
-                {
-                    _navMeshAgents[i] = agent;
-                    agent.avoidancePriority = i;
-
-                    return;
-                }
-            }
-
-            agent.avoidancePriority = 0;
-            _awaitingPriority.Enqueue(agent);
-        }
-
-        public void ReserveHighPriority(NavMeshAgent agent)
         {
             for (int i = _navMeshAgents.Length - 1; i >= 0; i--)
             {
@@ -49,6 +34,23 @@ namespace Strawhenge.Navigation.Unity.Destination
             }
 
             agent.avoidancePriority = _navMeshAgents.Length - 1;
+            _awaitingPriority.Enqueue(agent);
+        }
+
+        public void ReserveHighPriority(NavMeshAgent agent)
+        {
+            for (int i = 0; i < _navMeshAgents.Length; i++)
+            {
+                if (_navMeshAgents[i] == null)
+                {
+                    _navMeshAgents[i] = agent;
+                    agent.avoidancePriority = i;
+
+                    return;
+                }
+            }
+
+            agent.avoidancePriority = 0;
             _awaitingPriority.Enqueue(agent);
         }
 
