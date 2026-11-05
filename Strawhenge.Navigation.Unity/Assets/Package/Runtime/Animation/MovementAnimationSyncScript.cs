@@ -147,7 +147,8 @@ namespace Strawhenge.Navigation.Unity
             if (_movementSourceManager == null || _animator == null)
                 return;
 
-            var velocity = transform.root.InverseTransformDirection(_movementSourceManager.CurrentVelocity);
+            // Relative to the animated body, not transform.root, which is a container if the character has a parent.
+            var velocity = _animator.transform.InverseTransformDirection(_movementSourceManager.CurrentVelocity);
             velocity.y = 0;
 
             if (_movementSourceManager.Strafe)
@@ -250,11 +251,12 @@ namespace Strawhenge.Navigation.Unity
 
             if (_leftFoot != null && _rightFoot != null)
             {
-                var leftOffset = _leftFoot.position - transform.root.position;
-                var rightOffset = _rightFoot.position - transform.root.position;
+                var body = _animator.transform;
+                var leftOffset = _leftFoot.position - body.position;
+                var rightOffset = _rightFoot.position - body.position;
 
-                var leftForward = Vector3.Dot(leftOffset, transform.root.forward);
-                var rightForward = Vector3.Dot(rightOffset, transform.root.forward);
+                var leftForward = Vector3.Dot(leftOffset, body.forward);
+                var rightForward = Vector3.Dot(rightOffset, body.forward);
 
                 _animator.SetBool(AnimatorParameters.PivotRightFoot, rightForward > leftForward);
             }

@@ -83,7 +83,7 @@ Assembly definitions reference dependencies by GUID, and the runtime asmdef has 
 - `LocomotionToggleScript` turns `LocomotionScript` off while the destination controller is active, or when a `BaseLocomotionToggleConditionsScript` says so. It applies the starting state in `Start` (after every `Awake`), then follows the change events.
 
 ### Animation contract
-`MovementAnimationSyncScript` expects these Animator parameter names (see `AnimatorParameters`): `Move Speed`, `Strafing`, `Strafe X`, `Strafe Y`, `Falling`, `Jump`, `Jumping`, `Pivot`, `Pivot ID`, `Pivot Right Foot`, `Landing ID`, `Land`. The controller must contain a `PivotStateMachineBehaviour` and a `LandingStateMachineBehaviour`. `Assets/Development/Character.controller` is the reference setup. Renaming a parameter breaks every consumer's controller.
+`MovementAnimationSyncScript` expects these Animator parameter names (see `AnimatorParameters`): `Move Speed`, `Strafing`, `Strafe X`, `Strafe Y`, `Falling`, `Jump`, `Jumping`, `Pivot`, `Pivot ID`, `Pivot Right Foot`, `Landing ID`, `Land`. The controller must contain a `PivotStateMachineBehaviour` and a `LandingStateMachineBehaviour`. `Assets/Development/Character.controller` is the reference setup. Renaming a parameter breaks every consumer's controller. Character-relative values (`Strafe X` / `Strafe Y`, `Pivot Right Foot`) are measured against the Animator's transform, never `transform.root`, so characters can sit under a parent object.
 
 Setup problems never crash and never leave locomotion waiting for an animation that can't happen. `MovementAnimationSyncScript` warns once in `Awake` and falls back:
 - **No Animator:** movement plays without animation, and a deferred jump triggers straight away.
