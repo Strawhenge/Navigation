@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
 {
-    public sealed class LocomotionScript : MonoBehaviour
+    public sealed partial class LocomotionScript : MonoBehaviour
     {
         [SerializeField] CharacterController _characterController;
 
@@ -221,15 +221,6 @@ namespace Strawhenge.Navigation.Unity
         {
             if (!_isLanding) return;
             _isLanding = false;
-        }
-
-        internal void SetCharacterController(CharacterController characterController) =>
-            _characterController = characterController;
-
-        internal void SetSettings(ILocomotionSettings settings)
-        {
-            _settingsSetFromCode = true;
-            _locomotionSettings = new CachedLocomotionSettings(settings);
         }
 
         // Safety net for waits nobody completes: no MovementAnimationSyncScript, nothing wired up, or an

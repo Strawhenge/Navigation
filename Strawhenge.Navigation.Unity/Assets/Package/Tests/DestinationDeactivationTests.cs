@@ -51,8 +51,8 @@ namespace Strawhenge.Navigation.Unity.Tests
         public IEnumerator Deactivating_mid_trip_frees_the_slot()
         {
             BuildNavMesh();
-            var first = CreateCharacter(new Vector3(0, 0, -5));
-            var second = CreateCharacter(new Vector3(0, 0, 5));
+            var first = DestinationTestCharacter.Create(new Vector3(0, 0, -5), _created);
+            var second = DestinationTestCharacter.Create(new Vector3(0, 0, 5), _created);
             yield return null;
 
             yield return StartTrip(first, new Vector3(20, 0, -5));
@@ -73,9 +73,9 @@ namespace Strawhenge.Navigation.Unity.Tests
         public IEnumerator Reactivating_mid_trip_resumes_the_trip_with_one_slot()
         {
             BuildNavMesh();
-            var first = CreateCharacter(new Vector3(0, 0, -5));
-            var second = CreateCharacter(new Vector3(0, 0, 5));
-            var third = CreateCharacter(new Vector3(0, 0, 15));
+            var first = DestinationTestCharacter.Create(new Vector3(0, 0, -5), _created);
+            var second = DestinationTestCharacter.Create(new Vector3(0, 0, 5), _created);
+            var third = DestinationTestCharacter.Create(new Vector3(0, 0, 15), _created);
             yield return null;
 
             var firstResults = new List<DestinationResult>();
@@ -105,7 +105,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         public IEnumerator Reactivating_a_leisurely_trip_keeps_the_leisurely_priority()
         {
             BuildNavMesh();
-            var character = CreateCharacter(Vector3.zero);
+            var character = DestinationTestCharacter.Create(Vector3.zero, _created);
             yield return null;
 
             yield return StartTrip(character, new Vector3(20, 0, 0), leisurely: true);
@@ -147,28 +147,6 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         void BuildNavMesh() =>
             _navMesh = TestNavMesh.Build(_created, TestNavMesh.Box(Vector3.zero, new Vector2(60, 60)));
-
-        DestinationScript CreateCharacter(Vector3 position)
-        {
-            var character = new GameObject($"Character {_created.Count}");
-            character.SetActive(false);
-            character.transform.position = position;
-            _created.Add(character);
-
-            // Starts disabled, as Idle keeps it; PrepareGoing enables it.
-            var navMeshAgent = character.AddComponent<NavMeshAgent>();
-            navMeshAgent.baseOffset = 0;
-            navMeshAgent.enabled = false;
-
-            // Set up in full, so Awake doesn't log the "not set" warnings meant for scene setup.
-            var destination = character.AddComponent<DestinationScript>();
-            destination.SetNavMeshAgent(navMeshAgent);
-            destination.SetModes(new FakeNavMeshAgentModes(NavMesh.AllAreas, NavMesh.AllAreas));
-            destination.SetSettings(DefaultDestinationSettings.Instance);
-            character.SetActive(true);
-
-            return destination;
-        }
 
         static NavMeshAgent Agent(DestinationScript character) => character.GetComponent<NavMeshAgent>();
 
