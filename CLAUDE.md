@@ -41,7 +41,7 @@ Navigation/                              <- git root
         ├── Scenes/Main.unity            <- test scene (terrain, ramps, steps, NavMesh)
         ├── Scripts/                     <- ControlsScript (Input System -> LocomotionScript), CameraScript
         ├── Character.controller         <- reference Animator Controller
-        ├── ScriptableObjects/           <- example locomotion settings, pivots, landings, agent modes
+        ├── ScriptableObjects/           <- example locomotion and destination settings, pivots, landings, agent modes
         └── Animations/, Y Bot.fbx       <- Mixamo assets
 ```
 
@@ -68,7 +68,8 @@ Assembly definitions reference dependencies by GUID, and the runtime asmdef has 
 - `Leisurely` gives low avoidance priority plus the "leisurely" area mask. `Strafe` sets `updateRotation = false`, and a strafing character keeps its facing through jumps. `IsStrafing` reports the request's `Strafe` option (`State.IsStrafing`), not `updateRotation`, which `Jumping` / `Falling` also turn off while they move the character by hand. `Agent.GetAreaMask(leisurely)` is the single place a mode's mask is chosen; `INavMeshAgentModes` only supplies the masks. Without a modes asset, `DestinationScript` uses `FixedNavMeshAgentModes` with the NavMeshAgent's inspector mask.
 - `IsLocationAccessible(location, leisurely = false)` queries the NavMesh directly (`NavMesh.SamplePosition` within one agent height, then `NavMesh.CalculatePath`) with the mode's area mask. It must never enable, move or reconfigure the agent, and only a **complete** path counts as accessible. (A `CanGoTo(DestinationArgs)` that also accepts partial paths for approximate requests may come later.)
 - States must not leave lasting changes to the agent's own settings (e.g. `stoppingDistance`). `Going` treats anything within `MinArrivalDistance` (0.1 m) as arrived when the stopping distance is smaller, since `remainingDistance` can stay just above 0.
-- Jumps and drops along off-mesh links are moved by hand (`updatePosition = false`). The speed and gravity constants for this are hard-coded TODOs in `Jumping` / `Falling`.
+- Jumps and drops along off-mesh links are moved by hand (`updatePosition = false`), using the destination settings.
+- Destination settings (`Destination/Settings`) mirror the locomotion ones: `SerializedSource<IDestinationSettings, SerializedDestinationSettings, DestinationSettingsScriptableObject>` on `DestinationScript`, falling back to `DefaultDestinationSettings` with a warning. They hold `JumpSpeed`, `FallHorizontalSpeed`, `FallAcceleration` and `GroundLayers` (the layers `Falling`'s ledge check raycasts against; leave out the character's own colliders). The states read them live, so edits apply straight away. `DestinationController` takes them as an optional argument, so tests can leave them out.
 
 ### Locomotion
 - `LocomotionScript` is driven by `Move(Vector3 worldDirection)`, `Jump()` and the `Walk` / `Sprint` / `Strafe` flags.
@@ -138,7 +139,6 @@ PlayMode tests live in `Assets/Package/Tests/` (asmdef `Strawhenge.Navigation.Un
 ## Known gaps / TODOs
 
 - **No `package.json` in `Assets/Package`.** Other projects can't consume this yet via a git URL (`?path=/Strawhenge.Navigation.Unity/Assets/Package#release`) the way the other Strawhenge packages are. It also needs a README.
-- Jump and fall speed and gravity for destination off-mesh links are hard-coded constants (`Jumping.JumpSpeed`, `Falling.HorizontalSpeed`, `Falling.FallAcceleration`).
 - The destination path never raises `PivotRequested` / `LandingRequested` / `JumpTriggerRequested`, and `Jumping.Velocity` is always zero. AI-driven characters therefore get no pivot or landing animations, and their speed parameter drops to 0 mid-jump.
 - `SerializedLocomotionSettings` and `LocomotionSettingsScriptableObject` duplicate the same fields and logic.
 - `AnimatorExtensions.SetFloat` and `PrivateFieldInspector` are marked "move to Common". `PivotScriptableObject` is marked "remove from asset menu / generate via editor tool".

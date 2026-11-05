@@ -5,14 +5,13 @@ namespace Strawhenge.Navigation.Unity.Destination
 {
     class Falling : State
     {
-        const float HorizontalSpeed = 5f; // TODO: Make this configurable
-        const float FallAcceleration = 9.81f; // TODO: Make this configurable
         const float GroundProbeDistance = 0.2f;
         const float EndAlignmentDistance = 0.05f;
         const float DownwardMovementEpsilon = 0.0001f;
 
         readonly IDestinationContext _context;
         readonly Agent _agent;
+        readonly IDestinationSettings _settings;
 
         internal event Action FallBegan;
         internal event Action FallEnded;
@@ -30,10 +29,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         Vector3 _currentVelocity;
         bool _fallBeganRaised;
 
-        public Falling(IDestinationContext context, Agent agent)
+        public Falling(IDestinationContext context, Agent agent, IDestinationSettings settings)
         {
             _context = context;
             _agent = agent;
+            _settings = settings;
         }
 
         public DestinationArgs CurrentArgs { private get; set; }
@@ -96,7 +96,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             var horizontalDistance = Vector2.Distance(
                 new Vector2(_startPosition.x, _startPosition.z),
                 new Vector2(_endPosition.x, _endPosition.z));
-            _horizontalDuration = Mathf.Max(0.01f, horizontalDistance / HorizontalSpeed);
+            _horizontalDuration = Mathf.Max(0.01f, horizontalDistance / _settings.FallHorizontalSpeed);
             _horizontalT = 0f;
             _verticalSpeed = 0f;
             _currentVelocity = Vector3.zero;
@@ -131,7 +131,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                 position.y = _startPosition.y;
             else if (_endPosition.y < _startPosition.y)
             {
-                _verticalSpeed += FallAcceleration * deltaTime;
+                _verticalSpeed += _settings.FallAcceleration * deltaTime;
                 position.y = Mathf.Max(_endPosition.y, y - (_verticalSpeed * deltaTime));
             }
             else
@@ -251,10 +251,10 @@ namespace Strawhenge.Navigation.Unity.Destination
             var origin = position + (Vector3.up * 0.05f);
             return Physics
                 .Raycast(
-                    origin, 
-                    Vector3.down, 
-                    GroundProbeDistance, 
-                    Physics.DefaultRaycastLayers,
+                    origin,
+                    Vector3.down,
+                    GroundProbeDistance,
+                    _settings.GroundLayers,
                     QueryTriggerInteraction.Ignore);
         }
 

@@ -3655,6 +3655,7 @@ MonoBehaviour:
       _fallLandings: []
     _scriptableObject: {fileID: 11400000, guid: a787ed6e6322d564c930586c134a40cd, type: 2}
     _type: 2
+  _animatorWaitTimeout: 2
 --- !u!143 &6692772569148810662
 CharacterController:
   m_ObjectHideFlags: 0
@@ -3689,6 +3690,7 @@ MonoBehaviour:
   _movementSourceManager: {fileID: 6692772569148810667}
   _dampeningTime: 0.1
   _minFallDistance: 1
+  _animationStartTimeout: 0.3
 --- !u!195 &6692772569148810664
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -3726,6 +3728,16 @@ MonoBehaviour:
   _navMeshAgent: {fileID: 6692772569148810664}
   _modes: {fileID: 11400000, guid: 2e7b8373be68e3047a481495ae9b726b, type: 2}
   _context: {fileID: 0}
+  _settings:
+    _serialized:
+      _jumpSpeed: 4
+      _fallHorizontalSpeed: 5
+      _fallAcceleration: 9.81
+      _groundLayers:
+        serializedVersion: 2
+        m_Bits: 4294967291
+    _scriptableObject: {fileID: 11400000, guid: 742fe43837fa3894e9b5e161c3672192, type: 2}
+    _type: 2
 --- !u!114 &6692772569148810667
 MonoBehaviour:
   m_ObjectHideFlags: 0
