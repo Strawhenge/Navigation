@@ -51,11 +51,6 @@ namespace Strawhenge.Navigation.Unity
             SerializedLandingProfile,
             LandingProfileScriptableObject>[] _fallLandings;
 
-        IPivotProfile[] _stationaryPivotProfiles;
-        IPivotProfile[] _movingPivotProfiles;
-        ILandingProfile[] _jumpLandingProfiles;
-        ILandingProfile[] _fallLandingProfiles;
-
         public float WalkSpeed => _walkSpeed;
 
         public float RunSpeed => _runSpeed;
@@ -68,11 +63,12 @@ namespace Strawhenge.Navigation.Unity
 
         public float TurnSpeed => _turnSpeed;
 
+        // The profile lists are resolved on every read; LocomotionScript reads them through CachedLocomotionSettings.
         public IPivotProfile[] StationaryPivots =>
-            _stationaryPivotProfiles ??= ProfileSources.Resolve(_stationaryPivots, pivot => pivot.Id, nameof(_stationaryPivots), null);
+            ProfileSources.Resolve(_stationaryPivots, pivot => pivot.Id, nameof(_stationaryPivots), null);
 
         public IPivotProfile[] MovingPivots =>
-            _movingPivotProfiles ??= ProfileSources.Resolve(_movingPivots, pivot => pivot.Id, nameof(_movingPivots), null);
+            ProfileSources.Resolve(_movingPivots, pivot => pivot.Id, nameof(_movingPivots), null);
 
         public float JumpHeight => _jumpHeight;
 
@@ -81,7 +77,7 @@ namespace Strawhenge.Navigation.Unity
         public bool DeferJumpTrigger => _deferJumpTrigger;
 
         public ILandingProfile[] JumpLandings =>
-            _jumpLandingProfiles ??= ProfileSources.Resolve(_jumpLandings, landing => landing.Id, nameof(_jumpLandings), null);
+            ProfileSources.Resolve(_jumpLandings, landing => landing.Id, nameof(_jumpLandings), null);
 
         public float Gravity => _gravity;
 
@@ -90,6 +86,6 @@ namespace Strawhenge.Navigation.Unity
         public float FallDistance => _fallDistance;
 
         public ILandingProfile[] FallLandings =>
-            _fallLandingProfiles ??= ProfileSources.Resolve(_fallLandings, landing => landing.Id, nameof(_fallLandings), null);
+            ProfileSources.Resolve(_fallLandings, landing => landing.Id, nameof(_fallLandings), null);
     }
 }

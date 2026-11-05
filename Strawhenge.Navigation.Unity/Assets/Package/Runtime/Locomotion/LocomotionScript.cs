@@ -21,6 +21,7 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _animatorWaitTimeout = 2f;
 
         ILocomotionSettings _locomotionSettings;
+        bool _settingsSetFromCode;
         Transform _rootTransform;
 
         Vector3 _input;
@@ -60,13 +61,28 @@ namespace Strawhenge.Navigation.Unity
             ComponentRefHelper
                 .EnsureHierarchyComponent(ref _characterController, nameof(_characterController), this);
 
-            if (_locomotionSettings == null && !_settings.TryGetValue(out _locomotionSettings))
-            {
-                Debug.LogWarning($"'{nameof(_settings)} not set - using defaults.");
-                _locomotionSettings = DefaultLocomotionSettings.Instance;
-            }
+            _locomotionSettings ??= new CachedLocomotionSettings(ResolveSettings());
 
             _rootTransform = _characterController.transform;
+        }
+
+        // Inline settings edits, and swapping the settings asset, apply in play mode. Settings given to
+        // SetSettings are kept.
+        void OnValidate()
+        {
+            CachedLocomotionSettings.Invalidate();
+
+            if (Application.isPlaying && _locomotionSettings != null && !_settingsSetFromCode)
+                _locomotionSettings = new CachedLocomotionSettings(ResolveSettings());
+        }
+
+        ILocomotionSettings ResolveSettings()
+        {
+            if (_settings != null && _settings.TryGetValue(out var settings))
+                return settings;
+
+            Debug.LogWarning($"'{nameof(_settings)}' not set - using defaults.", this);
+            return DefaultLocomotionSettings.Instance;
         }
 
         void Update()
@@ -148,7 +164,12 @@ namespace Strawhenge.Navigation.Unity
                 if (_input.magnitude < 0.001f)
                 {
                     _isAwaitingStationaryPivot = false;
-                    Pivot(_stationaryPivot.Id.Value);
+
+                    // Held since it matched, so its pivot asset may have been cleared meanwhile:
+                    // then there's no pivot, and the character turns normally.
+                    if (_stationaryPivot.Id is int stationaryPivotId)
+                        Pivot(stationaryPivotId);
+
                     _stationaryPivot = null;
                 }
                 else if (input.magnitude > _input.magnitude)
@@ -206,7 +227,11 @@ namespace Strawhenge.Navigation.Unity
         internal void SetCharacterController(CharacterController characterController) =>
             _characterController = characterController;
 
-        internal void SetSettings(ILocomotionSettings settings) => _locomotionSettings = settings;
+        internal void SetSettings(ILocomotionSettings settings)
+        {
+            _settingsSetFromCode = true;
+            _locomotionSettings = new CachedLocomotionSettings(settings);
+        }
 
         // Safety net for waits nobody completes: no MovementAnimationSyncScript, nothing wired up, or an
         // animation that never finishes. MovementAnimationSyncScript gives up much sooner on an animation that
@@ -305,9 +330,9 @@ namespace Strawhenge.Navigation.Unity
                     _stationaryPivot = stationaryPivot;
                 }
 
-                if (CheckForMovingPivots(out var movingPivot))
+                if (CheckForMovingPivots(out var movingPivot) && movingPivot.Id is int movingPivotId)
                 {
-                    Pivot(movingPivot.Id.Value);
+                    Pivot(movingPivotId);
                     return;
                 }
             }
@@ -414,9 +439,10 @@ namespace Strawhenge.Navigation.Unity
                 foreach (var landing in _locomotionSettings.FallLandings)
                 {
                     if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
-                        landing.FallDistanceRange.IsInRange(fallDistance))
+                        landing.FallDistanceRange.IsInRange(fallDistance) &&
+                        landing.Id is int landingId)
                     {
-                        Land(landing.Id.Value);
+                        Land(landingId);
                         break;
                     }
                 }
@@ -473,9 +499,10 @@ namespace Strawhenge.Navigation.Unity
                     foreach (var landing in _locomotionSettings.JumpLandings)
                     {
                         if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
-                            landing.FallDistanceRange.IsInRange(_fallDistance))
+                            landing.FallDistanceRange.IsInRange(_fallDistance) &&
+                            landing.Id is int landingId)
                         {
-                            Land(landing.Id.Value);
+                            Land(landingId);
                             break;
                         }
                     }

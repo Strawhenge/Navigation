@@ -13,6 +13,9 @@ namespace Strawhenge.Navigation.Unity
 
         public int? Id => _pivot != null ? _pivot.Id : null;
 
+        // Assigning or clearing the pivot asset changes whether settings include this profile.
+        void OnValidate() => CachedLocomotionSettings.Invalidate();
+
         public Strawhenge.Common.Ranges.FloatRange SpeedRange => _speedRange.Value;
 
         public System.Collections.Generic.IEnumerable<Strawhenge.Common.Ranges.FloatRange> AngleRanges => _angleRanges == null

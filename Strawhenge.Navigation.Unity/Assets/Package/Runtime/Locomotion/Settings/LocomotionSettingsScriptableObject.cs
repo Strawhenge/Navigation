@@ -50,11 +50,6 @@ namespace Strawhenge.Navigation.Unity
             SerializedLandingProfile,
             LandingProfileScriptableObject>[] _fallLandings;
 
-        IPivotProfile[] _stationaryPivotProfiles;
-        IPivotProfile[] _movingPivotProfiles;
-        ILandingProfile[] _jumpLandingProfiles;
-        ILandingProfile[] _fallLandingProfiles;
-
         public float WalkSpeed => _walkSpeed;
 
         public float RunSpeed => _runSpeed;
@@ -67,11 +62,12 @@ namespace Strawhenge.Navigation.Unity
 
         public float TurnSpeed => _turnSpeed;
 
+        // The profile lists are resolved on every read; LocomotionScript reads them through CachedLocomotionSettings.
         public IPivotProfile[] StationaryPivots =>
-            _stationaryPivotProfiles ??= ProfileSources.Resolve(_stationaryPivots, pivot => pivot.Id, nameof(_stationaryPivots), this);
+            ProfileSources.Resolve(_stationaryPivots, pivot => pivot.Id, nameof(_stationaryPivots), this);
 
         public IPivotProfile[] MovingPivots =>
-            _movingPivotProfiles ??= ProfileSources.Resolve(_movingPivots, pivot => pivot.Id, nameof(_movingPivots), this);
+            ProfileSources.Resolve(_movingPivots, pivot => pivot.Id, nameof(_movingPivots), this);
 
         public float JumpHeight => _jumpHeight;
 
@@ -80,7 +76,7 @@ namespace Strawhenge.Navigation.Unity
         public bool DeferJumpTrigger => _deferJumpTrigger;
 
         public ILandingProfile[] JumpLandings =>
-            _jumpLandingProfiles ??= ProfileSources.Resolve(_jumpLandings, landing => landing.Id, nameof(_jumpLandings), this);
+            ProfileSources.Resolve(_jumpLandings, landing => landing.Id, nameof(_jumpLandings), this);
 
         public float Gravity => _gravity;
 
@@ -89,6 +85,8 @@ namespace Strawhenge.Navigation.Unity
         public float FallDistance => _fallDistance;
 
         public ILandingProfile[] FallLandings =>
-            _fallLandingProfiles ??= ProfileSources.Resolve(_fallLandings, landing => landing.Id, nameof(_fallLandings), this);
+            ProfileSources.Resolve(_fallLandings, landing => landing.Id, nameof(_fallLandings), this);
+
+        void OnValidate() => CachedLocomotionSettings.Invalidate();
     }
 }
