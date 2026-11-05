@@ -472,8 +472,8 @@ MonoBehaviour:
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 969177857}
-        m_TargetAssemblyTypeName: Development.CameraScript, Development
-        m_MethodName: Rotate
+        m_TargetAssemblyTypeName: Development.ThirdPersonCameraScript, Development
+        m_MethodName: Look
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -895,9 +895,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _target: {fileID: 6692772569148810660}
-  _distanceFromTarget: 2
-  _heightAboveTarget: 1.2
-  _rotationSpeed: 30
+  _pivotHeight: 1.5
+  _followSmoothTime: 0.08
+  _distance: 3
+  _minDistance: 1
+  _maxDistance: 6
+  _zoomSpeed: 0.005
+  _lookSensitivity: 0.15
+  _minPitch: -35
+  _maxPitch: 70
+  _invertY: 0
+  _collisionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _collisionRadius: 0.2
+  _collisionReturnSmoothTime: 0.25
+  _lockCursor: 1
 --- !u!1 &1093666944
 GameObject:
   m_ObjectHideFlags: 0
