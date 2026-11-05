@@ -25,6 +25,21 @@ namespace Strawhenge.Navigation.Unity
                 _conditions.StateChanged += OnStateChanged;
         }
 
+        // The events only report changes, so apply the starting state once every Awake has run.
+        void Start() => OnStateChanged();
+
+        void OnDestroy()
+        {
+            if (_destination != null)
+            {
+                _destination.DestinationController.Activated -= OnStateChanged;
+                _destination.DestinationController.Deactivated -= OnStateChanged;
+            }
+
+            if (_conditions != null)
+                _conditions.StateChanged -= OnStateChanged;
+        }
+
         void OnStateChanged()
         {
             _locomotion.enabled = LocomotionShouldBeActive();
