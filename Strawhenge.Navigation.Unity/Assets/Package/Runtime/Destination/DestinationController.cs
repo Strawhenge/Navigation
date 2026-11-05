@@ -8,13 +8,15 @@ namespace Strawhenge.Navigation.Unity.Destination
         readonly Agent _agent;
         State _state;
 
-        internal DestinationController(IDestinationContext context, Agent agent)
+        // Without settings (e.g. in tests), DefaultDestinationSettings is used.
+        internal DestinationController(IDestinationContext context, Agent agent, IDestinationSettings settings = null)
         {
             _agent = agent;
 
             var statesContainer = new StatesContainer(
                 context,
                 agent,
+                settings ?? DefaultDestinationSettings.Instance,
                 OnChangeState,
                 OnJumpBegan,
                 OnJumpEnded,

@@ -5,10 +5,9 @@ namespace Strawhenge.Navigation.Unity.Destination
 {
     class Jumping : State
     {
-        const float JumpSpeed = 4f; // TODO: Make this configurable
-
         readonly IDestinationContext _context;
         readonly Agent _agent;
+        readonly IDestinationSettings _settings;
 
         internal event Action JumpBegan;
         internal event Action JumpEnded;
@@ -23,10 +22,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         float _jumpDuration;
         float _jumpHeight;
 
-        public Jumping(IDestinationContext context, Agent agent)
+        public Jumping(IDestinationContext context, Agent agent, IDestinationSettings settings)
         {
             _context = context;
             _agent = agent;
+            _settings = settings;
         }
 
         public DestinationArgs CurrentArgs { private get; set; }
@@ -94,7 +94,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                 new Vector2(_startPosition.x, _startPosition.z),
                 new Vector2(_endPosition.x, _endPosition.z));
 
-            _jumpDuration = Mathf.Max(0.15f, horizontalDistance / JumpSpeed);
+            _jumpDuration = Mathf.Max(0.15f, horizontalDistance / _settings.JumpSpeed);
             _jumpHeight = Mathf.Clamp(horizontalDistance * 0.25f, 0.5f, 2.5f);
             _jumpT = 0f;
             _isJumpInProgress = true;

@@ -1,4 +1,5 @@
 using Strawhenge.Common.Unity.Helpers;
+using Strawhenge.Common.Unity.Serialization;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -9,6 +10,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         [SerializeField] NavMeshAgent _navMeshAgent;
         [SerializeField] NavMeshAgentModesScriptableObject _modes;
         [SerializeField] DestinationContextScript _context;
+
+        [SerializeField] SerializedSource<
+            IDestinationSettings,
+            SerializedDestinationSettings,
+            DestinationSettingsScriptableObject> _settings;
 
         DestinationController _destinationController;
 
@@ -37,6 +43,16 @@ namespace Strawhenge.Navigation.Unity.Destination
             DestinationController.Update(Time.deltaTime);
         }
 
+        // Read live rather than copied, so edits to the settings apply straight away.
+        IDestinationSettings ResolveSettings()
+        {
+            if (_settings != null && _settings.TryGetValue(out var settings))
+                return settings;
+
+            Debug.LogWarning($"'{nameof(_settings)}' not set - using defaults.", this);
+            return DefaultDestinationSettings.Instance;
+        }
+
         DestinationController Create()
         {
             ComponentRefHelper.EnsureRootHierarchyComponent(ref _navMeshAgent, nameof(_navMeshAgent), this);
@@ -57,7 +73,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                 modes,
                 SingleAgentPriorityManager.Instance);
 
-            return new DestinationController(context, agent);
+            return new DestinationController(context, agent, ResolveSettings());
         }
     }
 }

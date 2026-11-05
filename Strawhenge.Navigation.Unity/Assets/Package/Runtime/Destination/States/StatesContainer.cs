@@ -7,6 +7,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         public StatesContainer(
             IDestinationContext context,
             Agent agent,
+            IDestinationSettings settings,
             Action<State> onChangeState,
             Action onJumpBegan, Action onJumpEnded,
             Action onFallBegan, Action onFallEnded)
@@ -15,8 +16,8 @@ namespace Strawhenge.Navigation.Unity.Destination
             PrepareGoing = new PrepareGoing(context, agent);
             Going = new Going(context, agent);
             CannotNavigate = new CannotNavigate(context, agent);
-            Jumping = new Jumping(context, agent);
-            Falling = new Falling(context, agent);
+            Jumping = new Jumping(context, agent, settings);
+            Falling = new Falling(context, agent, settings);
 
             Idle.SetStatesContainer(this);
             PrepareGoing.SetStatesContainer(this);
