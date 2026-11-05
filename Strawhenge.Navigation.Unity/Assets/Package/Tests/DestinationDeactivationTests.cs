@@ -160,7 +160,11 @@ namespace Strawhenge.Navigation.Unity.Tests
             navMeshAgent.baseOffset = 0;
             navMeshAgent.enabled = false;
 
+            // Set up in full, so Awake doesn't log the "not set" warnings meant for scene setup.
             var destination = character.AddComponent<DestinationScript>();
+            destination.SetNavMeshAgent(navMeshAgent);
+            destination.SetModes(new FakeNavMeshAgentModes(NavMesh.AllAreas, NavMesh.AllAreas));
+            destination.SetSettings(DefaultDestinationSettings.Instance);
             character.SetActive(true);
 
             return destination;

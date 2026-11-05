@@ -17,6 +17,8 @@ namespace Strawhenge.Navigation.Unity.Destination
             DestinationSettingsScriptableObject> _settings;
 
         DestinationController _destinationController;
+        INavMeshAgentModes _modesOverride;
+        IDestinationSettings _settingsOverride;
 
         public DestinationController DestinationController => _destinationController ??= Create();
 
@@ -43,9 +45,20 @@ namespace Strawhenge.Navigation.Unity.Destination
             DestinationController.Update(Time.deltaTime);
         }
 
+        // Test hooks. Call them before Awake (while the GameObject is inactive): the controller is built
+        // once, so later calls have no effect.
+        internal void SetNavMeshAgent(NavMeshAgent navMeshAgent) => _navMeshAgent = navMeshAgent;
+
+        internal void SetModes(INavMeshAgentModes modes) => _modesOverride = modes;
+
+        internal void SetSettings(IDestinationSettings settings) => _settingsOverride = settings;
+
         // Read live rather than copied, so edits to the settings apply straight away.
         IDestinationSettings ResolveSettings()
         {
+            if (_settingsOverride != null)
+                return _settingsOverride;
+
             if (_settings != null && _settings.TryGetValue(out var settings))
                 return settings;
 
@@ -61,7 +74,10 @@ namespace Strawhenge.Navigation.Unity.Destination
                 ? _context
                 : NullDestinationContext.Instance;
 
-            INavMeshAgentModes modes = _modes;
+            INavMeshAgentModes modes = _modesOverride;
+            if (modes == null && _modes != null)
+                modes = _modes;
+
             if (modes == null)
             {
                 Debug.LogWarning($"Missing '{nameof(_modes)}'.", this);
