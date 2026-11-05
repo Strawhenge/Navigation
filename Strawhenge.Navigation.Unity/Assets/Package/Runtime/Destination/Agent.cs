@@ -48,26 +48,34 @@ namespace Strawhenge.Navigation.Unity.Destination
             _hasPriority = false;
         }
 
-        // The character's GameObject was deactivated mid-trip: free the avoidance priority slot,
-        // and take a slot back on Resume. The current state sets the agent up again on reactivation
-        // (State.OnAgentReactivated).
+        // DestinationScript was disabled mid-trip, on its own or with its GameObject: pause by disabling
+        // the agent, which stops it, and free the avoidance priority slot. Resume undoes both. Unity drops
+        // a disabled agent's path, so the current state sets the agent up again (State.OnAgentReactivated).
+        // Nothing to do while idle, when the agent is already disabled.
         public void Suspend()
         {
+            if (!NavMeshAgent.enabled)
+                return;
+
+            NavMeshAgent.enabled = false;
+            _isSuspended = true;
+
             if (!_hasPriority)
                 return;
 
             _priorityManager.ReleasePriority(NavMeshAgent);
             _hasPriority = false;
-            _isSuspended = true;
         }
 
-        // Reactivated: reserve a slot again for the mode in use, unless something already has.
+        // Re-enabled: enable the agent again and reserve a slot for the mode in use, unless something
+        // already has.
         public void Resume()
         {
             if (!_isSuspended)
                 return;
 
             _isSuspended = false;
+            NavMeshAgent.enabled = true;
 
             if (!_hasPriority)
                 ReservePriority(IsLeisurely);

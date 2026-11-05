@@ -55,6 +55,13 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         internal void Resume()
         {
+            // Cancelled while paused: nothing to resume, so make sure the agent stays disabled.
+            if (!_state.IsActive)
+            {
+                _agent.Disable();
+                return;
+            }
+
             _agent.Resume();
             _state.OnAgentReactivated();
         }

@@ -60,6 +60,11 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (!IsCurrent || !ReferenceEquals(CurrentArgs, args))
                 return;
 
+            // Paused (DestinationScript disabled): the agent is disabled and can't be steered.
+            // OnAgentReactivated starts this request through PrepareGoing when it's enabled again.
+            if (IsAgentUnavailable())
+                return;
+
             // Re-reserves avoidance priority and applies the mode's area mask. Before the destination,
             // so the new path is calculated with the new mask. Compared with the mode actually applied,
             // since in a chain of redirects the previous request may never have been applied.
