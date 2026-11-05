@@ -39,7 +39,7 @@ Navigation/                              <- git root
     │       └── Helpers/                 <- shared test setup (e.g. LocomotionTestCharacter)
     └── Assets/Development/              <- dev/test harness, NOT part of the package
         ├── Scenes/Main.unity            <- test scene (terrain, ramps, steps, NavMesh)
-        ├── Scripts/                     <- ControlsScript (Input System -> LocomotionScript), CameraScript
+        ├── Scripts/                     <- ControlsScript (Input System -> LocomotionScript), ThirdPersonCameraScript
         ├── Character.controller         <- reference Animator Controller
         ├── ScriptableObjects/           <- example locomotion and destination settings, pivots, landings, agent modes
         └── Animations/, Y Bot.fbx       <- Mixamo assets
