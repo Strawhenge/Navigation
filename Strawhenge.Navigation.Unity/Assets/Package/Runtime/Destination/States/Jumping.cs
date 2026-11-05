@@ -31,6 +31,8 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public DestinationArgs CurrentArgs { private get; set; }
 
+        protected internal override bool IsStrafing => CurrentArgs.Strafe;
+
         protected internal override Vector3 Velocity => Vector3.zero;
 
         protected internal override void Cancel()
@@ -83,7 +85,10 @@ namespace Strawhenge.Navigation.Unity.Destination
             var linkData = _agent.NavMeshAgent.currentOffMeshLinkData;
             _startPosition = _agent.GetCurrentPosition();
             _endPosition = linkData.endPos + (Vector3.up * _agent.NavMeshAgent.baseOffset);
-            FaceJumpDirection();
+
+            // A strafing character keeps its facing; it couldn't turn back afterwards, as rotation is off.
+            if (!CurrentArgs.Strafe)
+                FaceJumpDirection();
 
             var horizontalDistance = Vector2.Distance(
                 new Vector2(_startPosition.x, _startPosition.z),

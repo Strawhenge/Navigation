@@ -18,6 +18,8 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public DestinationArgs CurrentArgs { private get; set; }
 
+        protected internal override bool IsStrafing => CurrentArgs.Strafe;
+
         protected internal override void Cancel()
         {
             ChangeState(States.Idle);

@@ -35,7 +35,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public Vector3 CurrentVelocity => _state.Velocity;
 
-        public bool IsStrafing => _state.IsActive && !_agent.NavMeshAgent.updateRotation;
+        public bool IsStrafing => _state.IsStrafing;
 
         // True if there is a complete path from the agent's current position, using the area mask of
         // the given mode. Has no side effects on the agent.

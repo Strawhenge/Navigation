@@ -20,6 +20,8 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public DestinationArgs CurrentArgs { private get; set; }
 
+        protected internal override bool IsStrafing => CurrentArgs.Strafe;
+
         protected internal override void Cancel()
 
         {
@@ -67,11 +69,6 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.isStopped = true;
             _agent.NavMeshAgent.updatePosition = true;
             _agent.NavMeshAgent.updateRotation = !CurrentArgs.Strafe;
-
-            if (_agent.NavMeshAgent.stoppingDistance <= 0)
-            {
-                _agent.NavMeshAgent.stoppingDistance = 0.1f;
-            }
 
             _agent.NavMeshAgent.CalculatePath(CurrentArgs.Location, _path);
 

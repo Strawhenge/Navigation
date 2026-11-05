@@ -5,6 +5,8 @@ namespace Strawhenge.Navigation.Unity.Destination
 {
     class Going : State
     {
+        const float MinArrivalDistance = 0.1f;
+
         readonly IDestinationContext _context;
         readonly Agent _agent;
 
@@ -20,6 +22,8 @@ namespace Strawhenge.Navigation.Unity.Destination
                 : Vector3.zero;
 
         public DestinationArgs CurrentArgs { private get; set; }
+
+        protected internal override bool IsStrafing => CurrentArgs.Strafe;
 
         protected internal override void Cancel()
         {
@@ -124,10 +128,12 @@ namespace Strawhenge.Navigation.Unity.Destination
             }
         }
 
+        // With a stopping distance of 0, remainingDistance can stay just above 0, so arrival allows at
+        // least MinArrivalDistance. Applied here rather than to the agent, so its settings are left alone.
         bool IsAtDestination() =>
             !_agent.NavMeshAgent.pathPending &&
             _agent.NavMeshAgent.remainingDistance <=
-            (CurrentArgs.TargetDistance ?? _agent.NavMeshAgent.stoppingDistance);
+            (CurrentArgs.TargetDistance ?? Mathf.Max(_agent.NavMeshAgent.stoppingDistance, MinArrivalDistance));
 
         bool IsAgentUnavailable() =>
             _agent.NavMeshAgent.isActiveAndEnabled == false ||
