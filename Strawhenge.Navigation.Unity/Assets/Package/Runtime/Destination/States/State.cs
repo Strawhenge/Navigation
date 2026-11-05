@@ -16,6 +16,10 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         protected internal abstract Vector3 Velocity { get; }
 
+        // The current request's Strafe option. Not NavMeshAgent.updateRotation, which jumps and drops
+        // also turn off while they move the character by hand.
+        protected internal virtual bool IsStrafing => false;
+
         protected internal abstract void GoTo(DestinationArgs args);
 
         protected internal abstract void Update(float deltaTime);
