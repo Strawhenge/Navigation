@@ -13,6 +13,9 @@ namespace Strawhenge.Navigation.Unity
 
         public int? Id => _landing != null ? _landing.Id : null;
 
+        // Assigning or clearing the landing asset changes whether settings include this profile.
+        void OnValidate() => CachedLocomotionSettings.Invalidate();
+
         public FloatRange FallDistanceRange => _fallDistanceRange.Value;
 
         public FloatRange SpeedRange => _speedRange.Value;
