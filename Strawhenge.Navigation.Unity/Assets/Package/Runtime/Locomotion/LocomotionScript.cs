@@ -164,7 +164,12 @@ namespace Strawhenge.Navigation.Unity
                 if (_input.magnitude < 0.001f)
                 {
                     _isAwaitingStationaryPivot = false;
-                    Pivot(_stationaryPivot.Id.Value);
+
+                    // Held since it matched, so its pivot asset may have been cleared meanwhile:
+                    // then there's no pivot, and the character turns normally.
+                    if (_stationaryPivot.Id is int stationaryPivotId)
+                        Pivot(stationaryPivotId);
+
                     _stationaryPivot = null;
                 }
                 else if (input.magnitude > _input.magnitude)
@@ -325,9 +330,9 @@ namespace Strawhenge.Navigation.Unity
                     _stationaryPivot = stationaryPivot;
                 }
 
-                if (CheckForMovingPivots(out var movingPivot))
+                if (CheckForMovingPivots(out var movingPivot) && movingPivot.Id is int movingPivotId)
                 {
-                    Pivot(movingPivot.Id.Value);
+                    Pivot(movingPivotId);
                     return;
                 }
             }
@@ -434,9 +439,10 @@ namespace Strawhenge.Navigation.Unity
                 foreach (var landing in _locomotionSettings.FallLandings)
                 {
                     if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
-                        landing.FallDistanceRange.IsInRange(fallDistance))
+                        landing.FallDistanceRange.IsInRange(fallDistance) &&
+                        landing.Id is int landingId)
                     {
-                        Land(landing.Id.Value);
+                        Land(landingId);
                         break;
                     }
                 }
@@ -493,9 +499,10 @@ namespace Strawhenge.Navigation.Unity
                     foreach (var landing in _locomotionSettings.JumpLandings)
                     {
                         if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
-                            landing.FallDistanceRange.IsInRange(_fallDistance))
+                            landing.FallDistanceRange.IsInRange(_fallDistance) &&
+                            landing.Id is int landingId)
                         {
-                            Land(landing.Id.Value);
+                            Land(landingId);
                             break;
                         }
                     }
