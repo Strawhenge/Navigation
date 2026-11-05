@@ -1,5 +1,5 @@
-using System.Linq;
-using Strawhenge.Common.Unity.Serialization;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -8,19 +8,16 @@ namespace Strawhenge.Navigation.Unity
     public class PivotProfileScriptableObject : ScriptableObject, IPivotProfile
     {
         [SerializeField] PivotScriptableObject _pivot;
-        [SerializeField] SerializedFloatRange _speedRange;
-        [SerializeField] SerializedFloatRange[] _angleRanges;
+        [SerializeField] ValueRange _speedRange;
+        [SerializeField] ValueRange[] _angleRanges;
 
         public int? Id => _pivot != null ? _pivot.Id : null;
 
+        public ValueRange SpeedRange => _speedRange;
+
+        public IReadOnlyList<ValueRange> AngleRanges => _angleRanges ?? Array.Empty<ValueRange>();
+
         // Assigning or clearing the pivot asset changes whether settings include this profile.
         void OnValidate() => CachedLocomotionSettings.Invalidate();
-
-        public Strawhenge.Common.Ranges.FloatRange SpeedRange => _speedRange.Value;
-
-        public System.Collections.Generic.IEnumerable<Strawhenge.Common.Ranges.FloatRange> AngleRanges => _angleRanges == null
-            ? System.Array.Empty<Strawhenge.Common.Ranges.FloatRange>()
-            : _angleRanges.Select(ar => ar.Value);
     }
 }
-

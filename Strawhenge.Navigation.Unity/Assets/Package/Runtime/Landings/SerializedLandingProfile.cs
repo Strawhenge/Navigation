@@ -1,5 +1,3 @@
-using Strawhenge.Common.Ranges;
-using Strawhenge.Common.Unity.Serialization;
 using System;
 using UnityEngine;
 
@@ -9,13 +7,13 @@ namespace Strawhenge.Navigation.Unity
     public class SerializedLandingProfile : ILandingProfile
     {
         [SerializeField] LandingScriptableObject _landing;
-        [SerializeField] SerializedFloatRange _fallDistanceRange;
-        [SerializeField] SerializedFloatRange _speedRange;
+        [SerializeField] ValueRange _fallDistanceRange;
+        [SerializeField] ValueRange _speedRange;
 
         public int? Id => _landing != null ? _landing.Id : null;
 
-        public FloatRange FallDistanceRange => _fallDistanceRange.Value;
+        public ValueRange FallDistanceRange => _fallDistanceRange;
 
-        public FloatRange SpeedRange => _speedRange.Value;
+        public ValueRange SpeedRange => _speedRange;
     }
 }

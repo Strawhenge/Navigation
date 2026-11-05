@@ -1,8 +1,7 @@
 namespace Strawhenge.Navigation.Unity
 {
     // How LocomotionScript reads its settings. Values are passed through, so inspector edits apply at once.
-    // The profile lists are cached as snapshots (ResolvedPivotProfile / ResolvedLandingProfile), because
-    // they're matched every frame, and resolving them, or reading a profile's ranges, allocates.
+    // The profile lists are cached, because they're read every frame and resolving them allocates.
     // In the Editor, OnValidate on anything that can change a list calls Invalidate(), and every cache
     // rebuilds its lists on the next read. In builds that never happens, so the lists are resolved once.
     sealed class CachedLocomotionSettings : ILocomotionSettings
@@ -13,10 +12,10 @@ namespace Strawhenge.Navigation.Unity
         readonly ILocomotionSettings _settings;
 
         int _cachedVersion;
-        ResolvedPivotProfile[] _stationaryPivots;
-        ResolvedPivotProfile[] _movingPivots;
-        ResolvedLandingProfile[] _jumpLandings;
-        ResolvedLandingProfile[] _fallLandings;
+        IPivotProfile[] _stationaryPivots;
+        IPivotProfile[] _movingPivots;
+        ILandingProfile[] _jumpLandings;
+        ILandingProfile[] _fallLandings;
 
         public CachedLocomotionSettings(ILocomotionSettings settings)
         {
@@ -49,7 +48,7 @@ namespace Strawhenge.Navigation.Unity
 
         public float FallDistance => _settings.FallDistance;
 
-        public ResolvedPivotProfile[] StationaryPivots
+        public IPivotProfile[] StationaryPivots
         {
             get
             {
@@ -58,7 +57,7 @@ namespace Strawhenge.Navigation.Unity
             }
         }
 
-        public ResolvedPivotProfile[] MovingPivots
+        public IPivotProfile[] MovingPivots
         {
             get
             {
@@ -67,7 +66,7 @@ namespace Strawhenge.Navigation.Unity
             }
         }
 
-        public ResolvedLandingProfile[] JumpLandings
+        public ILandingProfile[] JumpLandings
         {
             get
             {
@@ -76,7 +75,7 @@ namespace Strawhenge.Navigation.Unity
             }
         }
 
-        public ResolvedLandingProfile[] FallLandings
+        public ILandingProfile[] FallLandings
         {
             get
             {
@@ -85,23 +84,15 @@ namespace Strawhenge.Navigation.Unity
             }
         }
 
-        IPivotProfile[] ILocomotionSettings.StationaryPivots => StationaryPivots;
-
-        IPivotProfile[] ILocomotionSettings.MovingPivots => MovingPivots;
-
-        ILandingProfile[] ILocomotionSettings.JumpLandings => JumpLandings;
-
-        ILandingProfile[] ILocomotionSettings.FallLandings => FallLandings;
-
         void RefreshLists()
         {
             if (_cachedVersion == _version)
                 return;
 
-            _stationaryPivots = ResolvedPivotProfile.From(_settings.StationaryPivots);
-            _movingPivots = ResolvedPivotProfile.From(_settings.MovingPivots);
-            _jumpLandings = ResolvedLandingProfile.From(_settings.JumpLandings);
-            _fallLandings = ResolvedLandingProfile.From(_settings.FallLandings);
+            _stationaryPivots = _settings.StationaryPivots;
+            _movingPivots = _settings.MovingPivots;
+            _jumpLandings = _settings.JumpLandings;
+            _fallLandings = _settings.FallLandings;
 
             // Only once all four are built, so a failed build is retried rather than leaving lists missing.
             _cachedVersion = _version;

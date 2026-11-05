@@ -19,7 +19,7 @@ namespace Strawhenge.Navigation.Unity
                  "before carrying on without it. Must be longer than the longest pivot or landing animation.")]
         [SerializeField] float _animatorWaitTimeout = 2f;
 
-        CachedLocomotionSettings _locomotionSettings;
+        ILocomotionSettings _locomotionSettings;
         bool _settingsSetFromCode;
         Transform _rootTransform;
 
@@ -44,7 +44,7 @@ namespace Strawhenge.Navigation.Unity
         bool _isPivoting;
         bool _isAwaitingStationaryPivot;
         bool _suppressPivotsUntilTurned;
-        ResolvedPivotProfile _stationaryPivot;
+        IPivotProfile _stationaryPivot;
 
         int _pivotId;
         float _pivotWaitTime;
@@ -163,7 +163,12 @@ namespace Strawhenge.Navigation.Unity
                 if (_input.magnitude < 0.001f)
                 {
                     _isAwaitingStationaryPivot = false;
-                    Pivot(_stationaryPivot.Id);
+
+                    // Held since it matched, so its pivot asset may have been cleared meanwhile:
+                    // then there's no pivot, and the character turns normally.
+                    if (_stationaryPivot.Id is int stationaryPivotId)
+                        Pivot(stationaryPivotId);
+
                     _stationaryPivot = null;
                 }
                 else if (input.magnitude > _input.magnitude)
@@ -324,9 +329,9 @@ namespace Strawhenge.Navigation.Unity
                     _stationaryPivot = stationaryPivot;
                 }
 
-                if (CheckForMovingPivots(out var movingPivot))
+                if (CheckForMovingPivots(out var movingPivot) && movingPivot.Id is int movingPivotId)
                 {
-                    Pivot(movingPivot.Id);
+                    Pivot(movingPivotId);
                     return;
                 }
             }
@@ -341,7 +346,7 @@ namespace Strawhenge.Navigation.Unity
             IsInAngleRange(_locomotionSettings.StationaryPivots) ||
             IsInAngleRange(_locomotionSettings.MovingPivots);
 
-        bool IsInAngleRange(ResolvedPivotProfile[] pivots)
+        bool IsInAngleRange(IPivotProfile[] pivots)
         {
             foreach (var pivot in pivots)
             {
@@ -352,7 +357,7 @@ namespace Strawhenge.Navigation.Unity
             return false;
         }
 
-        bool CheckForStationaryPivots(out ResolvedPivotProfile matchingPivot)
+        bool CheckForStationaryPivots(out IPivotProfile matchingPivot)
         {
             foreach (var pivot in _locomotionSettings.StationaryPivots)
             {
@@ -367,7 +372,7 @@ namespace Strawhenge.Navigation.Unity
             return false;
         }
 
-        bool CheckForMovingPivots(out ResolvedPivotProfile matchingPivot)
+        bool CheckForMovingPivots(out IPivotProfile matchingPivot)
         {
             if (_isAwaitingStationaryPivot)
             {
@@ -427,9 +432,9 @@ namespace Strawhenge.Navigation.Unity
 
                 foreach (var landing in _locomotionSettings.FallLandings)
                 {
-                    if (landing.Matches(_horizontalSpeed, fallDistance))
+                    if (landing.Matches(_horizontalSpeed, fallDistance) && landing.Id is int landingId)
                     {
-                        Land(landing.Id);
+                        Land(landingId);
                         break;
                     }
                 }
@@ -485,9 +490,9 @@ namespace Strawhenge.Navigation.Unity
                 {
                     foreach (var landing in _locomotionSettings.JumpLandings)
                     {
-                        if (landing.Matches(_horizontalSpeed, _fallDistance))
+                        if (landing.Matches(_horizontalSpeed, _fallDistance) && landing.Id is int landingId)
                         {
-                            Land(landing.Id);
+                            Land(landingId);
                             break;
                         }
                     }

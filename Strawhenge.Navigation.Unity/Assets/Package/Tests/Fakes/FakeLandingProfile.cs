@@ -1,10 +1,8 @@
-using Strawhenge.Common.Ranges;
-
 namespace Strawhenge.Navigation.Unity.Tests
 {
     sealed class FakeLandingProfile : ILandingProfile
     {
-        public FakeLandingProfile(int id, FloatRange fallDistanceRange, FloatRange speedRange)
+        public FakeLandingProfile(int id, ValueRange fallDistanceRange, ValueRange speedRange)
         {
             Id = id;
             FallDistanceRange = fallDistanceRange;
@@ -12,7 +10,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         }
 
         public int? Id { get; }
-        public FloatRange FallDistanceRange { get; }
-        public FloatRange SpeedRange { get; }
+        public ValueRange FallDistanceRange { get; }
+        public ValueRange SpeedRange { get; }
     }
 }
