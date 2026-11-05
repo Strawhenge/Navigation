@@ -89,12 +89,13 @@ namespace Strawhenge.Navigation.Unity
             if (_cachedVersion == _version)
                 return;
 
-            _cachedVersion = _version;
-
             _stationaryPivots = _settings.StationaryPivots;
             _movingPivots = _settings.MovingPivots;
             _jumpLandings = _settings.JumpLandings;
             _fallLandings = _settings.FallLandings;
+
+            // Only once all four are built, so a failed build is retried rather than leaving lists missing.
+            _cachedVersion = _version;
         }
     }
 }

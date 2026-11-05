@@ -1,11 +1,10 @@
-using Strawhenge.Common.Ranges;
 using System.Collections.Generic;
 
 namespace Strawhenge.Navigation.Unity.Tests
 {
     sealed class FakePivotProfile : IPivotProfile
     {
-        public FakePivotProfile(int id, FloatRange speedRange, params FloatRange[] angleRanges)
+        public FakePivotProfile(int id, ValueRange speedRange, params ValueRange[] angleRanges)
         {
             Id = id;
             SpeedRange = speedRange;
@@ -13,7 +12,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         }
 
         public int? Id { get; }
-        public FloatRange SpeedRange { get; }
-        public IEnumerable<FloatRange> AngleRanges { get; }
+        public ValueRange SpeedRange { get; }
+        public IReadOnlyList<ValueRange> AngleRanges { get; }
     }
 }

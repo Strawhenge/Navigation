@@ -2,7 +2,6 @@ using Strawhenge.Common.Unity.Helpers;
 using Strawhenge.Common.Unity.Serialization;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
@@ -351,11 +350,8 @@ namespace Strawhenge.Navigation.Unity
         {
             foreach (var pivot in pivots)
             {
-                foreach (var angleRange in pivot.AngleRanges)
-                {
-                    if (angleRange.IsInRange(_turnAngle))
-                        return true;
-                }
+                if (pivot.IsInAngleRange(_turnAngle))
+                    return true;
             }
 
             return false;
@@ -365,8 +361,7 @@ namespace Strawhenge.Navigation.Unity
         {
             foreach (var pivot in _locomotionSettings.StationaryPivots)
             {
-                if (pivot.SpeedRange.IsInRange(_horizontalSpeed) &&
-                    pivot.AngleRanges.Any(angleRange => angleRange.IsInRange(_turnAngle)))
+                if (pivot.Matches(_horizontalSpeed, _turnAngle))
                 {
                     matchingPivot = pivot;
                     return true;
@@ -387,8 +382,7 @@ namespace Strawhenge.Navigation.Unity
 
             foreach (var pivot in _locomotionSettings.MovingPivots)
             {
-                if (pivot.SpeedRange.IsInRange(_horizontalSpeed) &&
-                    pivot.AngleRanges.Any(angleRange => angleRange.IsInRange(_turnAngle)))
+                if (pivot.Matches(_horizontalSpeed, _turnAngle))
                 {
                     matchingPivot = pivot;
                     return true;
@@ -438,9 +432,7 @@ namespace Strawhenge.Navigation.Unity
 
                 foreach (var landing in _locomotionSettings.FallLandings)
                 {
-                    if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
-                        landing.FallDistanceRange.IsInRange(fallDistance) &&
-                        landing.Id is int landingId)
+                    if (landing.Matches(_horizontalSpeed, fallDistance) && landing.Id is int landingId)
                     {
                         Land(landingId);
                         break;
@@ -498,9 +490,7 @@ namespace Strawhenge.Navigation.Unity
                 {
                     foreach (var landing in _locomotionSettings.JumpLandings)
                     {
-                        if (landing.SpeedRange.IsInRange(_horizontalSpeed) &&
-                            landing.FallDistanceRange.IsInRange(_fallDistance) &&
-                            landing.Id is int landingId)
+                        if (landing.Matches(_horizontalSpeed, _fallDistance) && landing.Id is int landingId)
                         {
                             Land(landingId);
                             break;

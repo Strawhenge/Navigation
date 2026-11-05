@@ -133,8 +133,9 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.isActiveAndEnabled == false ||
             _agent.NavMeshAgent.isOnNavMesh == false;
 
+        // pathStatus, not path.status: the path getter allocates a new NavMeshPath on every read.
         bool IsPathAccessible() =>
-            _agent.NavMeshAgent.path.status == NavMeshPathStatus.PathComplete ||
-            (!CurrentArgs.LocationMustBeExact && _agent.NavMeshAgent.path.status == NavMeshPathStatus.PathPartial);
+            _agent.NavMeshAgent.pathStatus == NavMeshPathStatus.PathComplete ||
+            (!CurrentArgs.LocationMustBeExact && _agent.NavMeshAgent.pathStatus == NavMeshPathStatus.PathPartial);
     }
 }

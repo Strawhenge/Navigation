@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using Strawhenge.Common.Ranges;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,7 +21,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         const float MinExpectedDistance = 0.5f;
         const float Timeout = 3f;
 
-        static readonly FloatRange Any = new(float.NegativeInfinity, float.PositiveInfinity);
+        static readonly ValueRange Any = new(float.NegativeInfinity, float.PositiveInfinity);
 
         readonly List<Object> _created = new();
         LocomotionScript _locomotion;
@@ -80,8 +79,8 @@ namespace Strawhenge.Navigation.Unity.Tests
                     new FakePivotProfile(
                         id: 1,
                         speedRange: Any,
-                        new FloatRange(90, 180),
-                        new FloatRange(-180, -90))
+                        new ValueRange(90, 180),
+                        new ValueRange(-180, -90))
                 }
             });
             yield return Settle();
