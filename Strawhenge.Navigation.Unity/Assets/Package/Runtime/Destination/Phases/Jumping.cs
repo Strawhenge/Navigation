@@ -3,12 +3,14 @@ using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
-    // Moves the character along a jump-across off-mesh link by hand. Can't be interrupted: a new request
-    // or a cancel is called back straight away, but the jump always lands first.
+    // Moves the character along a jump-across off-mesh link by hand, then hands over to Landing if a jump
+    // landing matches. Can't be interrupted: a new request or a cancel is called back straight away, but
+    // the jump always lands first.
     class Jumping : Phase
     {
         readonly Agent _agent;
         readonly IDestinationSettings _settings;
+        readonly Landing _landing;
 
         internal event Action JumpBegan;
         internal event Action JumpEnded;
@@ -21,16 +23,19 @@ namespace Strawhenge.Navigation.Unity.Destination
         float _jumpT;
         float _jumpDuration;
         float _jumpHeight;
+        Vector3 _currentVelocity;
 
-        public Jumping(Agent agent, IDestinationSettings settings)
+        public Jumping(Agent agent, IDestinationSettings settings, Landing landing)
         {
             _agent = agent;
             _settings = settings;
+            _landing = landing;
         }
 
         public override bool CanInterrupt => false;
 
-        public override Vector3 Velocity => Vector3.zero;
+        // Measured from how far the character moved last update, as it's moved by hand.
+        public override Vector3 Velocity => _currentVelocity;
 
         // Keeps the facing of the request it started with, even if the request changes mid-jump.
         public override bool IsStrafing(DestinationArgs current) => _strafe;
@@ -40,6 +45,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _strafe = strafe;
             _isJumpInProgress = false;
             _agentUnavailable = false;
+            _currentVelocity = Vector3.zero;
         }
 
         // args isn't used: it's null if the request was cancelled mid-jump.
@@ -104,6 +110,8 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         PhaseStep TraverseJump(float deltaTime)
         {
+            var previousPosition = _agent.GetCurrentPosition();
+
             _jumpT = Mathf.Min(1f, _jumpT + (deltaTime / _jumpDuration));
 
             var position = Vector3.Lerp(_startPosition, _endPosition, _jumpT);
@@ -113,23 +121,43 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.SetCurrentPosition(position);
             _agent.NavMeshAgent.nextPosition = position;
 
+            _currentVelocity = deltaTime > Mathf.Epsilon
+                ? (position - previousPosition) / deltaTime
+                : Vector3.zero;
+
             if (_jumpT < 1f)
                 return PhaseStep.Continue;
 
             if (_agent.NavMeshAgent.isOnOffMeshLink)
                 _agent.NavMeshAgent.CompleteOffMeshLink();
 
-            return Land();
+            return LandFromJump();
         }
 
         // The agent's path is gone if it was unavailable during the jump, so set it up again.
         PhaseStep Land() =>
             PhaseStep.To(_agentUnavailable ? PhaseId.Preparing : PhaseId.Moving);
 
+        // Matched on the horizontal speed coming in, and the drop from take-off to landing (0 when jumping
+        // up), as LocomotionScript measures from where the character was last grounded.
+        PhaseStep LandFromJump()
+        {
+            var next = _agentUnavailable ? PhaseId.Preparing : PhaseId.Moving;
+
+            var horizontalVelocity = _currentVelocity;
+            horizontalVelocity.y = 0f;
+            var fallDistance = Mathf.Max(0f, _startPosition.y - _endPosition.y);
+
+            return _landing.TrySetUp(_settings.JumpLandings, horizontalVelocity.magnitude, fallDistance, next)
+                ? PhaseStep.To(PhaseId.Landing)
+                : PhaseStep.To(next);
+        }
+
         void EndJump()
         {
             _isJumpInProgress = false;
             _jumpT = 0f;
+            _currentVelocity = Vector3.zero;
 
             JumpEnded?.Invoke();
 

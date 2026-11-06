@@ -43,7 +43,11 @@ namespace Strawhenge.Navigation.Unity
             remove => _destinationController.FallEnded -= value;
         }
 
-        public event Action<int> LandingRequested;
+        public event Action<int> LandingRequested
+        {
+            add => _destinationController.LandingRequested += value;
+            remove => _destinationController.LandingRequested -= value;
+        }
 
         public event Action<bool> IsActiveChanged
         {

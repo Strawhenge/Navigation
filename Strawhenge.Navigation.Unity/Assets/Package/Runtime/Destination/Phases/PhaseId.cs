@@ -6,6 +6,7 @@
         Moving,
         Jumping,
         Falling,
+        Landing,
         Paused
     }
 }
