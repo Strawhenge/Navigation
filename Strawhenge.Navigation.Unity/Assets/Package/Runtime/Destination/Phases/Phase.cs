@@ -31,9 +31,8 @@ namespace Strawhenge.Navigation.Unity.Destination
         // Whether a new request can be applied without leaving this phase (see Redirect).
         public virtual bool CanRedirectInPlace(DestinationArgs args) => false;
 
-        public virtual void Redirect(DestinationArgs args)
-        {
-        }
+        // Can end the request, e.g. Finish(Inaccessible) when the new destination can't be reached.
+        public virtual PhaseStep Redirect(DestinationArgs args) => PhaseStep.Continue;
 
         // The character's GameObject was reactivated. Unity resets a NavMeshAgent when its GameObject
         // is deactivated, so its path is gone: phases that rely on it must set it up again.

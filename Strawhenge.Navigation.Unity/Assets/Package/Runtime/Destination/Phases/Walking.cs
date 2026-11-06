@@ -9,10 +9,12 @@ namespace Strawhenge.Navigation.Unity.Destination
         const float MinArrivalDistance = 0.1f;
 
         readonly Agent _agent;
+        readonly TargetResolver _targets;
 
-        public Walking(Agent agent)
+        public Walking(Agent agent, TargetResolver targets)
         {
             _agent = agent;
+            _targets = targets;
         }
 
         public override Vector3 Velocity =>
@@ -36,12 +38,15 @@ namespace Strawhenge.Navigation.Unity.Destination
                 _agent.NavMeshAgent.isStopped = true;
         }
 
-        public override void Redirect(DestinationArgs args)
+        public override PhaseStep Redirect(DestinationArgs args)
         {
             // Paused (DestinationScript disabled): the agent is disabled and can't be steered.
             // OnAgentReactivated starts this request through Preparing when it's enabled again.
             if (IsAgentUnavailable())
-                return;
+                return PhaseStep.Continue;
+
+            if (!_targets.TryResolve(args, out var target))
+                return PhaseStep.Finish(DestinationResult.Inaccessible);
 
             // Re-reserves avoidance priority and applies the mode's area mask. Before the destination,
             // so the new path is calculated with the new mask. Compared with the mode actually applied,
@@ -51,7 +56,12 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             _agent.NavMeshAgent.updateRotation = !args.Strafe;
             _agent.NavMeshAgent.speed = args.Speed;
-            _agent.NavMeshAgent.destination = args.Location;
+
+            // False if no path can be requested, e.g. for an exact destination off the NavMesh. Unity then
+            // keeps the old path, which would take the agent to the previous destination.
+            return _agent.NavMeshAgent.SetDestination(target)
+                ? PhaseStep.Continue
+                : PhaseStep.Finish(DestinationResult.Inaccessible);
         }
 
         // Same request: Preparing re-enables the agent, warps it to where it is, reserves its slot and

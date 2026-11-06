@@ -34,8 +34,10 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             settings ??= DefaultDestinationSettings.Instance;
 
-            _preparing = new Preparing(agent);
-            _walking = new Walking(agent);
+            var targets = new TargetResolver(agent, settings);
+
+            _preparing = new Preparing(agent, targets);
+            _walking = new Walking(agent, targets);
             _jumping = new Jumping(agent, settings);
             _falling = new Falling(agent, settings);
             _paused = new Paused(context, agent);
@@ -63,7 +65,8 @@ namespace Strawhenge.Navigation.Unity.Destination
         public bool IsStrafing => _phase?.IsStrafing(_current) ?? false;
 
         // True if there is a complete path from the agent's current position, using the area mask of
-        // the given mode. Has no side effects on the agent.
+        // the given mode. Has no side effects on the agent. Only the exact location counts: unlike an
+        // approximate GoTo, this never falls back to the nearest point on the NavMesh.
         public bool IsLocationAccessible(Vector3 location, bool leisurely = false) =>
             _agent.IsLocationAccessible(location, leisurely);
 
@@ -98,7 +101,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             // Steer only if the callback didn't start a newer request or cancel: setting the destination
             // twice in one call chain leaves the agent heading for the first of the two.
             if (redirectInPlace && ReferenceEquals(_current, args) && _phase == redirectedPhase)
-                redirectedPhase.Redirect(args);
+                Apply(redirectedPhase.Redirect(args));
         }
 
         // The request is called back straight away. Mid-jump or drop, the character still lands first,
