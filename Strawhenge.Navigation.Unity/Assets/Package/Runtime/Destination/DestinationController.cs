@@ -19,12 +19,14 @@ namespace Strawhenge.Navigation.Unity.Destination
         // finishes after its request was cancelled.
         DestinationArgs _current;
 
-        // What the agent is doing. Null when idle. Can outlive _current: a jump or drop always finishes.
+        // What the agent is doing. Null when idle. Can outlive _current: a phase that can't be interrupted
+        // (a jump, drop, pivot or landing) always finishes.
         Phase _phase;
 
-        // The request changed, or the agent was reactivated, during a jump or drop. The agent's path is
-        // then stale, so it goes through Preparing rather than Moving once it lands.
-        bool _restartAfterTraversal;
+        // The request changed, or the agent was reactivated, during a phase that can't be interrupted (a
+        // jump, drop, pivot or landing). The agent's path is then stale, so it goes through Preparing rather
+        // than Moving once that phase, and any that follows it without a break (a jump's landing), is done.
+        bool _restartWhenSettled;
 
         // Without settings (e.g. in tests), DefaultDestinationSettings is used.
         internal DestinationController(IDestinationContext context, Agent agent, IDestinationSettings settings = null)
@@ -32,7 +34,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _context = context;
             _agent = agent;
 
-            settings ??= DefaultDestinationSettings.Instance;
+            settings = new CachedDestinationSettings(settings ?? DefaultDestinationSettings.Instance);
 
             var targets = new TargetResolver(agent, settings);
 
@@ -88,7 +90,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             }
             else if (!_phase.CanInterrupt)
             {
-                _restartAfterTraversal = true;
+                _restartWhenSettled = true;
             }
             else if (!redirectInPlace)
             {
@@ -131,13 +133,35 @@ namespace Strawhenge.Navigation.Unity.Destination
                 return;
             }
 
-            if (!_context.CanNavigate && _phase != _paused)
+            // A phase that can't be interrupted finishes first: pausing mid-jump would leave the character
+            // hanging in the air. The next update pauses once it's done.
+            if (!_context.CanNavigate && _phase.CanInterrupt && _phase != _paused)
             {
                 Apply(PhaseStep.To(PhaseId.Paused));
                 return;
             }
 
             Apply(_phase.Update(_current, deltaTime));
+        }
+
+        // The Animator's replies, passed on by DestinationMovementSource. Ignored unless the current phase
+        // is waiting for them.
+        internal void TriggerJump()
+        {
+            if (_phase != null)
+                Apply(_phase.OnJumpTriggered());
+        }
+
+        internal void CompletePivot(Quaternion rotationDelta)
+        {
+            if (_phase != null)
+                Apply(_phase.OnPivotCompleted(rotationDelta));
+        }
+
+        internal void CompleteLanding()
+        {
+            if (_phase != null)
+                Apply(_phase.OnLandingCompleted());
         }
 
         // While the GameObject is inactive: frees the avoidance priority slot, keeping the trip.
@@ -159,7 +183,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (_phase.CanInterrupt)
                 Apply(_phase.OnAgentReactivated());
             else
-                _restartAfterTraversal = true;
+                _restartWhenSettled = true;
         }
 
         void Apply(PhaseStep step)
@@ -177,17 +201,25 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             if (!_phase.CanInterrupt)
             {
-                // Landed after its request was cancelled; the callback has already been made.
+                // Handing over to another phase that can't be interrupted (a jump's landing): it plays even
+                // if the request was cancelled, and a restart waits until it's done too.
+                if (!GetPhase(next).CanInterrupt)
+                {
+                    Enter(next);
+                    return;
+                }
+
+                // Done after its request was cancelled; the callback has already been made.
                 if (_current == null)
                 {
                     Stop();
                     return;
                 }
 
-                if (_restartAfterTraversal && next == PhaseId.Moving)
+                if (_restartWhenSettled && next == PhaseId.Moving)
                     next = PhaseId.Preparing;
 
-                _restartAfterTraversal = false;
+                _restartWhenSettled = false;
             }
 
             Enter(next);
@@ -195,9 +227,17 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         void Enter(PhaseId id)
         {
+            var next = GetPhase(id);
+
+            // A run of phases that can't be interrupted keeps the facing the first one started with, even if
+            // the request changed or was cancelled meanwhile.
+            var strafe = _phase != null && !_phase.CanInterrupt && !next.CanInterrupt
+                ? _phase.IsStrafing(_current)
+                : _current.Strafe;
+
             _phase?.Exit();
-            _phase = GetPhase(id);
-            _phase.Enter(_current);
+            _phase = next;
+            _phase.Enter(_current, strafe);
         }
 
         // Every change is made before the callback, so a callback that calls GoTo or Cancel starts afresh.
@@ -215,7 +255,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             _phase.Exit();
             _phase = null;
-            _restartAfterTraversal = false;
+            _restartWhenSettled = false;
 
             Deactivated?.Invoke();
         }

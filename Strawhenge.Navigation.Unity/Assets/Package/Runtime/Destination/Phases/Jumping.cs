@@ -35,9 +35,9 @@ namespace Strawhenge.Navigation.Unity.Destination
         // Keeps the facing of the request it started with, even if the request changes mid-jump.
         public override bool IsStrafing(DestinationArgs current) => _strafe;
 
-        public override void Enter(DestinationArgs args)
+        public override void Enter(DestinationArgs args, bool strafe)
         {
-            _strafe = args.Strafe;
+            _strafe = strafe;
             _isJumpInProgress = false;
             _agentUnavailable = false;
         }

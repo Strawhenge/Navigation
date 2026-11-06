@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Destination
@@ -9,6 +10,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         internal const float FallAcceleration = 9.81f;
         internal const int GroundLayers = Physics.DefaultRaycastLayers;
         internal const float ApproximateSearchDistance = 5;
+        internal const float AnimatorWaitTimeout = 2;
 
         public static IDestinationSettings Instance { get; } = new DefaultDestinationSettings();
 
@@ -25,5 +27,17 @@ namespace Strawhenge.Navigation.Unity.Destination
         LayerMask IDestinationSettings.GroundLayers => GroundLayers;
 
         float IDestinationSettings.ApproximateSearchDistance => ApproximateSearchDistance;
+
+        IPivotProfile[] IDestinationSettings.StationaryPivots => Array.Empty<IPivotProfile>();
+
+        IPivotProfile[] IDestinationSettings.MovingPivots => Array.Empty<IPivotProfile>();
+
+        ILandingProfile[] IDestinationSettings.JumpLandings => Array.Empty<ILandingProfile>();
+
+        ILandingProfile[] IDestinationSettings.FallLandings => Array.Empty<ILandingProfile>();
+
+        bool IDestinationSettings.DeferJumpTrigger => false;
+
+        float IDestinationSettings.AnimatorWaitTimeout => AnimatorWaitTimeout;
     }
 }
