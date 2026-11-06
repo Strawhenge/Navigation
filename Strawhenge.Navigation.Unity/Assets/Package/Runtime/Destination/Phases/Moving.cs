@@ -3,15 +3,16 @@ using UnityEngine.AI;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
-    // The agent follows its path, handing over to Jumping or Falling at off-mesh links.
-    class Walking : Phase
+    // The agent follows its path at the request's speed, whether that's a walk, jog or run, handing
+    // over to Jumping or Falling at off-mesh links.
+    class Moving : Phase
     {
         const float MinArrivalDistance = 0.1f;
 
         readonly Agent _agent;
         readonly TargetResolver _targets;
 
-        public Walking(Agent agent, TargetResolver targets)
+        public Moving(Agent agent, TargetResolver targets)
         {
             _agent = agent;
             _targets = targets;

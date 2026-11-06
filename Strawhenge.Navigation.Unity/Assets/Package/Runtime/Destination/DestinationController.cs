@@ -10,7 +10,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         readonly IDestinationContext _context;
         readonly Agent _agent;
         readonly Preparing _preparing;
-        readonly Walking _walking;
+        readonly Moving _moving;
         readonly Jumping _jumping;
         readonly Falling _falling;
         readonly Paused _paused;
@@ -23,7 +23,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         Phase _phase;
 
         // The request changed, or the agent was reactivated, during a jump or drop. The agent's path is
-        // then stale, so it goes through Preparing rather than Walking once it lands.
+        // then stale, so it goes through Preparing rather than Moving once it lands.
         bool _restartAfterTraversal;
 
         // Without settings (e.g. in tests), DefaultDestinationSettings is used.
@@ -37,7 +37,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             var targets = new TargetResolver(agent, settings);
 
             _preparing = new Preparing(agent, targets);
-            _walking = new Walking(agent, targets);
+            _moving = new Moving(agent, targets);
             _jumping = new Jumping(agent, settings);
             _falling = new Falling(agent, settings);
             _paused = new Paused(context, agent);
@@ -184,7 +184,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                     return;
                 }
 
-                if (_restartAfterTraversal && next == PhaseId.Walking)
+                if (_restartAfterTraversal && next == PhaseId.Moving)
                     next = PhaseId.Preparing;
 
                 _restartAfterTraversal = false;
@@ -223,7 +223,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         Phase GetPhase(PhaseId id) => id switch
         {
             PhaseId.Preparing => _preparing,
-            PhaseId.Walking => _walking,
+            PhaseId.Moving => _moving,
             PhaseId.Jumping => _jumping,
             PhaseId.Falling => _falling,
             PhaseId.Paused => _paused,
