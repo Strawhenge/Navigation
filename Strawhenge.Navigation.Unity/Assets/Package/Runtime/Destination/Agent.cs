@@ -50,7 +50,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         // DestinationScript was disabled mid-trip, on its own or with its GameObject: pause by disabling
         // the agent, which stops it, and free the avoidance priority slot. Resume undoes both. Unity drops
-        // a disabled agent's path, so the current state sets the agent up again (State.OnAgentReactivated).
+        // a disabled agent's path, so the current phase sets the agent up again (Phase.OnAgentReactivated).
         // Nothing to do while idle, when the agent is already disabled.
         public void Suspend()
         {
