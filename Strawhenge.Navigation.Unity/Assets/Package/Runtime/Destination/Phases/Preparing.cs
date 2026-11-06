@@ -49,7 +49,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.SetPath(_path);
             _agent.NavMeshAgent.isStopped = false;
 
-            return PhaseStep.To(PhaseId.Walking);
+            return PhaseStep.To(PhaseId.Moving);
         }
 
         bool IsAccessible(DestinationArgs args) =>

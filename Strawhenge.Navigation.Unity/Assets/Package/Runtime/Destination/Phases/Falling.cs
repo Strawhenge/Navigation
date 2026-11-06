@@ -150,7 +150,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         // The agent's path is gone if it was unavailable during the drop, so set it up again.
         PhaseStep Land() =>
-            PhaseStep.To(_agentUnavailable ? PhaseId.Preparing : PhaseId.Walking);
+            PhaseStep.To(_agentUnavailable ? PhaseId.Preparing : PhaseId.Moving);
 
         void EndFall()
         {

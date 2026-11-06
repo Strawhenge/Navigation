@@ -3,7 +3,7 @@
     enum PhaseId
     {
         Preparing,
-        Walking,
+        Moving,
         Jumping,
         Falling,
         Paused
