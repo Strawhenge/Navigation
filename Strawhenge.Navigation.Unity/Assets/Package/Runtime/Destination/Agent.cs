@@ -50,7 +50,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         // DestinationScript was disabled mid-trip, on its own or with its GameObject: pause by disabling
         // the agent, which stops it, and free the avoidance priority slot. Resume undoes both. Unity drops
-        // a disabled agent's path, so the current state sets the agent up again (State.OnAgentReactivated).
+        // a disabled agent's path, so the current phase sets the agent up again (Phase.OnAgentReactivated).
         // Nothing to do while idle, when the agent is already disabled.
         public void Suspend()
         {
@@ -100,14 +100,11 @@ namespace Strawhenge.Navigation.Unity.Destination
             leisurely ? _agentModes.LeisurelyAreaMask : _agentModes.DefaultAreaMask;
 
         // Asks the NavMesh directly, so the agent is never enabled or moved and nothing is logged.
-        // Only a complete path counts as accessible.
+        // Only a complete path counts as accessible, and only to the exact location: this never falls
+        // back to the nearest NavMesh point, as an approximate request does.
         public bool IsLocationAccessible(Vector3 location, bool leisurely)
         {
-            var filter = new NavMeshQueryFilter
-            {
-                agentTypeID = NavMeshAgent.agentTypeID,
-                areaMask = GetAreaMask(leisurely)
-            };
+            var filter = CreateQueryFilter(leisurely);
 
             // Start from the nearest NavMesh point within one agent height of the character.
             if (!NavMesh.SamplePosition(GetCurrentPosition(), out var start, NavMeshAgent.height, filter))
@@ -116,6 +113,26 @@ namespace Strawhenge.Navigation.Unity.Destination
             return NavMesh.CalculatePath(start.position, location, filter, AccessibilityPath) &&
                    AccessibilityPath.status == NavMeshPathStatus.PathComplete;
         }
+
+        // The nearest point on the NavMesh to location, within maxDistance, using the mode's area mask.
+        // A query only, like IsLocationAccessible: the agent is never enabled, moved or reconfigured.
+        public bool TryGetNearestNavMeshPoint(Vector3 location, bool leisurely, float maxDistance, out Vector3 point)
+        {
+            if (NavMesh.SamplePosition(location, out var hit, maxDistance, CreateQueryFilter(leisurely)))
+            {
+                point = hit.position;
+                return true;
+            }
+
+            point = location;
+            return false;
+        }
+
+        NavMeshQueryFilter CreateQueryFilter(bool leisurely) => new()
+        {
+            agentTypeID = NavMeshAgent.agentTypeID,
+            areaMask = GetAreaMask(leisurely)
+        };
 
         public Vector3 GetCurrentPosition() =>
             NavMeshAgent.transform.position;

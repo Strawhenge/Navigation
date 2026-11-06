@@ -3,23 +3,23 @@ using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
-    class Falling : State
+    // Moves the character along a drop-down off-mesh link by hand. Can't be interrupted: a new request
+    // or a cancel is called back straight away, but the drop always lands first.
+    class Falling : Phase
     {
         const float GroundProbeDistance = 0.2f;
         const float EndAlignmentDistance = 0.05f;
         const float DownwardMovementEpsilon = 0.0001f;
 
-        readonly IDestinationContext _context;
         readonly Agent _agent;
         readonly IDestinationSettings _settings;
 
         internal event Action FallBegan;
         internal event Action FallEnded;
 
+        bool _strafe;
         bool _isFallInProgress;
-        bool _cancelRequested;
         bool _agentUnavailable;
-        DestinationArgs _pendingArgs;
         Vector3 _startPosition;
         Vector3 _endPosition;
         float _horizontalT;
@@ -29,62 +29,47 @@ namespace Strawhenge.Navigation.Unity.Destination
         Vector3 _currentVelocity;
         bool _fallBeganRaised;
 
-        public Falling(IDestinationContext context, Agent agent, IDestinationSettings settings)
+        public Falling(Agent agent, IDestinationSettings settings)
         {
-            _context = context;
             _agent = agent;
             _settings = settings;
         }
 
-        public DestinationArgs CurrentArgs { private get; set; }
+        public override bool CanInterrupt => false;
 
-        protected internal override bool IsStrafing => CurrentArgs.Strafe;
+        public override Vector3 Velocity => _currentVelocity;
 
-        protected internal override Vector3 Velocity => _currentVelocity;
+        // Keeps the facing of the request it started with, even if the request changes mid-drop.
+        public override bool IsStrafing(DestinationArgs current) => _strafe;
 
-        protected internal override void Cancel()
+        public override void Enter(DestinationArgs args)
         {
-            var pending = _pendingArgs;
-            _pendingArgs = null;
-            _cancelRequested = true;
-
-            pending?.Callback(DestinationResult.Cancelled);
+            _strafe = args.Strafe;
+            _isFallInProgress = false;
+            _agentUnavailable = false;
+            _currentVelocity = Vector3.zero;
         }
 
-        protected internal override void GoTo(DestinationArgs args)
+        // args isn't used: it's null if the request was cancelled mid-drop.
+        public override PhaseStep Update(DestinationArgs args, float deltaTime)
         {
-            var pending = _pendingArgs;
-            _pendingArgs = args;
-            _cancelRequested = false;
-
-            pending?.Callback(DestinationResult.CancelledByNewDestination);
-        }
-
-        // After the traversal, go through PrepareGoing rather than Going, since the agent's path is gone.
-        protected internal override void OnAgentReactivated() => _agentUnavailable = true;
-
-        protected internal override void Update(float deltaTime)
-        {
-            if (!_context.CanNavigate)
-            {
-                InterruptForCannotNavigate();
-                return;
-            }
-
             _agentUnavailable |=
                 !_agent.NavMeshAgent.isActiveAndEnabled ||
                 !_agent.NavMeshAgent.isOnNavMesh;
 
             if (!_isFallInProgress && !_agent.NavMeshAgent.isOnOffMeshLink)
-            {
-                ResolveNextStateAfterFall();
-                return;
-            }
+                return Land();
 
             if (!_isFallInProgress)
                 BeginFall();
 
-            TraverseFall(deltaTime);
+            return TraverseFall(deltaTime);
+        }
+
+        public override void Exit()
+        {
+            if (_isFallInProgress)
+                EndFall();
         }
 
         void BeginFall()
@@ -109,7 +94,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.updateRotation = false;
         }
 
-        void TraverseFall(float deltaTime)
+        PhaseStep TraverseFall(float deltaTime)
         {
             var previousPosition = _agent.GetCurrentPosition();
 
@@ -154,39 +139,23 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             var reachedEndHorizontally = _horizontalT >= 1f;
             var reachedEndVertically = _endPosition.y >= _startPosition.y || position.y <= _endPosition.y + 0.001f;
-            if (reachedEndHorizontally && reachedEndVertically)
-            {
-                if (_agent.NavMeshAgent.isOnOffMeshLink)
-                    _agent.NavMeshAgent.CompleteOffMeshLink();
+            if (!reachedEndHorizontally || !reachedEndVertically)
+                return PhaseStep.Continue;
 
-                ResolveNextStateAfterFall();
-            }
+            if (_agent.NavMeshAgent.isOnOffMeshLink)
+                _agent.NavMeshAgent.CompleteOffMeshLink();
+
+            return Land();
         }
 
-        void ResolveNextStateAfterFall()
-        {
-            var agentUnavailable = _agentUnavailable;
-            EndManualTraversal();
+        // The agent's path is gone if it was unavailable during the drop, so set it up again.
+        PhaseStep Land() =>
+            PhaseStep.To(_agentUnavailable ? PhaseId.Preparing : PhaseId.Moving);
 
-            if (TryResolveQueuedRequest())
-                return;
-
-            if (agentUnavailable)
-            {
-                States.PrepareGoing.CurrentArgs = CurrentArgs;
-                ChangeState(States.PrepareGoing);
-                return;
-            }
-
-            States.Going.CurrentArgs = CurrentArgs;
-            ChangeState(States.Going);
-        }
-
-        void EndManualTraversal()
+        void EndFall()
         {
             _isFallInProgress = false;
             _horizontalT = 0f;
-            _agentUnavailable = false;
             _verticalSpeed = 0f;
             _isDescending = false;
             _currentVelocity = Vector3.zero;
@@ -197,50 +166,9 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (_agent.NavMeshAgent.isActiveAndEnabled)
             {
                 _agent.NavMeshAgent.updatePosition = true;
-                _agent.NavMeshAgent.updateRotation = !CurrentArgs.Strafe;
+                _agent.NavMeshAgent.updateRotation = !_strafe;
                 _agent.NavMeshAgent.isStopped = false;
             }
-        }
-
-        void InterruptForCannotNavigate()
-        {
-            if (_isFallInProgress)
-                EndManualTraversal();
-
-            if (TryResolveQueuedRequest())
-                return;
-
-            States.CannotNavigate.CurrentArgs = CurrentArgs;
-            ChangeState(States.CannotNavigate);
-        }
-
-        // Applies a Cancel or GoTo queued during the traversal, changing state before any callback
-        // so a callback that calls GoTo or Cancel reaches the new state.
-        // Returns false if nothing was queued, so the caller picks the next state.
-        bool TryResolveQueuedRequest()
-        {
-            var current = CurrentArgs;
-
-            if (_cancelRequested)
-            {
-                _cancelRequested = false;
-                ChangeState(States.Idle);
-
-                current.Callback(DestinationResult.Cancelled);
-                return true;
-            }
-
-            if (_pendingArgs != null)
-            {
-                States.PrepareGoing.CurrentArgs = _pendingArgs;
-                _pendingArgs = null;
-                ChangeState(States.PrepareGoing);
-
-                current.Callback(DestinationResult.CancelledByNewDestination);
-                return true;
-            }
-
-            return false;
         }
 
         bool CanBeginDescent(Vector3 position) =>
@@ -266,7 +194,5 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             return horizontalDistance <= EndAlignmentDistance;
         }
-
     }
 }
-

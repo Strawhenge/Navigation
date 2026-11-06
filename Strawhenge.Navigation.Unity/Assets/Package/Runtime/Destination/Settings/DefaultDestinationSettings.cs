@@ -8,6 +8,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         internal const float FallHorizontalSpeed = 5;
         internal const float FallAcceleration = 9.81f;
         internal const int GroundLayers = Physics.DefaultRaycastLayers;
+        internal const float ApproximateSearchDistance = 5;
 
         public static IDestinationSettings Instance { get; } = new DefaultDestinationSettings();
 
@@ -22,5 +23,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         float IDestinationSettings.FallAcceleration => FallAcceleration;
 
         LayerMask IDestinationSettings.GroundLayers => GroundLayers;
+
+        float IDestinationSettings.ApproximateSearchDistance => ApproximateSearchDistance;
     }
 }
