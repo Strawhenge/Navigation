@@ -20,6 +20,11 @@ namespace Strawhenge.Navigation.Unity.Destination
                  "Leave out layers of the character's own colliders (hitboxes, ragdoll parts).")]
         [SerializeField] LayerMask _groundLayers = DefaultDestinationSettings.GroundLayers;
 
+        [Header("Approximate Destinations")]
+        [Tooltip("How far from an approximate destination to look for the nearest point on the NavMesh, " +
+                 "when the destination itself isn't on it. Exact destinations are never moved.")]
+        [SerializeField] float _approximateSearchDistance = DefaultDestinationSettings.ApproximateSearchDistance;
+
         public float JumpSpeed => _jumpSpeed;
 
         public float FallHorizontalSpeed => _fallHorizontalSpeed;
@@ -27,5 +32,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         public float FallAcceleration => _fallAcceleration;
 
         public LayerMask GroundLayers => _groundLayers;
+
+        public float ApproximateSearchDistance => _approximateSearchDistance;
     }
 }

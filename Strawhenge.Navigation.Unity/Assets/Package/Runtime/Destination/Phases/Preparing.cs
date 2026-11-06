@@ -3,15 +3,18 @@ using UnityEngine.AI;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
-    // Enables the agent, warps it to where the trip starts and calculates the path.
+    // Enables the agent, warps it to where the trip starts and calculates the path to the request's
+    // target (see TargetResolver).
     class Preparing : Phase
     {
         readonly Agent _agent;
+        readonly TargetResolver _targets;
         readonly NavMeshPath _path = new();
 
-        public Preparing(Agent agent)
+        public Preparing(Agent agent, TargetResolver targets)
         {
             _agent = agent;
+            _targets = targets;
         }
 
         public override PhaseStep Update(DestinationArgs args, float deltaTime)
@@ -34,7 +37,10 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.updatePosition = true;
             _agent.NavMeshAgent.updateRotation = !args.Strafe;
 
-            _agent.NavMeshAgent.CalculatePath(args.Location, _path);
+            if (!_targets.TryResolve(args, out var target))
+                return PhaseStep.Finish(DestinationResult.Inaccessible);
+
+            _agent.NavMeshAgent.CalculatePath(target, _path);
 
             if (!IsAccessible(args))
                 return PhaseStep.Finish(DestinationResult.Inaccessible);
