@@ -4,7 +4,9 @@ using UnityEngine;
 namespace Strawhenge.Navigation.Unity.Destination
 {
     // Moves the character along a jump-across off-mesh link by hand, then hands over to Landing if a jump
-    // landing matches. Can't be interrupted: a new request or a cancel is called back straight away, but
+    // landing matches. With DeferJumpTrigger, it first waits at the start of the link for the jump
+    // animation to launch it (TriggerJump), or for AnimatorWaitTimeout, after which it launches anyway:
+    // unlike LocomotionScript, it can't cancel the jump, as the agent is already on the link. Can't be interrupted: a new request or a cancel is called back straight away, but
     // the jump always lands first.
     class Jumping : Phase
     {
@@ -12,11 +14,15 @@ namespace Strawhenge.Navigation.Unity.Destination
         readonly IDestinationSettings _settings;
         readonly Landing _landing;
 
+        internal event Action JumpTriggerRequested;
         internal event Action JumpBegan;
         internal event Action JumpEnded;
 
         bool _strafe;
         bool _isJumpInProgress;
+        bool _isAwaitingTrigger;
+        float _triggerWaitTime;
+        bool _triggerTimeoutWarned;
         bool _agentUnavailable;
         Vector3 _startPosition;
         Vector3 _endPosition;
@@ -44,6 +50,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         {
             _strafe = strafe;
             _isJumpInProgress = false;
+            _isAwaitingTrigger = false;
             _agentUnavailable = false;
             _currentVelocity = Vector3.zero;
         }
@@ -61,7 +68,18 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (!_isJumpInProgress)
                 BeginJump();
 
+            if (_isAwaitingTrigger)
+                return AwaitTrigger(deltaTime);
+
             return TraverseJump(deltaTime);
+        }
+
+        public override PhaseStep OnJumpTriggered()
+        {
+            if (_isAwaitingTrigger)
+                Launch();
+
+            return PhaseStep.Continue;
         }
 
         public override void Exit()
@@ -89,11 +107,48 @@ namespace Strawhenge.Navigation.Unity.Destination
             _jumpT = 0f;
             _isJumpInProgress = true;
 
-            JumpBegan?.Invoke();
-
             _agent.NavMeshAgent.isStopped = true;
             _agent.NavMeshAgent.updatePosition = false;
             _agent.NavMeshAgent.updateRotation = false;
+
+            if (!_settings.DeferJumpTrigger)
+            {
+                Launch();
+                return;
+            }
+
+            _isAwaitingTrigger = true;
+            _triggerWaitTime = 0f;
+
+            // Last: without an Animator, the jump is triggered straight away (OnJumpTriggered).
+            JumpTriggerRequested?.Invoke();
+        }
+
+        PhaseStep AwaitTrigger(float deltaTime)
+        {
+            _currentVelocity = Vector3.zero;
+            _triggerWaitTime += deltaTime;
+
+            if (_triggerWaitTime <= _settings.AnimatorWaitTimeout)
+                return PhaseStep.Continue;
+
+            if (!_triggerTimeoutWarned)
+            {
+                _triggerTimeoutWarned = true;
+                Debug.LogWarning(
+                    $"Deferred jump wasn't launched within {_settings.AnimatorWaitTimeout} s - launching it anyway. " +
+                    $"Check the jump animation calls {nameof(MovementAnimationSyncScript)}.OnJumpLaunch.",
+                    _agent.NavMeshAgent);
+            }
+
+            Launch();
+            return PhaseStep.Continue;
+        }
+
+        void Launch()
+        {
+            _isAwaitingTrigger = false;
+            JumpBegan?.Invoke();
         }
 
         void FaceJumpDirection()
@@ -159,7 +214,11 @@ namespace Strawhenge.Navigation.Unity.Destination
             _jumpT = 0f;
             _currentVelocity = Vector3.zero;
 
-            JumpEnded?.Invoke();
+            // Only if it launched, so JumpBegan and JumpEnded always come in pairs.
+            if (_isAwaitingTrigger)
+                _isAwaitingTrigger = false;
+            else
+                JumpEnded?.Invoke();
 
             if (_agent.NavMeshAgent.isActiveAndEnabled)
             {

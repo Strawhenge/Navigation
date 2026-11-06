@@ -73,6 +73,7 @@ Assembly definitions reference dependencies by GUID, and the runtime asmdef has 
 - Phases that can't be interrupted (`CanInterrupt == false`: jumps, drops, and the animation waits) always finish. A `GoTo` or reactivation meanwhile sets `_restartWhenSettled`, so the trip restarts through `Preparing` afterwards. One such phase can hand over to another (a jump to its landing) even after a cancel, and the run keeps the facing the first one started with (`Phase.Enter(args, strafe)`). A `CanNavigate` pause waits until the run is done.
 - The Animator's replies (`TriggerJump`, `CompletePivot`, `CompleteLanding`) reach `DestinationController` through `DestinationMovementSource` and are passed to the current phase (`Phase.OnJumpTriggered` / `OnPivotCompleted` / `OnLandingCompleted`); phases that aren't waiting ignore them.
 - **Landings:** when a jump's arc ends, or a drop that actually fell (`FallBegan` raised) lands, `Jumping` / `Falling` ask `Landing.TrySetUp(...)` to match `JumpLandings` / `FallLandings` on the horizontal speed coming in and the height dropped from take-off (`max(0, start.y - end.y)`). On a match they hand over to `Landing`, which stops the agent, raises `LandingRequested(id)` and waits for `CompleteLanding` or `AnimatorWaitTimeout` (warning once per ID). `Jumping.Velocity` is measured from the per-update movement, like `Falling`'s.
+- **Deferred jumps:** with `DeferJumpTrigger`, `Jumping` sets up the link, then waits at its start (velocity zero) after raising `JumpTriggerRequested` until `TriggerJump` arrives. Only then does it raise `JumpBegan` and move. On `AnimatorWaitTimeout` it warns once and launches anyway: unlike locomotion, it can't cancel, as the agent is already on the link.
 
 ### Locomotion
 - `LocomotionScript` is driven by `Move(Vector3 worldDirection)`, `Jump()` and the `Walk` / `Sprint` / `Strafe` flags.
@@ -142,7 +143,7 @@ PlayMode tests live in `Assets/Package/Tests/` (asmdef `Strawhenge.Navigation.Un
 ## Known gaps / TODOs
 
 - **No `package.json` in `Assets/Package`.** Other projects can't consume this yet via a git URL (`?path=/Strawhenge.Navigation.Unity/Assets/Package#release`) the way the other Strawhenge packages are. It also needs a README.
-- The destination path never raises `PivotRequested` / `JumpTriggerRequested`, so AI-driven characters get no pivot animations and never defer a jump.
+- The destination path never raises `PivotRequested`, so AI-driven characters get no pivot animations.
 - `SerializedLocomotionSettings` and `LocomotionSettingsScriptableObject` duplicate the same fields and logic.
 - `AnimatorExtensions.SetFloat` and `PrivateFieldInspector` are marked "move to Common". `PivotScriptableObject` is marked "remove from asset menu / generate via editor tool".
 - The reference controller has `Pivot Angle` / `Pivot Speed` parameters that the code doesn't use.
