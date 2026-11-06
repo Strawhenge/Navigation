@@ -74,6 +74,7 @@ Assembly definitions reference dependencies by GUID, and the runtime asmdef has 
 - The Animator's replies (`TriggerJump`, `CompletePivot`, `CompleteLanding`) reach `DestinationController` through `DestinationMovementSource` and are passed to the current phase (`Phase.OnJumpTriggered` / `OnPivotCompleted` / `OnLandingCompleted`); phases that aren't waiting ignore them.
 - **Landings:** when a jump's arc ends, or a drop that actually fell (`FallBegan` raised) lands, `Jumping` / `Falling` ask `Landing.TrySetUp(...)` to match `JumpLandings` / `FallLandings` on the horizontal speed coming in and the height dropped from take-off (`max(0, start.y - end.y)`). On a match they hand over to `Landing`, which stops the agent, raises `LandingRequested(id)` and waits for `CompleteLanding` or `AnimatorWaitTimeout` (warning once per ID). `Jumping.Velocity` is measured from the per-update movement, like `Falling`'s.
 - **Deferred jumps:** with `DeferJumpTrigger`, `Jumping` sets up the link, then waits at its start (velocity zero) after raising `JumpTriggerRequested` until `TriggerJump` arrives. Only then does it raise `JumpBegan` and move. On `AnimatorWaitTimeout` it warns once and launches anyway: unlike locomotion, it can't cancel, as the agent is already on the link.
+- **Pivots:** never while strafing. `Preparing` matches `StationaryPivots` on the turn from the character's facing to the path's first corner (`GetCornersNonAlloc`) and the speed before its warp; `Moving` matches `MovingPivots` every update on the turn to `desiredVelocity` and the agent's speed. On a match they hand over to `Pivoting`, which stops the agent, turns off `updatePosition` / `updateRotation` (root motion plays the pivot), raises `PivotRequested(id)` and waits for `CompletePivot(delta)` or `AnimatorWaitTimeout`. It applies the delta like `LocomotionScript.CompletePivot`, syncs the agent with `nextPosition` and goes back to `Moving`. An identity delta suppresses pivots until the turn leaves every pivot's angle range, as in locomotion. While it plays, `Velocity` is the velocity coming in.
 
 ### Locomotion
 - `LocomotionScript` is driven by `Move(Vector3 worldDirection)`, `Jump()` and the `Walk` / `Sprint` / `Strafe` flags.
@@ -143,7 +144,6 @@ PlayMode tests live in `Assets/Package/Tests/` (asmdef `Strawhenge.Navigation.Un
 ## Known gaps / TODOs
 
 - **No `package.json` in `Assets/Package`.** Other projects can't consume this yet via a git URL (`?path=/Strawhenge.Navigation.Unity/Assets/Package#release`) the way the other Strawhenge packages are. It also needs a README.
-- The destination path never raises `PivotRequested`, so AI-driven characters get no pivot animations.
 - `SerializedLocomotionSettings` and `LocomotionSettingsScriptableObject` duplicate the same fields and logic.
 - `AnimatorExtensions.SetFloat` and `PrivateFieldInspector` are marked "move to Common". `PivotScriptableObject` is marked "remove from asset menu / generate via editor tool".
 - The reference controller has `Pivot Angle` / `Pivot Speed` parameters that the code doesn't use.
