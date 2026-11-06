@@ -6,8 +6,8 @@ namespace Strawhenge.Navigation.Unity.Destination
     // Moves the character along a jump-across off-mesh link by hand, then hands over to Landing if a jump
     // landing matches. With DeferJumpTrigger, it first waits at the start of the link for the jump
     // animation to launch it (TriggerJump), or for AnimatorWaitTimeout, after which it launches anyway:
-    // unlike LocomotionScript, it can't cancel the jump, as the agent is already on the link. Can't be interrupted: a new request or a cancel is called back straight away, but
-    // the jump always lands first.
+    // unlike LocomotionScript, it can't cancel the jump, as the agent is already on the link. Can't be
+    // interrupted: a new request or a cancel is called back straight away, but the jump always lands first.
     class Jumping : Phase
     {
         readonly Agent _agent;
