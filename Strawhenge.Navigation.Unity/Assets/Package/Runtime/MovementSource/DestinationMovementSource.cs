@@ -33,7 +33,11 @@ namespace Strawhenge.Navigation.Unity
             remove => _destinationController.JumpEnded -= value;
         }
 
-        public event Action<int> PivotRequested;
+        public event Action<int> PivotRequested
+        {
+            add => _destinationController.PivotRequested += value;
+            remove => _destinationController.PivotRequested -= value;
+        }
 
         public event Action FallBegan
         {

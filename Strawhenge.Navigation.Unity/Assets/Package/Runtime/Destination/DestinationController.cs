@@ -14,6 +14,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         readonly Jumping _jumping;
         readonly Falling _falling;
         readonly Landing _landing;
+        readonly Pivoting _pivoting;
         readonly Paused _paused;
 
         // The request being carried out. Null when there is none, including while a jump or drop
@@ -39,8 +40,9 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             var targets = new TargetResolver(agent, settings);
 
-            _preparing = new Preparing(agent, targets);
-            _moving = new Moving(agent, targets);
+            _pivoting = new Pivoting(agent, settings);
+            _preparing = new Preparing(agent, targets, _pivoting);
+            _moving = new Moving(agent, targets, _pivoting);
             _landing = new Landing(agent, settings);
             _jumping = new Jumping(agent, settings, _landing);
             _falling = new Falling(agent, settings, _landing);
@@ -52,6 +54,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _falling.FallBegan += OnFallBegan;
             _falling.FallEnded += OnFallEnded;
             _landing.LandingRequested += OnLandingRequested;
+            _pivoting.PivotRequested += OnPivotRequested;
         }
 
         public event Action Activated;
@@ -63,6 +66,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         public event Action JumpEnded;
         public event Action FallBegan;
         public event Action FallEnded;
+
+        // A pivot profile matched the turn towards the path, before setting off or on the way: the agent
+        // waits until CompletePivot is called (MovementAnimationSyncScript does this), or the settings'
+        // AnimatorWaitTimeout passes. Never while strafing.
+        public event Action<int> PivotRequested;
 
         // A jump or drop landed and a landing profile matched: the agent waits until CompleteLanding is
         // called (MovementAnimationSyncScript does this), or the settings' AnimatorWaitTimeout passes.
@@ -278,6 +286,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             PhaseId.Jumping => _jumping,
             PhaseId.Falling => _falling,
             PhaseId.Landing => _landing,
+            PhaseId.Pivoting => _pivoting,
             PhaseId.Paused => _paused,
             _ => throw new ArgumentOutOfRangeException(nameof(id), id, null)
         };
@@ -293,5 +302,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         void OnFallEnded() => FallEnded?.Invoke();
 
         void OnLandingRequested(int landingId) => LandingRequested?.Invoke(landingId);
+
+        void OnPivotRequested(int pivotId) => PivotRequested?.Invoke(pivotId);
     }
 }
