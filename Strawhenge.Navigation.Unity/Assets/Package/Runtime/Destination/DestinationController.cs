@@ -46,6 +46,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _falling = new Falling(agent, settings, _landing);
             _paused = new Paused(context, agent);
 
+            _jumping.JumpTriggerRequested += OnJumpTriggerRequested;
             _jumping.JumpBegan += OnJumpBegan;
             _jumping.JumpEnded += OnJumpEnded;
             _falling.FallBegan += OnFallBegan;
@@ -55,6 +56,9 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public event Action Activated;
         public event Action Deactivated;
+        // A jump reached its off-mesh link with DeferJumpTrigger set: it waits there until TriggerJump is
+        // called (MovementAnimationSyncScript.OnJumpLaunch does this), or the AnimatorWaitTimeout passes.
+        public event Action JumpTriggerRequested;
         public event Action JumpBegan;
         public event Action JumpEnded;
         public event Action FallBegan;
@@ -277,6 +281,8 @@ namespace Strawhenge.Navigation.Unity.Destination
             PhaseId.Paused => _paused,
             _ => throw new ArgumentOutOfRangeException(nameof(id), id, null)
         };
+
+        void OnJumpTriggerRequested() => JumpTriggerRequested?.Invoke();
 
         void OnJumpBegan() => JumpBegan?.Invoke();
 

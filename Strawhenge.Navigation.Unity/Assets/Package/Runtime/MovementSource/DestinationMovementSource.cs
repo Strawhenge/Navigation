@@ -15,7 +15,11 @@ namespace Strawhenge.Navigation.Unity
             _destinationController = destinationController;
         }
 
-        public event Action JumpTriggerRequested;
+        public event Action JumpTriggerRequested
+        {
+            add => _destinationController.JumpTriggerRequested += value;
+            remove => _destinationController.JumpTriggerRequested -= value;
+        }
 
         public event Action JumpBegan
         {
