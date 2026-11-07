@@ -4,18 +4,20 @@ using UnityEngine.AI;
 namespace Strawhenge.Navigation.Unity.Destination
 {
     // The agent follows its path at the request's speed, whether that's a walk, jog or run, handing
-    // over to Jumping or Falling at off-mesh links.
+    // over to Jumping or Falling at off-mesh links, and to Pivoting when a moving pivot matches a turn.
     class Moving : Phase
     {
         const float MinArrivalDistance = 0.1f;
 
         readonly Agent _agent;
         readonly TargetResolver _targets;
+        readonly Pivoting _pivoting;
 
-        public Moving(Agent agent, TargetResolver targets)
+        public Moving(Agent agent, TargetResolver targets, Pivoting pivoting)
         {
             _agent = agent;
             _targets = targets;
+            _pivoting = pivoting;
         }
 
         public override Vector3 Velocity =>
@@ -27,7 +29,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         // Preparing. Other redirects are applied in place, so the agent keeps moving.
         public override bool CanRedirectInPlace(DestinationArgs args) => !args.StartingLocation.HasValue;
 
-        public override void Enter(DestinationArgs args)
+        public override void Enter(DestinationArgs args, bool strafe)
         {
             if (!IsAgentUnavailable())
                 _agent.NavMeshAgent.isStopped = false;
@@ -92,7 +94,9 @@ namespace Strawhenge.Navigation.Unity.Destination
             }
 
             if (!IsAtDestination(args))
-                return PhaseStep.Continue;
+                return !args.Strafe && TryPivot()
+                    ? PhaseStep.To(PhaseId.Pivoting)
+                    : PhaseStep.Continue;
 
             if (args.LocationMustBeExact)
                 _agent.NavMeshAgent.Warp(args.Location);
@@ -106,6 +110,27 @@ namespace Strawhenge.Navigation.Unity.Destination
             !_agent.NavMeshAgent.pathPending &&
             _agent.NavMeshAgent.remainingDistance <=
             (args.TargetDistance ?? Mathf.Max(_agent.NavMeshAgent.stoppingDistance, MinArrivalDistance));
+
+        // The turn is from the character's facing to the way the agent wants to go (desiredVelocity), which
+        // swings round at a corner while the agent's own rotation catches up.
+        bool TryPivot()
+        {
+            var desiredVelocity = _agent.NavMeshAgent.desiredVelocity;
+            desiredVelocity.y = 0f;
+
+            if (desiredVelocity.sqrMagnitude < 0.0001f)
+                return false;
+
+            var velocity = _agent.NavMeshAgent.velocity;
+            velocity.y = 0f;
+
+            var turnAngle = Vector3.SignedAngle(
+                _agent.NavMeshAgent.transform.forward,
+                desiredVelocity,
+                Vector3.up);
+
+            return _pivoting.TrySetUpMoving(velocity.magnitude, turnAngle);
+        }
 
         bool IsAgentUnavailable() =>
             _agent.NavMeshAgent.isActiveAndEnabled == false ||

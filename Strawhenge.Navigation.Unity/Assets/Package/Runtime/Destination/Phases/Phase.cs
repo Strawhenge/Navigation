@@ -7,8 +7,8 @@ namespace Strawhenge.Navigation.Unity.Destination
     // PhaseStep they return.
     abstract class Phase
     {
-        // False while moving the character by hand (jumps and drops): those always finish, and a new
-        // request is followed once they land.
+        // False while moving the character by hand (jumps and drops), or while it plays a pivot or landing:
+        // those always finish, and a new request is followed once they're done.
         public virtual bool CanInterrupt => true;
 
         public virtual Vector3 Velocity => Vector3.zero;
@@ -16,7 +16,10 @@ namespace Strawhenge.Navigation.Unity.Destination
         // current is null after a cancel mid-jump or drop.
         public virtual bool IsStrafing(DestinationArgs current) => current?.Strafe ?? false;
 
-        public virtual void Enter(DestinationArgs args)
+        // args is null only when a phase that can't be interrupted hands over to another (a jump's landing)
+        // after its request was cancelled. strafe is the facing to keep: the request's Strafe option, or,
+        // when the previous phase couldn't be interrupted, the one that phase kept.
+        public virtual void Enter(DestinationArgs args, bool strafe)
         {
         }
 
@@ -37,5 +40,12 @@ namespace Strawhenge.Navigation.Unity.Destination
         // The character's GameObject was reactivated. Unity resets a NavMeshAgent when its GameObject
         // is deactivated, so its path is gone: phases that rely on it must set it up again.
         public virtual PhaseStep OnAgentReactivated() => PhaseStep.Continue;
+
+        // The Animator's replies to what a phase asked for. Ignored by phases that aren't waiting for them.
+        public virtual PhaseStep OnJumpTriggered() => PhaseStep.Continue;
+
+        public virtual PhaseStep OnPivotCompleted(Quaternion rotationDelta) => PhaseStep.Continue;
+
+        public virtual PhaseStep OnLandingCompleted() => PhaseStep.Continue;
     }
 }

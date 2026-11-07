@@ -15,7 +15,11 @@ namespace Strawhenge.Navigation.Unity
             _destinationController = destinationController;
         }
 
-        public event Action JumpTriggerRequested;
+        public event Action JumpTriggerRequested
+        {
+            add => _destinationController.JumpTriggerRequested += value;
+            remove => _destinationController.JumpTriggerRequested -= value;
+        }
 
         public event Action JumpBegan
         {
@@ -29,7 +33,11 @@ namespace Strawhenge.Navigation.Unity
             remove => _destinationController.JumpEnded -= value;
         }
 
-        public event Action<int> PivotRequested;
+        public event Action<int> PivotRequested
+        {
+            add => _destinationController.PivotRequested += value;
+            remove => _destinationController.PivotRequested -= value;
+        }
 
         public event Action FallBegan
         {
@@ -43,7 +51,11 @@ namespace Strawhenge.Navigation.Unity
             remove => _destinationController.FallEnded -= value;
         }
 
-        public event Action<int> LandingRequested;
+        public event Action<int> LandingRequested
+        {
+            add => _destinationController.LandingRequested += value;
+            remove => _destinationController.LandingRequested -= value;
+        }
 
         public event Action<bool> IsActiveChanged
         {
@@ -83,14 +95,17 @@ namespace Strawhenge.Navigation.Unity
 
         public void TriggerJump()
         {
+            _destinationController.TriggerJump();
         }
 
         public void CompletePivot(Quaternion rotationDelta)
         {
+            _destinationController.CompletePivot(rotationDelta);
         }
 
         public void CompleteLanding()
         {
+            _destinationController.CompleteLanding();
         }
     }
 }

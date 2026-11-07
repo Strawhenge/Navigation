@@ -2,13 +2,9 @@ namespace Strawhenge.Navigation.Unity
 {
     // How LocomotionScript reads its settings. Values are passed through, so inspector edits apply at once.
     // The profile lists are cached, because they're read every frame and resolving them allocates.
-    // In the Editor, OnValidate on anything that can change a list calls Invalidate(), and every cache
-    // rebuilds its lists on the next read. In builds that never happens, so the lists are resolved once.
+    // See ProfileCacheVersion for when they're rebuilt.
     sealed class CachedLocomotionSettings : ILocomotionSettings
     {
-        // Starts at 1 so a new cache (version 0) always resolves its lists on first read.
-        static int _version = 1;
-
         readonly ILocomotionSettings _settings;
 
         int _cachedVersion;
@@ -22,7 +18,8 @@ namespace Strawhenge.Navigation.Unity
             _settings = settings;
         }
 
-        public static void Invalidate() => _version++;
+        // Rebuilds every settings cache, destination ones included.
+        public static void Invalidate() => ProfileCacheVersion.Invalidate();
 
         public float WalkSpeed => _settings.WalkSpeed;
 
@@ -86,7 +83,7 @@ namespace Strawhenge.Navigation.Unity
 
         void RefreshLists()
         {
-            if (_cachedVersion == _version)
+            if (_cachedVersion == ProfileCacheVersion.Current)
                 return;
 
             _stationaryPivots = _settings.StationaryPivots;
@@ -95,7 +92,7 @@ namespace Strawhenge.Navigation.Unity
             _fallLandings = _settings.FallLandings;
 
             // Only once all four are built, so a failed build is retried rather than leaving lists missing.
-            _cachedVersion = _version;
+            _cachedVersion = ProfileCacheVersion.Current;
         }
     }
 }
