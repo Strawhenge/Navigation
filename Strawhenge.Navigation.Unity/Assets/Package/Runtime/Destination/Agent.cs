@@ -8,6 +8,9 @@ namespace Strawhenge.Navigation.Unity.Destination
         // Reused to avoid garbage; it is never assigned to the agent. Not thread safe.
         static readonly NavMeshPath AccessibilityPath = new();
 
+        // Unity supports 32 NavMesh areas.
+        const int AreaCount = 32;
+
         readonly INavMeshAgentModes _agentModes;
         readonly AgentPriorityManager _priorityManager;
         bool _hasPriority;
@@ -32,7 +35,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             ReservePriority(leisurely);
 
-            NavMeshAgent.areaMask = GetAreaMask(leisurely);
+            ApplyMode(GetMode(leisurely));
             IsLeisurely = leisurely;
         }
 
@@ -77,6 +80,10 @@ namespace Strawhenge.Navigation.Unity.Destination
             _isSuspended = false;
             NavMeshAgent.enabled = true;
 
+            // Area costs aren't saved with the agent, so they're applied again rather than trusted to
+            // survive the disable.
+            ApplyMode(GetMode(IsLeisurely));
+
             if (!_hasPriority)
                 ReservePriority(IsLeisurely);
         }
@@ -96,15 +103,32 @@ namespace Strawhenge.Navigation.Unity.Destination
             _isSuspended = false;
         }
 
+        // The single place a mode is chosen.
+        INavMeshAgentMode GetMode(bool leisurely) =>
+            leisurely ? _agentModes.Leisurely : _agentModes.Default;
+
         public int GetAreaMask(bool leisurely) =>
-            leisurely ? _agentModes.LeisurelyAreaMask : _agentModes.DefaultAreaMask;
+            GetMode(leisurely).AreaMask;
+
+        // Sets every area, not only the ones the mode overrides: the agent keeps the costs it's given, so
+        // an area made costly by the previous mode would otherwise stay costly.
+        void ApplyMode(INavMeshAgentMode mode)
+        {
+            NavMeshAgent.areaMask = mode.AreaMask;
+
+            for (var area = 0; area < AreaCount; area++)
+                NavMeshAgent.SetAreaCost(area, GetAreaCost(mode, area));
+        }
+
+        static float GetAreaCost(INavMeshAgentMode mode, int area) =>
+            mode.TryGetAreaCost(area, out var cost) ? cost : NavMesh.GetAreaCost(area);
 
         // Asks the NavMesh directly, so the agent is never enabled or moved and nothing is logged.
         // Only a complete path counts as accessible, and only to the exact location: this never falls
         // back to the nearest NavMesh point, as an approximate request does.
         public bool IsLocationAccessible(Vector3 location, bool leisurely)
         {
-            var filter = CreateQueryFilter(leisurely);
+            var filter = CreatePathQueryFilter(leisurely);
 
             // Start from the nearest NavMesh point within one agent height of the character.
             if (!NavMesh.SamplePosition(GetCurrentPosition(), out var start, NavMeshAgent.height, filter))
@@ -133,6 +157,19 @@ namespace Strawhenge.Navigation.Unity.Destination
             agentTypeID = NavMeshAgent.agentTypeID,
             areaMask = GetAreaMask(leisurely)
         };
+
+        // With the mode's area costs too. They don't change whether a path is complete, but the query then
+        // searches the way the agent would.
+        NavMeshQueryFilter CreatePathQueryFilter(bool leisurely)
+        {
+            var mode = GetMode(leisurely);
+            var filter = CreateQueryFilter(leisurely);
+
+            for (var area = 0; area < AreaCount; area++)
+                filter.SetAreaCost(area, GetAreaCost(mode, area));
+
+            return filter;
+        }
 
         public Vector3 GetCurrentPosition() =>
             NavMeshAgent.transform.position;
