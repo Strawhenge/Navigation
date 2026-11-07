@@ -3,8 +3,9 @@ using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
-    // Moves the character along a drop-down off-mesh link by hand. Can't be interrupted: a new request
-    // or a cancel is called back straight away, but the drop always lands first.
+    // Moves the character along a drop-down off-mesh link by hand, then hands over to Landing if it fell
+    // and a fall landing matches. Can't be interrupted: a new request or a cancel is called back straight
+    // away, but the drop always lands first.
     class Falling : Phase
     {
         const float GroundProbeDistance = 0.2f;
@@ -13,11 +14,15 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         readonly Agent _agent;
         readonly IDestinationSettings _settings;
+        readonly Landing _landing;
 
         internal event Action FallBegan;
         internal event Action FallEnded;
 
         bool _strafe;
+
+        // The request's speed going into the link, which landings are matched on.
+        float _approachSpeed;
         bool _isFallInProgress;
         bool _agentUnavailable;
         Vector3 _startPosition;
@@ -29,10 +34,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         Vector3 _currentVelocity;
         bool _fallBeganRaised;
 
-        public Falling(Agent agent, IDestinationSettings settings)
+        public Falling(Agent agent, IDestinationSettings settings, Landing landing)
         {
             _agent = agent;
             _settings = settings;
+            _landing = landing;
         }
 
         public override bool CanInterrupt => false;
@@ -45,6 +51,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         public override void Enter(DestinationArgs args, bool strafe)
         {
             _strafe = strafe;
+            _approachSpeed = args?.Speed ?? 0f;
             _isFallInProgress = false;
             _agentUnavailable = false;
             _currentVelocity = Vector3.zero;
@@ -145,12 +152,28 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (_agent.NavMeshAgent.isOnOffMeshLink)
                 _agent.NavMeshAgent.CompleteOffMeshLink();
 
-            return Land();
+            return LandFromFall();
         }
 
         // The agent's path is gone if it was unavailable during the drop, so set it up again.
         PhaseStep Land() =>
             PhaseStep.To(_agentUnavailable ? PhaseId.Preparing : PhaseId.Moving);
+
+        // Only after actually falling (FallBegan raised), matched on the request's speed going into the link
+        // (the drop itself moves at FallHorizontalSpeed) and the height dropped.
+        PhaseStep LandFromFall()
+        {
+            var next = _agentUnavailable ? PhaseId.Preparing : PhaseId.Moving;
+
+            if (!_fallBeganRaised)
+                return PhaseStep.To(next);
+
+            var fallDistance = Mathf.Max(0f, _startPosition.y - _endPosition.y);
+
+            return _landing.TrySetUp(_settings.FallLandings, _approachSpeed, fallDistance, next)
+                ? PhaseStep.To(PhaseId.Landing)
+                : PhaseStep.To(next);
+        }
 
         void EndFall()
         {

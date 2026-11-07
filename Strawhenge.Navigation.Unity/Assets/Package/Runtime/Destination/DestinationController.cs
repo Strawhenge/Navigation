@@ -13,6 +13,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         readonly Moving _moving;
         readonly Jumping _jumping;
         readonly Falling _falling;
+        readonly Landing _landing;
         readonly Paused _paused;
 
         // The request being carried out. Null when there is none, including while a jump or drop
@@ -40,14 +41,16 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             _preparing = new Preparing(agent, targets);
             _moving = new Moving(agent, targets);
-            _jumping = new Jumping(agent, settings);
-            _falling = new Falling(agent, settings);
+            _landing = new Landing(agent, settings);
+            _jumping = new Jumping(agent, settings, _landing);
+            _falling = new Falling(agent, settings, _landing);
             _paused = new Paused(context, agent);
 
             _jumping.JumpBegan += OnJumpBegan;
             _jumping.JumpEnded += OnJumpEnded;
             _falling.FallBegan += OnFallBegan;
             _falling.FallEnded += OnFallEnded;
+            _landing.LandingRequested += OnLandingRequested;
         }
 
         public event Action Activated;
@@ -56,6 +59,10 @@ namespace Strawhenge.Navigation.Unity.Destination
         public event Action JumpEnded;
         public event Action FallBegan;
         public event Action FallEnded;
+
+        // A jump or drop landed and a landing profile matched: the agent waits until CompleteLanding is
+        // called (MovementAnimationSyncScript does this), or the settings' AnimatorWaitTimeout passes.
+        public event Action<int> LandingRequested;
 
         // Stays true until a jump or drop in progress lands, even if its request has already ended.
         public bool IsActive => _phase != null;
@@ -266,6 +273,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             PhaseId.Moving => _moving,
             PhaseId.Jumping => _jumping,
             PhaseId.Falling => _falling,
+            PhaseId.Landing => _landing,
             PhaseId.Paused => _paused,
             _ => throw new ArgumentOutOfRangeException(nameof(id), id, null)
         };
@@ -277,5 +285,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         void OnFallBegan() => FallBegan?.Invoke();
 
         void OnFallEnded() => FallEnded?.Invoke();
+
+        void OnLandingRequested(int landingId) => LandingRequested?.Invoke(landingId);
     }
 }
