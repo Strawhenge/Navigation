@@ -150,6 +150,11 @@ namespace Strawhenge.Navigation.Unity.Tests
         IEnumerator StartTrip(IDestinationArgsBuilder trip)
         {
             _controller.GoTo(trip.Build());
+
+            // Update at least once, so the path is this trip's: a cancelled trip's path stays on the agent
+            // until the controller's next update disables it.
+            yield return null;
+            _controller.Update(Time.deltaTime);
             yield return TickUntil(HasPath);
 
             Assert.IsTrue(HasPath(), "Setup failed: the agent never got a path.");
