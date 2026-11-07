@@ -83,14 +83,17 @@ namespace Strawhenge.Navigation.Unity
 
         public void TriggerJump()
         {
+            _destinationController.TriggerJump();
         }
 
         public void CompletePivot(Quaternion rotationDelta)
         {
+            _destinationController.CompletePivot(rotationDelta);
         }
 
         public void CompleteLanding()
         {
+            _destinationController.CompleteLanding();
         }
     }
 }

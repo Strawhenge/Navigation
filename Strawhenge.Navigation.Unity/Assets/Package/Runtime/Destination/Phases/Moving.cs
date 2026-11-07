@@ -27,7 +27,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         // Preparing. Other redirects are applied in place, so the agent keeps moving.
         public override bool CanRedirectInPlace(DestinationArgs args) => !args.StartingLocation.HasValue;
 
-        public override void Enter(DestinationArgs args)
+        public override void Enter(DestinationArgs args, bool strafe)
         {
             if (!IsAgentUnavailable())
                 _agent.NavMeshAgent.isStopped = false;
