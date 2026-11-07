@@ -16,6 +16,9 @@ namespace Strawhenge.Navigation.Unity.Destination
         internal event Action JumpEnded;
 
         bool _strafe;
+
+        // The request's speed going into the link, which landings are matched on.
+        float _approachSpeed;
         bool _isJumpInProgress;
         bool _agentUnavailable;
         Vector3 _startPosition;
@@ -43,6 +46,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         public override void Enter(DestinationArgs args, bool strafe)
         {
             _strafe = strafe;
+            _approachSpeed = args?.Speed ?? 0f;
             _isJumpInProgress = false;
             _agentUnavailable = false;
             _currentVelocity = Vector3.zero;
@@ -138,17 +142,15 @@ namespace Strawhenge.Navigation.Unity.Destination
         PhaseStep Land() =>
             PhaseStep.To(_agentUnavailable ? PhaseId.Preparing : PhaseId.Moving);
 
-        // Matched on the horizontal speed coming in, and the drop from take-off to landing (0 when jumping
-        // up), as LocomotionScript measures from where the character was last grounded.
+        // Matched on the request's speed going into the link (the jump itself moves at JumpSpeed, so a walk
+        // into a jump gets a walking landing, as in locomotion), and the drop from take-off to landing (0
+        // when jumping up), as LocomotionScript measures from where the character was last grounded.
         PhaseStep LandFromJump()
         {
             var next = _agentUnavailable ? PhaseId.Preparing : PhaseId.Moving;
-
-            var horizontalVelocity = _currentVelocity;
-            horizontalVelocity.y = 0f;
             var fallDistance = Mathf.Max(0f, _startPosition.y - _endPosition.y);
 
-            return _landing.TrySetUp(_settings.JumpLandings, horizontalVelocity.magnitude, fallDistance, next)
+            return _landing.TrySetUp(_settings.JumpLandings, _approachSpeed, fallDistance, next)
                 ? PhaseStep.To(PhaseId.Landing)
                 : PhaseStep.To(next);
         }
