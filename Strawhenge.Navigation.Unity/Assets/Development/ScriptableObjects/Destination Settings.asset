@@ -18,3 +18,88 @@ MonoBehaviour:
   _groundLayers:
     serializedVersion: 2
     m_Bits: 4294967241
+  _approximateSearchDistance: 5
+  _stationaryPivots:
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: 00c25214e74021c488d61c8be34e591e, type: 2}
+    _type: 2
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: 4590b5d14b5dfc344b594f6c90bf6b54, type: 2}
+    _type: 2
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: c32c250deb31de443a7a3126437b2307, type: 2}
+    _type: 2
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: f532752fcacb26e4fb10e4e4f518ee98, type: 2}
+    _type: 2
+  _movingPivots:
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: 4534cc0eca9a9a24b8a26fb1aac7a7cb, type: 2}
+    _type: 2
+  - _serialized:
+      _pivot: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+      _angleRanges: []
+    _scriptableObject: {fileID: 11400000, guid: 77c40bec15543ee47a830fa01077dbec, type: 2}
+    _type: 2
+  _jumpLandings:
+  - _serialized:
+      _landing: {fileID: 0}
+      _fallDistanceRange:
+        _min: 0
+        _max: 0
+      _speedRange:
+        _min: 0
+        _max: 0
+    _scriptableObject: {fileID: 11400000, guid: 2dd9f2aecd727b645a18cb48a849e04c, type: 2}
+    _type: 2
+  _fallLandings:
+  - _serialized:
+      _landing: {fileID: 0}
+      _fallDistanceRange:
+        _min: 0
+        _max: 0
+      _speedRange:
+        _min: 0
+        _max: 0
+    _scriptableObject: {fileID: 11400000, guid: 2dd9f2aecd727b645a18cb48a849e04c, type: 2}
+    _type: 2
+  - _serialized:
+      _landing: {fileID: 0}
+      _fallDistanceRange:
+        _min: 0
+        _max: 0
+      _speedRange:
+        _min: 0
+        _max: 0
+    _scriptableObject: {fileID: 11400000, guid: 0f48ec33a16c3ad47a425a9d0a22a063, type: 2}
+    _type: 2
+  _deferJumpTrigger: 1
+  _animatorWaitTimeout: 2
