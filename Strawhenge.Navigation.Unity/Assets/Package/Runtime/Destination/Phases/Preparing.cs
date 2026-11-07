@@ -34,8 +34,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             _agent.Enable(args.Leisurely);
 
-            _agent.NavMeshAgent.Warp(
-                args.StartingLocation ?? _agent.GetCurrentPosition());
+            _agent.Warp(args.StartingLocation ?? _agent.GetCurrentPosition());
 
             if (!_agent.NavMeshAgent.isOnNavMesh)
             {

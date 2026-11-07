@@ -1,16 +1,15 @@
-﻿using Strawhenge.Common.Unity.Serialization;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
     [CreateAssetMenu(menuName = "Strawhenge/Navigation/NavMeshAgent Modes")]
     public class NavMeshAgentModesScriptableObject : ScriptableObject, INavMeshAgentModes
     {
-        [SerializeField] NavMeshAreaMask _default;
-        [SerializeField] NavMeshAreaMask _leisurely;
+        [SerializeField] SerializedNavMeshAgentMode _default = new();
+        [SerializeField] SerializedNavMeshAgentMode _leisurely = new();
 
-        public int DefaultAreaMask => _default.Value;
+        public INavMeshAgentMode Default => _default;
 
-        public int LeisurelyAreaMask => _leisurely.Value;
+        public INavMeshAgentMode Leisurely => _leisurely;
     }
 }

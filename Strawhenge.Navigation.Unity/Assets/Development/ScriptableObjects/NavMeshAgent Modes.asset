@@ -13,6 +13,13 @@ MonoBehaviour:
   m_Name: NavMeshAgent Modes
   m_EditorClassIdentifier: 
   _default:
-    _value: -1
+    _areaMask:
+      _value: -1
+    _areaCosts: []
   _leisurely:
-    _value: 1
+    _areaMask:
+      _value: 5
+    _areaCosts:
+    - _areas:
+        _value: 4
+      _cost: 50
