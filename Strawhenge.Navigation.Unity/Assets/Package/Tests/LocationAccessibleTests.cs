@@ -26,6 +26,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         NavMeshAgent _navMeshAgent;
         DestinationController _controller;
+        FakeLogger _logger;
 
         [UnityTearDown]
         public IEnumerator TearDown()
@@ -99,6 +100,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 
             Assert.IsFalse(accessible, "A character far from any NavMesh has no path anywhere.");
             LogAssert.NoUnexpectedReceived();
+            Assert.IsEmpty(_logger.Messages, "The controller logged something.");
         }
 
         [UnityTest]
@@ -182,7 +184,8 @@ namespace Strawhenge.Navigation.Unity.Tests
                 _navMeshAgent,
                 modes ?? new FixedNavMeshAgentModes(NavMesh.AllAreas),
                 new AgentPriorityManager());
-            _controller = new DestinationController(NullDestinationContext.Instance, agent);
+            _logger = new FakeLogger();
+            _controller = new DestinationController(NullDestinationContext.Instance, agent, _logger);
         }
     }
 }

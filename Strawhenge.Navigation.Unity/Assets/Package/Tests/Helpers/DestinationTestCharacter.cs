@@ -28,6 +28,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             destination.SetNavMeshAgent(navMeshAgent);
             destination.SetModes(new FakeNavMeshAgentModes(NavMesh.AllAreas, NavMesh.AllAreas));
             destination.SetSettings(DefaultDestinationSettings.Instance);
+            destination.SetLogger(new FakeLogger());
 
             character.SetActive(true);
             return destination;

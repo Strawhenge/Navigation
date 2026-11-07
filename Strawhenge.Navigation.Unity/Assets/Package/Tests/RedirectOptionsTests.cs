@@ -226,7 +226,7 @@ namespace Strawhenge.Navigation.Unity.Tests
                 new FakeNavMeshAgentModes(DefaultAreaMask, LeisurelyAreaMask),
                 new AgentPriorityManager());
 
-            _controller = new DestinationController(NullDestinationContext.Instance, agent);
+            _controller = new DestinationController(NullDestinationContext.Instance, agent, new FakeLogger());
         }
     }
 }

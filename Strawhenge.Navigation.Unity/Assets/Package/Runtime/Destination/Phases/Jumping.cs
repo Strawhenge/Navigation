@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
@@ -13,6 +14,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         readonly Agent _agent;
         readonly IDestinationSettings _settings;
         readonly Landing _landing;
+        readonly ILogger _logger;
 
         internal event Action JumpTriggerRequested;
         internal event Action JumpBegan;
@@ -34,11 +36,12 @@ namespace Strawhenge.Navigation.Unity.Destination
         float _jumpHeight;
         Vector3 _currentVelocity;
 
-        public Jumping(Agent agent, IDestinationSettings settings, Landing landing)
+        public Jumping(Agent agent, IDestinationSettings settings, Landing landing, ILogger logger)
         {
             _agent = agent;
             _settings = settings;
             _landing = landing;
+            _logger = logger;
         }
 
         public override bool CanInterrupt => false;
@@ -139,10 +142,9 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (!_triggerTimeoutWarned)
             {
                 _triggerTimeoutWarned = true;
-                Debug.LogWarning(
+                _logger.LogWarning(
                     $"Deferred jump wasn't launched within {_settings.AnimatorWaitTimeout} s - launching it anyway. " +
-                    $"Check the jump animation calls {nameof(MovementAnimationSyncScript)}.OnJumpLaunch.",
-                    _agent.NavMeshAgent);
+                    $"Check the jump animation calls {nameof(MovementAnimationSyncScript)}.OnJumpLaunch.");
             }
 
             Launch();

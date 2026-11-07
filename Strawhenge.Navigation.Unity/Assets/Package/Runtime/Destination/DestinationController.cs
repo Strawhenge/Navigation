@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
@@ -31,7 +32,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         bool _restartWhenSettled;
 
         // Without settings (e.g. in tests), DefaultDestinationSettings is used.
-        internal DestinationController(IDestinationContext context, Agent agent, IDestinationSettings settings = null)
+        internal DestinationController(
+            IDestinationContext context,
+            Agent agent,
+            ILogger logger,
+            IDestinationSettings settings = null)
         {
             _context = context;
             _agent = agent;
@@ -40,11 +45,11 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             var targets = new TargetResolver(agent, settings);
 
-            _pivoting = new Pivoting(agent, settings);
+            _pivoting = new Pivoting(agent, settings, logger);
             _preparing = new Preparing(agent, targets, _pivoting);
             _moving = new Moving(agent, targets, _pivoting);
-            _landing = new Landing(agent, settings);
-            _jumping = new Jumping(agent, settings, _landing);
+            _landing = new Landing(agent, settings, logger);
+            _jumping = new Jumping(agent, settings, _landing, logger);
             _falling = new Falling(agent, settings, _landing);
             _paused = new Paused(context, agent);
 
