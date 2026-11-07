@@ -171,6 +171,16 @@ namespace Strawhenge.Navigation.Unity.Destination
             return filter;
         }
 
+        // Warping puts the agent back on the NavMesh with the project's area costs (the mask is kept, as
+        // it's saved on the component), so the mode's costs are applied again. Warp the agent through
+        // here, never NavMeshAgent.Warp directly.
+        public bool Warp(Vector3 position)
+        {
+            var warped = NavMeshAgent.Warp(position);
+            ApplyMode(GetMode(IsLeisurely));
+            return warped;
+        }
+
         public Vector3 GetCurrentPosition() =>
             NavMeshAgent.transform.position;
 
