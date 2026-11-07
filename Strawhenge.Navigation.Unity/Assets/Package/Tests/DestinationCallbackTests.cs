@@ -141,7 +141,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             character.SetActive(true);
 
             var agent = new Agent(_navMeshAgent, new FixedNavMeshAgentModes(NavMesh.AllAreas), new AgentPriorityManager());
-            _controller = new DestinationController(NullDestinationContext.Instance, agent);
+            _controller = new DestinationController(NullDestinationContext.Instance, agent, new FakeLogger());
         }
 
         IEnumerator TickUntil(Func<bool> condition)

@@ -1,4 +1,5 @@
 using UnityEngine.AI;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
@@ -11,5 +12,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         internal void SetModes(INavMeshAgentModes modes) => _modesOverride = modes;
 
         internal void SetSettings(IDestinationSettings settings) => _settingsOverride = settings;
+
+        internal void SetLogger(ILogger logger) => _loggerOverride = logger;
     }
 }

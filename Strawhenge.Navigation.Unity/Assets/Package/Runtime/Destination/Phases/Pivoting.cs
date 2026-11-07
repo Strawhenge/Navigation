@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
@@ -13,6 +14,7 @@ namespace Strawhenge.Navigation.Unity.Destination
     {
         readonly Agent _agent;
         readonly IDestinationSettings _settings;
+        readonly ILogger _logger;
         readonly HashSet<int> _timedOutIds = new();
 
         internal event Action<int> PivotRequested;
@@ -28,10 +30,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         // until out of every pivot's angle range, as LocomotionScript does.
         bool _suppressUntilTurned;
 
-        public Pivoting(Agent agent, IDestinationSettings settings)
+        public Pivoting(Agent agent, IDestinationSettings settings, ILogger logger)
         {
             _agent = agent;
             _settings = settings;
+            _logger = logger;
         }
 
         public override bool CanInterrupt => false;
@@ -124,11 +127,10 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             if (_timedOutIds.Add(_pivotId))
             {
-                Debug.LogWarning(
+                _logger.LogWarning(
                     $"Pivot ID {_pivotId} wasn't completed within {_settings.AnimatorWaitTimeout} s - " +
                     $"carrying on without it. Check a {nameof(MovementAnimationSyncScript)} is set up and the " +
-                    "Animator has a transition for it.",
-                    _agent.NavMeshAgent);
+                    "Animator has a transition for it.");
             }
 
             return OnPivotCompleted(Quaternion.identity);

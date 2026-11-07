@@ -3,7 +3,7 @@ using Strawhenge.Navigation.Unity.Destination;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.TestTools;
@@ -37,6 +37,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         NavMeshAgent _navMeshAgent;
         DestinationController _controller;
         FakeDestinationSettings _settings;
+        FakeLogger _logger;
 
         [SetUp]
         public void SetUp()
@@ -157,13 +158,14 @@ namespace Strawhenge.Navigation.Unity.Tests
             _settings.AnimatorWaitTimeout = 0.2f;
             yield return Create();
 
-            LogAssert.Expect(LogType.Warning, new Regex($"Pivot ID {StationaryPivotId} wasn't completed"));
-
             _controller.GoTo(Trip(Behind).Build());
             yield return TickUntil(() => _results.Count > 0);
 
             AssertArrived();
             Assert.AreEqual(1, _pivotIds.Count, "The timed-out pivot was requested again.");
+            Assert.IsTrue(
+                _logger.Warnings.Any(w => w.Contains($"Pivot ID {StationaryPivotId} wasn't completed")),
+                "The timed-out pivot wasn't warned about.");
         }
 
         [UnityTest]
@@ -221,7 +223,8 @@ namespace Strawhenge.Navigation.Unity.Tests
                 new FakeNavMeshAgentModes(NavMesh.AllAreas, NavMesh.AllAreas),
                 new AgentPriorityManager());
 
-            _controller = new DestinationController(NullDestinationContext.Instance, agent, _settings);
+            _logger = new FakeLogger();
+            _controller = new DestinationController(NullDestinationContext.Instance, agent, _logger, _settings);
             _controller.PivotRequested += _pivotIds.Add;
 
             yield return null;

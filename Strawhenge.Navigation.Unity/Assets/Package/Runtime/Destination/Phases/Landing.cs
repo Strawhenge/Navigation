@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
@@ -11,6 +12,7 @@ namespace Strawhenge.Navigation.Unity.Destination
     {
         readonly Agent _agent;
         readonly IDestinationSettings _settings;
+        readonly ILogger _logger;
         readonly HashSet<int> _timedOutIds = new();
 
         internal event Action<int> LandingRequested;
@@ -21,10 +23,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         bool _agentUnavailable;
         float _waitTime;
 
-        public Landing(Agent agent, IDestinationSettings settings)
+        public Landing(Agent agent, IDestinationSettings settings, ILogger logger)
         {
             _agent = agent;
             _settings = settings;
+            _logger = logger;
         }
 
         public override bool CanInterrupt => false;
@@ -78,11 +81,10 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             if (_timedOutIds.Add(_landingId))
             {
-                Debug.LogWarning(
+                _logger.LogWarning(
                     $"Landing ID {_landingId} wasn't completed within {_settings.AnimatorWaitTimeout} s - " +
                     $"carrying on without it. Check a {nameof(MovementAnimationSyncScript)} is set up and the " +
-                    "Animator has a transition for it.",
-                    _agent.NavMeshAgent);
+                    "Animator has a transition for it.");
             }
 
             return Done();

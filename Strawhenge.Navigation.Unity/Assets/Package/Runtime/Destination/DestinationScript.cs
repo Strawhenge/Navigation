@@ -1,7 +1,9 @@
+using Strawhenge.Common.Unity;
 using Strawhenge.Common.Unity.Helpers;
 using Strawhenge.Common.Unity.Serialization;
 using UnityEngine;
 using UnityEngine.AI;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
@@ -11,6 +13,9 @@ namespace Strawhenge.Navigation.Unity.Destination
         [SerializeField] NavMeshAgentModesScriptableObject _modes;
         [SerializeField] DestinationContextScript _context;
 
+        // Optional: without one, the controller logs through a UnityLogger on this GameObject.
+        [SerializeField] LoggerScript _logger;
+
         [SerializeField] SerializedSource<
             IDestinationSettings,
             SerializedDestinationSettings,
@@ -19,6 +24,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         DestinationController _destinationController;
         INavMeshAgentModes _modesOverride;
         IDestinationSettings _settingsOverride;
+        ILogger _loggerOverride;
 
         public DestinationController DestinationController => _destinationController ??= Create();
 
@@ -81,7 +87,11 @@ namespace Strawhenge.Navigation.Unity.Destination
                 modes,
                 SingleAgentPriorityManager.Instance);
 
-            return new DestinationController(context, agent, ResolveSettings());
+            var logger = _loggerOverride;
+            if (logger == null)
+                logger = _logger != null ? _logger.Logger : new UnityLogger(gameObject);
+
+            return new DestinationController(context, agent, logger, ResolveSettings());
         }
     }
 }
