@@ -10,7 +10,6 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] Animator _animator;
         [SerializeField] MovementSourceManagerScript _movementSourceManager;
         [SerializeField] float _dampeningTime = 0.1f;
-        [SerializeField] float _minFallDistance = 1f;
 
         [Tooltip("How long a requested pivot or landing animation may take to start (enter its state machine) " +
                  "before it's skipped, e.g. when the controller has no transition for its ID. Must be longer " +
