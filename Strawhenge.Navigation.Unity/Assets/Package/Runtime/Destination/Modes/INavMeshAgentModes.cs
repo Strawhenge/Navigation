@@ -2,8 +2,8 @@
 {
     public interface INavMeshAgentModes
     {
-        int DefaultAreaMask { get; }
+        INavMeshAgentMode Default { get; }
 
-        int LeisurelyAreaMask { get; }
+        INavMeshAgentMode Leisurely { get; }
     }
 }

@@ -99,7 +99,7 @@ namespace Strawhenge.Navigation.Unity.Destination
                     : PhaseStep.Continue;
 
             if (args.LocationMustBeExact)
-                _agent.NavMeshAgent.Warp(args.Location);
+                _agent.Warp(args.Location);
 
             return PhaseStep.Finish(DestinationResult.Arrived);
         }
