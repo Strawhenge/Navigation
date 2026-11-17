@@ -157,11 +157,9 @@ namespace Strawhenge.Navigation.Unity.Destination
                 return;
             }
 
-            // A phase that can't be interrupted finishes first: pausing mid-jump would leave the character
-            // hanging in the air. The next update pauses once it's done.
-            if (!_context.CanNavigate && _phase.CanInterrupt && _phase != _paused)
+            if (!_context.CanNavigate && _phase != _paused)
             {
-                Apply(PhaseStep.To(PhaseId.Paused));
+                Pause();
                 return;
             }
 
@@ -208,6 +206,25 @@ namespace Strawhenge.Navigation.Unity.Destination
                 Apply(_phase.OnAgentReactivated());
             else
                 _restartWhenSettled = true;
+        }
+
+        // The character can't navigate, e.g. it's ragdolled. Stops straight away, even mid-jump, drop, pivot or
+        // landing: something else now moves the character, and the Animator won't play a pivot or landing for
+        // it. Exiting the phase still pairs JumpBegan/JumpEnded and FallBegan/FallEnded. The trip restarts
+        // through Preparing once the character can navigate.
+        void Pause()
+        {
+            // A jump, drop, pivot or landing whose request was cancelled: it has already been called back, so
+            // there's nothing to carry on with.
+            if (_current == null)
+            {
+                _agent.Disable();
+                Stop();
+                return;
+            }
+
+            _restartWhenSettled = false;
+            Enter(PhaseId.Paused);
         }
 
         void Apply(PhaseStep step)
