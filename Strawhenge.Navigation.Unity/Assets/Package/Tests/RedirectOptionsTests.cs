@@ -11,8 +11,8 @@ using Object = UnityEngine.Object;
 namespace Strawhenge.Navigation.Unity.Tests
 {
     // A new request while the agent is already walking (Going.GoTo) must apply all of its options,
-    // as a request from idle does in PrepareGoing: Strafe, Leisurely and FromStartingPoint used to be
-    // ignored. An ordinary redirect must not stop the agent on the way.
+    // as a request from idle does in PrepareGoing: Strafe and Leisurely used to be ignored. An ordinary
+    // redirect must not stop the agent on the way.
     public class RedirectOptionsTests
     {
         const float Speed = 3f;
@@ -20,7 +20,6 @@ namespace Strawhenge.Navigation.Unity.Tests
         const float Timeout = 3f;
         const float RedirectObservationTime = 0.3f;
         const float MinSpeedWhileRedirecting = 0.5f;
-        const float PositionTolerance = 0.5f;
         const int ExcludedArea = 3; // First user-defined NavMesh area.
 
         // With a fresh AgentPriorityManager (100 slots), default reserves the most important slot
@@ -101,22 +100,6 @@ namespace Strawhenge.Navigation.Unity.Tests
             AssertMode(DefaultAreaMask, DefaultPriority, "The redirect asked for the default mode.");
         }
 
-        [UnityTest]
-        public IEnumerator Starting_point_given_mid_trip_is_applied()
-        {
-            var startingPoint = new Vector3(-10, 0, -10);
-
-            yield return StartMoving(Trip(FirstDestination));
-
-            _controller.GoTo(Trip(RedirectDestination).FromStartingPoint(startingPoint).Build());
-            yield return TickUntil(() => DistanceTo(startingPoint) < PositionTolerance);
-
-            Assert.Less(
-                DistanceTo(startingPoint),
-                PositionTolerance,
-                $"The redirect gave a starting point of {startingPoint}, but the agent is at {_navMeshAgent.transform.position}.");
-        }
-
         // Guards against redirects restarting the trip (warp + stop) when nothing needs it.
         [UnityTest]
         public IEnumerator Plain_redirect_keeps_the_agent_moving()
@@ -165,12 +148,6 @@ namespace Strawhenge.Navigation.Unity.Tests
         {
             Assert.AreEqual(areaMask, _navMeshAgent.areaMask, $"{message} Wrong area mask.");
             Assert.AreEqual(avoidancePriority, _navMeshAgent.avoidancePriority, $"{message} Wrong avoidance priority.");
-        }
-
-        float DistanceTo(Vector3 point)
-        {
-            var position = _navMeshAgent.transform.position;
-            return Vector2.Distance(new Vector2(position.x, position.z), new Vector2(point.x, point.z));
         }
 
         IEnumerator TickUntil(Func<bool> condition)

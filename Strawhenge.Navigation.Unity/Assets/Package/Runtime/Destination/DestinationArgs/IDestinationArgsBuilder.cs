@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
@@ -14,8 +13,6 @@ namespace Strawhenge.Navigation.Unity.Destination
         IDestinationArgsBuilder Leisurely();
         
         IDestinationArgsBuilder Strafe();
-
-        IDestinationArgsBuilder FromStartingPoint(Vector3 point);
 
         IDestinationArgsBuilder Callback(Action callback);
 

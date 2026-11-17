@@ -31,8 +31,6 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         internal Vector3 Location { get; private set; }
 
-        internal Vector3? StartingLocation { get; private set; }
-
         internal float Speed { get; private set; }
 
         internal float? TargetDistance { get; private set; }

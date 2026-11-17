@@ -14,7 +14,6 @@ namespace Strawhenge.Navigation.Unity.Destination
             bool _leisurely;
             bool _strafe;
             float _speed = 1;
-            Vector3? _startingPoint;
             Action<DestinationResult> _callback = _ => { };
 
             public ArgsBuilder(Vector3 location, bool exact)
@@ -47,12 +46,6 @@ namespace Strawhenge.Navigation.Unity.Destination
                 return this;
             }
 
-            public IDestinationArgsBuilder FromStartingPoint(Vector3 point)
-            {
-                _startingPoint = point;
-                return this;
-            }
-
             public IDestinationArgsBuilder Callback(Action<DestinationResult> callback)
             {
                 _callback = callback;
@@ -70,7 +63,6 @@ namespace Strawhenge.Navigation.Unity.Destination
                 return new DestinationArgs
                 {
                     Location = _location,
-                    StartingLocation = _startingPoint,
                     Speed = _speed,
                     LocationMustBeExact = _exact,
                     Leisurely = _leisurely,
