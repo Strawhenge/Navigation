@@ -3,7 +3,7 @@ using UnityEngine.AI;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
-    // Enables the agent, warps it to where the trip starts and calculates the path to the request's
+    // Enables the agent, warps it to where the character is and calculates the path to the request's
     // target (see TargetResolver). Hands over to Pivoting first if a stationary pivot matches the turn
     // towards the path.
     class Preparing : Phase
@@ -34,7 +34,7 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             _agent.Enable(args.Leisurely);
 
-            _agent.Warp(args.StartingLocation ?? _agent.GetCurrentPosition());
+            _agent.Warp(_agent.GetCurrentPosition());
 
             if (!_agent.NavMeshAgent.isOnNavMesh)
             {

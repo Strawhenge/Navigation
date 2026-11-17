@@ -25,9 +25,8 @@ namespace Strawhenge.Navigation.Unity.Destination
                 ? Vector3.zero
                 : _agent.NavMeshAgent.velocity;
 
-        // Starting from another point needs a warp and a fresh path, so that goes back through
-        // Preparing. Other redirects are applied in place, so the agent keeps moving.
-        public override bool CanRedirectInPlace(DestinationArgs args) => !args.StartingLocation.HasValue;
+        // Every redirect is applied in place, so the agent keeps moving.
+        public override bool CanRedirectInPlace(DestinationArgs args) => true;
 
         public override void Enter(DestinationArgs args, bool strafe)
         {
