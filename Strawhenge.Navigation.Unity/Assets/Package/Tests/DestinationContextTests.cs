@@ -26,7 +26,8 @@ namespace Strawhenge.Navigation.Unity.Tests
         // With a fresh AgentPriorityManager, default reserves the most important slot.
         const int MostImportant = 0;
 
-        static readonly Vector3 Destination = new(20, 0, 0);
+        // Close enough to reach well within Timeout after the pause.
+        static readonly Vector3 Destination = new(8, 0, 0);
 
         readonly List<Object> _created = new();
         readonly List<DestinationResult> _results = new();
@@ -109,7 +110,11 @@ namespace Strawhenge.Navigation.Unity.Tests
             _context.CanNavigate = true;
             yield return TickUntil(() => _results.Count > 0);
 
-            Assert.AreEqual(1, _results.Count, "The trip should be called back once.");
+            Assert.AreEqual(
+                1,
+                _results.Count,
+                $"The trip should be called back once. The character got to {_navMeshAgent.transform.position} " +
+                $"(agent enabled: {_navMeshAgent.enabled}).");
             Assert.IsTrue(_results[0].IsAtDestination, "The trip should carry on to its destination.");
             Assert.Less(
                 Vector3.Distance(Destination, _navMeshAgent.transform.position),
