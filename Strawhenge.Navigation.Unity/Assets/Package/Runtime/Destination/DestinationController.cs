@@ -84,6 +84,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         // Stays true until a jump or drop in progress lands, even if its request has already ended.
         public bool IsActive => _phase != null;
 
+        // True while a trip waits because the character can't navigate (IDestinationContext.CanNavigate is
+        // false, e.g. it's ragdolled), and for the update after the agent leaves the NavMesh. IsActive stays
+        // true meanwhile. Not set while DestinationScript is disabled, which pauses the trip separately.
+        public bool IsPaused => _phase == _paused;
+
         public Vector3 CurrentVelocity => _phase?.Velocity ?? Vector3.zero;
 
         // The current request's Strafe option (a jump or drop keeps the one it started with). Not

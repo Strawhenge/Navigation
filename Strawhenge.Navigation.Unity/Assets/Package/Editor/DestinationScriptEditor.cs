@@ -21,12 +21,25 @@ namespace Strawhenge.Navigation.Unity.Editor
             _location = _target!.transform.position;
         }
 
+        // Keeps the controller's state shown up to date while playing.
+        public override bool RequiresConstantRepaint() => Application.isPlaying;
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
             EditorGUILayout.Separator();
             EditorGUILayout.LabelField("Destination Controller", EditorStyles.boldLabel);
+
+            if (Application.isPlaying)
+            {
+                EditorGUILayout.LabelField(
+                    nameof(DestinationController.IsActive),
+                    _target.DestinationController.IsActive.ToString());
+                EditorGUILayout.LabelField(
+                    nameof(DestinationController.IsPaused),
+                    _target.DestinationController.IsPaused.ToString());
+            }
 
             _location = EditorGUILayout.Vector3Field("Location", _location);
             if (GUILayout.Button("Set Current Location"))

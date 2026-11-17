@@ -38,6 +38,13 @@ namespace Strawhenge.Navigation.Unity.Tests
         AgentPriorityManager _priorityManager;
         DestinationController _controller;
 
+        [SetUp]
+        public void SetUp()
+        {
+            _navMesh = TestNavMesh.Build(_created, TestNavMesh.Box(Vector3.zero, new Vector2(60, 60)));
+            CreateController();
+        }
+
         [UnityTearDown]
         public IEnumerator TearDown()
         {
@@ -122,11 +129,48 @@ namespace Strawhenge.Navigation.Unity.Tests
                 $"The character should end at {Destination}, but it's at {_navMeshAgent.transform.position}.");
         }
 
+        [UnityTest]
+        public IEnumerator IsPaused_is_true_only_while_the_character_cannot_navigate()
+        {
+            Assert.IsFalse(_controller.IsPaused, "An idle controller isn't paused.");
+
+            yield return StartMoving();
+
+            Assert.IsFalse(_controller.IsPaused, "A moving trip isn't paused.");
+
+            _context.CanNavigate = false;
+            _controller.Update(Time.deltaTime);
+
+            Assert.IsTrue(_controller.IsPaused, "The trip should be paused while the character can't navigate.");
+            Assert.IsTrue(_controller.IsActive, "A paused trip is still active.");
+
+            yield return Tick(PauseTime);
+
+            Assert.IsTrue(_controller.IsPaused, "The trip should stay paused while the character can't navigate.");
+
+            _context.CanNavigate = true;
+            _controller.Update(Time.deltaTime);
+
+            Assert.IsFalse(_controller.IsPaused, "The trip should carry on once the character can navigate.");
+        }
+
+        [UnityTest]
+        public IEnumerator IsPaused_is_false_after_a_cancel_while_paused()
+        {
+            yield return StartMoving();
+
+            _context.CanNavigate = false;
+            _controller.Update(Time.deltaTime);
+            Assert.IsTrue(_controller.IsPaused, "Setup failed: the trip should be paused.");
+
+            _controller.Cancel();
+
+            Assert.IsFalse(_controller.IsPaused, "A cancelled trip isn't paused.");
+            Assert.IsFalse(_controller.IsActive, "A cancelled trip isn't active.");
+        }
+
         IEnumerator StartMoving()
         {
-            _navMesh = TestNavMesh.Build(_created, TestNavMesh.Box(Vector3.zero, new Vector2(60, 60)));
-            CreateController();
-
             _controller.GoTo(DestinationArgs
                 .GoToExactly(Destination)
                 .WithSpeed(Speed)
