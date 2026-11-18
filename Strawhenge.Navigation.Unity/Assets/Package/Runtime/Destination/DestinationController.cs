@@ -54,12 +54,15 @@ namespace Strawhenge.Navigation.Unity.Destination
             _paused = new Paused(context, agent);
 
             _jumping.JumpTriggerRequested += OnJumpTriggerRequested;
+            _jumping.JumpTriggerCancelled += OnJumpTriggerCancelled;
             _jumping.JumpBegan += OnJumpBegan;
             _jumping.JumpEnded += OnJumpEnded;
             _falling.FallBegan += OnFallBegan;
             _falling.FallEnded += OnFallEnded;
             _landing.LandingRequested += OnLandingRequested;
+            _landing.LandingCancelled += OnLandingCancelled;
             _pivoting.PivotRequested += OnPivotRequested;
+            _pivoting.PivotCancelled += OnPivotCancelled;
         }
 
         public event Action Activated;
@@ -333,5 +336,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         void OnLandingRequested(int landingId) => LandingRequested?.Invoke(landingId);
 
         void OnPivotRequested(int pivotId) => PivotRequested?.Invoke(pivotId);
+
+        void OnPivotCancelled() => PivotCancelled?.Invoke();
+
+        void OnLandingCancelled() => LandingCancelled?.Invoke();
+
+        void OnJumpTriggerCancelled() => JumpTriggerCancelled?.Invoke();
     }
 }

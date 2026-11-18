@@ -53,6 +53,24 @@ namespace Strawhenge.Navigation.Unity
             remove { }
         }
 
+        public event Action PivotCancelled
+        {
+            add { }
+            remove { }
+        }
+
+        public event Action LandingCancelled
+        {
+            add { }
+            remove { }
+        }
+
+        public event Action JumpTriggerCancelled
+        {
+            add { }
+            remove { }
+        }
+
         public event Action<bool> IsActiveChanged
         {
             add { }
