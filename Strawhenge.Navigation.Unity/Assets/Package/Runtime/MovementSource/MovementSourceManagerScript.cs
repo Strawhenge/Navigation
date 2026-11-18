@@ -22,6 +22,9 @@ namespace Strawhenge.Navigation.Unity
         public event Action FallBegan;
         public event Action FallEnded;
         public event Action<int> LandingRequested;
+        public event Action PivotCancelled;
+        public event Action LandingCancelled;
+        public event Action JumpTriggerCancelled;
 
         public Vector3 CurrentVelocity => _activeSource.CurrentVelocity;
 
@@ -124,6 +127,9 @@ namespace Strawhenge.Navigation.Unity
             source.FallBegan += OnFallBegan;
             source.FallEnded += OnFallEnded;
             source.LandingRequested += OnLandingRequested;
+            source.PivotCancelled += OnPivotCancelled;
+            source.LandingCancelled += OnLandingCancelled;
+            source.JumpTriggerCancelled += OnJumpTriggerCancelled;
         }
 
         void UnsubscribeFromSource(IMovementSource source)
@@ -138,6 +144,9 @@ namespace Strawhenge.Navigation.Unity
             source.FallBegan -= OnFallBegan;
             source.FallEnded -= OnFallEnded;
             source.LandingRequested -= OnLandingRequested;
+            source.PivotCancelled -= OnPivotCancelled;
+            source.LandingCancelled -= OnLandingCancelled;
+            source.JumpTriggerCancelled -= OnJumpTriggerCancelled;
         }
 
         void OnJumpTriggerRequested() => JumpTriggerRequested?.Invoke();
@@ -153,6 +162,12 @@ namespace Strawhenge.Navigation.Unity
         void OnFallEnded() => FallEnded?.Invoke();
 
         void OnLandingRequested(int landingId) => LandingRequested?.Invoke(landingId);
+
+        void OnPivotCancelled() => PivotCancelled?.Invoke();
+
+        void OnLandingCancelled() => LandingCancelled?.Invoke();
+
+        void OnJumpTriggerCancelled() => JumpTriggerCancelled?.Invoke();
 
         void OnSourceIsActiveChanged(bool isActive) => RefreshActiveSource();
     }

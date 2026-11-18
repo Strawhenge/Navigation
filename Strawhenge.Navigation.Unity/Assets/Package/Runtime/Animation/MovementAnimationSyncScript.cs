@@ -27,6 +27,11 @@ namespace Strawhenge.Navigation.Unity
         int? _pendingLandingId;
         float _pendingLandingTime;
         readonly HashSet<int> _unstartedPivotIds = new();
+
+        // A pivot or landing animation that has started and not yet ended. Cleared when it's cancelled, so
+        // its end, if it still plays out, doesn't complete whatever the movement source is waiting for now.
+        bool _isPivotPlaying;
+        bool _isLandingPlaying;
         readonly HashSet<int> _unstartedLandingIds = new();
 
         // Setup problems are warned about once here, and fall back to moving without that animation,
@@ -194,6 +199,9 @@ namespace Strawhenge.Navigation.Unity
             _movementSourceManager.FallBegan += OnFallBegan;
             _movementSourceManager.FallEnded += OnFallEnded;
             _movementSourceManager.LandingRequested += OnLandingRequested;
+            _movementSourceManager.PivotCancelled += OnPivotCancelled;
+            _movementSourceManager.LandingCancelled += OnLandingCancelled;
+            _movementSourceManager.JumpTriggerCancelled += OnJumpTriggerCancelled;
             _movementSourceManager.ActiveSourceChanged += OnActiveSourceChanged;
         }
 
@@ -209,6 +217,9 @@ namespace Strawhenge.Navigation.Unity
             _movementSourceManager.FallBegan -= OnFallBegan;
             _movementSourceManager.FallEnded -= OnFallEnded;
             _movementSourceManager.LandingRequested -= OnLandingRequested;
+            _movementSourceManager.PivotCancelled -= OnPivotCancelled;
+            _movementSourceManager.LandingCancelled -= OnLandingCancelled;
+            _movementSourceManager.JumpTriggerCancelled -= OnJumpTriggerCancelled;
             _movementSourceManager.ActiveSourceChanged -= OnActiveSourceChanged;
         }
 
@@ -267,10 +278,19 @@ namespace Strawhenge.Navigation.Unity
             _pendingPivotTime = 0f;
         }
 
-        void OnPivotStarted() => _pendingPivotId = null;
+        void OnPivotStarted()
+        {
+            _pendingPivotId = null;
+            _isPivotPlaying = true;
+        }
 
         void OnPivotEnded()
         {
+            // Cancelled: the movement source has stopped waiting for it.
+            if (!_isPivotPlaying)
+                return;
+
+            _isPivotPlaying = false;
             _pendingPivotId = null;
 
             var rotationDelta = _animator.deltaRotation;
@@ -307,13 +327,49 @@ namespace Strawhenge.Navigation.Unity
             _pendingLandingTime = 0f;
         }
 
-        void OnLandingStarted() => _pendingLandingId = null;
+        void OnLandingStarted()
+        {
+            _pendingLandingId = null;
+            _isLandingPlaying = true;
+        }
 
         void OnLandingEnded()
         {
+            // Cancelled: the movement source has stopped waiting for it.
+            if (!_isLandingPlaying)
+                return;
+
+            _isLandingPlaying = false;
             _pendingLandingId = null;
 
             _movementSourceManager?.CompleteLanding();
+        }
+
+        // The movement source no longer wants the pivot (e.g. the character can't navigate, or it timed out).
+        // Undo what was set on the Animator for it, including root motion if the animation has started.
+        void OnPivotCancelled()
+        {
+            if (_animator == null)
+                return;
+
+            _isPivotPlaying = false;
+            AbandonPendingPivot();
+        }
+
+        void OnLandingCancelled()
+        {
+            if (_animator == null)
+                return;
+
+            _isLandingPlaying = false;
+            AbandonPendingLanding();
+        }
+
+        // A deferred jump abandoned before its animation launched it.
+        void OnJumpTriggerCancelled()
+        {
+            if (_animator != null)
+                _animator.ResetTrigger(AnimatorParameters.Jump.Id);
         }
 
         // Another movement source took over: its wait was already cancelled, so just undo what was set

@@ -54,6 +54,26 @@ namespace Strawhenge.Navigation.Unity
             remove => _locomotion.LandingRequested -= value;
         }
 
+        // Never raised: LocomotionScript clears its own waits when it's disabled, which also changes the
+        // active movement source.
+        public event Action PivotCancelled
+        {
+            add { }
+            remove { }
+        }
+
+        public event Action LandingCancelled
+        {
+            add { }
+            remove { }
+        }
+
+        public event Action JumpTriggerCancelled
+        {
+            add { }
+            remove { }
+        }
+
         public event Action<bool> IsActiveChanged
         {
             add => _locomotion.IsActiveChanged += value;

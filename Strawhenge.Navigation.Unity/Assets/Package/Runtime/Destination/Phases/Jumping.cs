@@ -20,6 +20,9 @@ namespace Strawhenge.Navigation.Unity.Destination
         internal event Action JumpBegan;
         internal event Action JumpEnded;
 
+        // Left while waiting for TriggerJump: abandoned because the character can't navigate.
+        internal event Action JumpTriggerCancelled;
+
         bool _strafe;
 
         // The request's speed going into the link, which landings are matched on.
@@ -220,9 +223,14 @@ namespace Strawhenge.Navigation.Unity.Destination
 
             // Only if it launched, so JumpBegan and JumpEnded always come in pairs.
             if (_isAwaitingTrigger)
+            {
                 _isAwaitingTrigger = false;
+                JumpTriggerCancelled?.Invoke();
+            }
             else
+            {
                 JumpEnded?.Invoke();
+            }
 
             if (_agent.NavMeshAgent.isActiveAndEnabled)
             {

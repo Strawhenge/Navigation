@@ -54,12 +54,15 @@ namespace Strawhenge.Navigation.Unity.Destination
             _paused = new Paused(context, agent);
 
             _jumping.JumpTriggerRequested += OnJumpTriggerRequested;
+            _jumping.JumpTriggerCancelled += OnJumpTriggerCancelled;
             _jumping.JumpBegan += OnJumpBegan;
             _jumping.JumpEnded += OnJumpEnded;
             _falling.FallBegan += OnFallBegan;
             _falling.FallEnded += OnFallEnded;
             _landing.LandingRequested += OnLandingRequested;
+            _landing.LandingCancelled += OnLandingCancelled;
             _pivoting.PivotRequested += OnPivotRequested;
+            _pivoting.PivotCancelled += OnPivotCancelled;
         }
 
         public event Action Activated;
@@ -80,6 +83,13 @@ namespace Strawhenge.Navigation.Unity.Destination
         // A jump or drop landed and a landing profile matched: the agent waits until CompleteLanding is
         // called (MovementAnimationSyncScript does this), or the settings' AnimatorWaitTimeout passes.
         public event Action<int> LandingRequested;
+
+        // A requested pivot, landing or deferred jump trigger is no longer wanted, and won't be completed:
+        // the character couldn't navigate, or a pivot or landing timed out. Whatever plays them (e.g.
+        // MovementAnimationSyncScript) should drop them.
+        public event Action PivotCancelled;
+        public event Action LandingCancelled;
+        public event Action JumpTriggerCancelled;
 
         // Stays true until a jump or drop in progress lands, even if its request has already ended.
         public bool IsActive => _phase != null;
@@ -326,5 +336,11 @@ namespace Strawhenge.Navigation.Unity.Destination
         void OnLandingRequested(int landingId) => LandingRequested?.Invoke(landingId);
 
         void OnPivotRequested(int pivotId) => PivotRequested?.Invoke(pivotId);
+
+        void OnPivotCancelled() => PivotCancelled?.Invoke();
+
+        void OnLandingCancelled() => LandingCancelled?.Invoke();
+
+        void OnJumpTriggerCancelled() => JumpTriggerCancelled?.Invoke();
     }
 }

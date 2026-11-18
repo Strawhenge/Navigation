@@ -17,10 +17,14 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         internal event Action<int> LandingRequested;
 
+        // Stopped waiting without the Animator's reply: abandoned, or timed out.
+        internal event Action LandingCancelled;
+
         bool _strafe;
         int _landingId;
         PhaseId _next;
         bool _agentUnavailable;
+        bool _isWaiting;
         float _waitTime;
 
         public Landing(Agent agent, IDestinationSettings settings, ILogger logger)
@@ -65,6 +69,8 @@ namespace Strawhenge.Navigation.Unity.Destination
                 _agent.NavMeshAgent.velocity = Vector3.zero;
             }
 
+            _isWaiting = true;
+
             // Last: without a landing animation, the Animator completes it straight away, which leaves
             // this phase before Enter returns.
             LandingRequested?.Invoke(_landingId);
@@ -87,13 +93,22 @@ namespace Strawhenge.Navigation.Unity.Destination
                     "Animator has a transition for it.");
             }
 
+            Cancel();
             return Done();
         }
 
-        public override PhaseStep OnLandingCompleted() => Done();
+        public override PhaseStep OnLandingCompleted()
+        {
+            _isWaiting = false;
+            return Done();
+        }
 
+        // Left while still waiting: abandoned because the character can't navigate.
         public override void Exit()
         {
+            if (_isWaiting)
+                Cancel();
+
             if (!IsAgentUnavailable())
                 _agent.NavMeshAgent.isStopped = false;
         }
@@ -101,6 +116,12 @@ namespace Strawhenge.Navigation.Unity.Destination
         // The agent's path is gone if it was unavailable during the landing, so set it up again.
         PhaseStep Done() =>
             PhaseStep.To(_agentUnavailable ? PhaseId.Preparing : _next);
+
+        void Cancel()
+        {
+            _isWaiting = false;
+            LandingCancelled?.Invoke();
+        }
 
         bool IsAgentUnavailable() =>
             !_agent.NavMeshAgent.isActiveAndEnabled ||
