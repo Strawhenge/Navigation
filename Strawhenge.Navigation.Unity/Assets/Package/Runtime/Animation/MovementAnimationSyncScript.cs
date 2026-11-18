@@ -376,15 +376,22 @@ namespace Strawhenge.Navigation.Unity
                 _animator.ResetTrigger(AnimatorParameters.Jump.Id);
         }
 
-        // Another movement source took over: its wait was already cancelled, so just undo what was set
-        // on the Animator for an animation that hasn't started.
+        // Another movement source took over. The old one has dropped its waits, and won't end a jump or fall
+        // it was in the middle of, so drop everything set on the Animator for it, as if it had cancelled
+        // them: a pivot or landing (started or not), a deferred jump's trigger, and the Jumping and Falling
+        // flags. The new source sets what it needs. An animation already playing carries on, but without
+        // root motion, and its end completes nothing.
         void OnActiveSourceChanged()
         {
-            if (_pendingPivotId.HasValue)
-                AbandonPendingPivot();
+            if (_animator == null)
+                return;
 
-            if (_pendingLandingId.HasValue)
-                AbandonPendingLanding();
+            OnPivotCancelled();
+            OnLandingCancelled();
+            OnJumpTriggerCancelled();
+
+            _animator.SetBool(AnimatorParameters.Jumping, false);
+            _animator.SetBool(AnimatorParameters.Falling, false);
         }
 
         void AbandonPendingPivot()
