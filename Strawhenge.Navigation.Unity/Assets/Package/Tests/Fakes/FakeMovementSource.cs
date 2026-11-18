@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Tests
 {
-    // A movement source the test drives by hand: it makes requests, and records the completions it gets back.
+    // A movement source the test drives by hand: it makes requests, cancels them, begins jumps and falls, and
+    // records the completions it gets back.
     class FakeMovementSource : IMovementSource
     {
         readonly List<Quaternion> _completedPivots = new();
@@ -12,20 +13,13 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         public event Action<int> PivotRequested;
         public event Action<int> LandingRequested;
+        public event Action JumpTriggerRequested;
+        public event Action JumpBegan;
+        public event Action FallBegan;
         public event Action PivotCancelled;
+        public event Action LandingCancelled;
+        public event Action JumpTriggerCancelled;
         public event Action<bool> IsActiveChanged;
-
-        public event Action JumpTriggerRequested
-        {
-            add { }
-            remove { }
-        }
-
-        public event Action JumpBegan
-        {
-            add { }
-            remove { }
-        }
 
         public event Action JumpEnded
         {
@@ -33,25 +27,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             remove { }
         }
 
-        public event Action FallBegan
-        {
-            add { }
-            remove { }
-        }
-
         public event Action FallEnded
-        {
-            add { }
-            remove { }
-        }
-
-        public event Action LandingCancelled
-        {
-            add { }
-            remove { }
-        }
-
-        public event Action JumpTriggerCancelled
         {
             add { }
             remove { }
@@ -82,7 +58,17 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         public void RequestLanding(int landingId) => LandingRequested?.Invoke(landingId);
 
+        public void RequestJumpTrigger() => JumpTriggerRequested?.Invoke();
+
+        public void BeginJump() => JumpBegan?.Invoke();
+
+        public void BeginFall() => FallBegan?.Invoke();
+
         public void CancelPivot() => PivotCancelled?.Invoke();
+
+        public void CancelLanding() => LandingCancelled?.Invoke();
+
+        public void CancelJumpTrigger() => JumpTriggerCancelled?.Invoke();
 
         public void TriggerJump()
         {
