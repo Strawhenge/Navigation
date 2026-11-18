@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Strawhenge.Navigation.Unity
 {
-    public class MovementAnimationSyncScript : MonoBehaviour
+    public partial class MovementAnimationSyncScript : MonoBehaviour
     {
         [SerializeField] Animator _animator;
         [SerializeField] MovementSourceManagerScript _movementSourceManager;
@@ -50,7 +50,9 @@ namespace Strawhenge.Navigation.Unity
                     ? $"'{_animator.runtimeAnimatorController.name}'"
                     : "The Animator (no controller assigned)";
 
-                _pivotBehaviour = _animator.GetBehaviour<PivotStateMachineBehaviour>();
+                if (_pivotBehaviour == null)
+                    _pivotBehaviour = _animator.GetBehaviour<PivotStateMachineBehaviour>();
+
                 if (_pivotBehaviour != null)
                 {
                     _pivotBehaviour.Started += OnPivotStarted;
@@ -61,7 +63,9 @@ namespace Strawhenge.Navigation.Unity
                         $"{controllerName} has no {nameof(PivotStateMachineBehaviour)} - pivots will be skipped.",
                         this);
 
-                _landingBehaviour = _animator.GetBehaviour<LandingStateMachineBehaviour>();
+                if (_landingBehaviour == null)
+                    _landingBehaviour = _animator.GetBehaviour<LandingStateMachineBehaviour>();
+
                 if (_landingBehaviour != null)
                 {
                     _landingBehaviour.Started += OnLandingStarted;
@@ -372,15 +376,22 @@ namespace Strawhenge.Navigation.Unity
                 _animator.ResetTrigger(AnimatorParameters.Jump.Id);
         }
 
-        // Another movement source took over: its wait was already cancelled, so just undo what was set
-        // on the Animator for an animation that hasn't started.
+        // Another movement source took over. The old one has dropped its waits, and won't end a jump or fall
+        // it was in the middle of, so drop everything set on the Animator for it, as if it had cancelled
+        // them: a pivot or landing (started or not), a deferred jump's trigger, and the Jumping and Falling
+        // flags. The new source sets what it needs. An animation already playing carries on, but without
+        // root motion, and its end completes nothing.
         void OnActiveSourceChanged()
         {
-            if (_pendingPivotId.HasValue)
-                AbandonPendingPivot();
+            if (_animator == null)
+                return;
 
-            if (_pendingLandingId.HasValue)
-                AbandonPendingLanding();
+            OnPivotCancelled();
+            OnLandingCancelled();
+            OnJumpTriggerCancelled();
+
+            _animator.SetBool(AnimatorParameters.Jumping, false);
+            _animator.SetBool(AnimatorParameters.Falling, false);
         }
 
         void AbandonPendingPivot()
