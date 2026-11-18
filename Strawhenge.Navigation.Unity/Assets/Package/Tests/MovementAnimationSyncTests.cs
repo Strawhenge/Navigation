@@ -12,7 +12,8 @@ namespace Strawhenge.Navigation.Unity.Tests
     // already started used to keep going: a pivot left root motion on, and when either ended it completed
     // the new source's pivot or landing instead.
     // The Animator plays TestAnimatorController, which has the parameters but no pivot or landing states, so
-    // the tests play its part by calling the pivot and landing behaviours themselves.
+    // the tests play its part by calling the pivot and landing behaviours themselves. It has no transitions
+    // either, so nothing consumes a trigger: one stays set until MovementAnimationSyncScript resets it.
     public class MovementAnimationSyncTests
     {
         const int PivotId = 1;
@@ -167,6 +168,97 @@ namespace Strawhenge.Navigation.Unity.Tests
 
             Assert.IsEmpty(_first.CompletedPivots, "A cancelled pivot shouldn't complete.");
         }
+
+        [Test]
+        public void Jumping_is_cleared_when_the_source_changes()
+        {
+            _first.BeginJump();
+            Assume(_animator.GetBool(AnimatorParameters.Jumping.Id), "Jumping should be set while jumping");
+
+            SwitchToSecondSource();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Jumping.Id), "The old source's jump shouldn't carry over.");
+        }
+
+        [Test]
+        public void Falling_is_cleared_when_the_source_changes()
+        {
+            _first.BeginFall();
+            Assume(_animator.GetBool(AnimatorParameters.Falling.Id), "Falling should be set while falling");
+
+            SwitchToSecondSource();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Falling.Id), "The old source's fall shouldn't carry over.");
+        }
+
+        [Test]
+        public void Jump_trigger_is_reset_when_the_source_changes()
+        {
+            _first.RequestJumpTrigger();
+            Assume(_animator.GetBool(AnimatorParameters.Jump.Id), "the Jump trigger should be set for a deferred jump");
+
+            SwitchToSecondSource();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Jump.Id), "The old source's jump trigger should be reset.");
+        }
+
+        [Test]
+        public void Jump_trigger_is_reset_when_cancelled()
+        {
+            _first.RequestJumpTrigger();
+            Assume(_animator.GetBool(AnimatorParameters.Jump.Id), "the Jump trigger should be set for a deferred jump");
+
+            _first.CancelJumpTrigger();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Jump.Id), "A cancelled jump trigger should be reset.");
+        }
+
+        [Test]
+        public void Pivot_trigger_is_reset_when_the_source_changes()
+        {
+            _first.RequestPivot(PivotId);
+            Assume(_animator.GetBool(AnimatorParameters.Pivot.Id), "the Pivot trigger should be set for the pivot");
+
+            SwitchToSecondSource();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivot.Id), "The old source's pivot trigger should be reset.");
+        }
+
+        [Test]
+        public void Pivot_trigger_is_reset_when_cancelled()
+        {
+            _first.RequestPivot(PivotId);
+            Assume(_animator.GetBool(AnimatorParameters.Pivot.Id), "the Pivot trigger should be set for the pivot");
+
+            _first.CancelPivot();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivot.Id), "A cancelled pivot's trigger should be reset.");
+        }
+
+        [Test]
+        public void Land_trigger_is_reset_when_the_source_changes()
+        {
+            _first.RequestLanding(LandingId);
+            Assume(_animator.GetBool(AnimatorParameters.Land.Id), "the Land trigger should be set for the landing");
+
+            SwitchToSecondSource();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Land.Id), "The old source's landing trigger should be reset.");
+        }
+
+        [Test]
+        public void Land_trigger_is_reset_when_cancelled()
+        {
+            _first.RequestLanding(LandingId);
+            Assume(_animator.GetBool(AnimatorParameters.Land.Id), "the Land trigger should be set for the landing");
+
+            _first.CancelLanding();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Land.Id), "A cancelled landing's trigger should be reset.");
+        }
+
+        static void Assume(bool condition, string failure) =>
+            Assert.IsTrue(condition, $"Setup failed: {failure}.");
 
         void SwitchToSecondSource()
         {
