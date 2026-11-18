@@ -11,8 +11,8 @@ namespace Strawhenge.Navigation.Unity.Tests
     // the old one must be dropped: the old source has stopped waiting for it. A pivot or landing that had
     // already started used to keep going: a pivot left root motion on, and when either ended it completed
     // the new source's pivot or landing instead.
-    // Tests can't build an Animator controller, so the Animator has none, and the tests play its part by
-    // calling the pivot and landing behaviours themselves. applyRootMotion can still be read without one.
+    // The Animator plays TestAnimatorController, which has the parameters but no pivot or landing states, so
+    // the tests play its part by calling the pivot and landing behaviours themselves.
     public class MovementAnimationSyncTests
     {
         const int PivotId = 1;
@@ -36,6 +36,8 @@ namespace Strawhenge.Navigation.Unity.Tests
             _created.Add(character);
 
             _animator = character.AddComponent<Animator>();
+            _animator.runtimeAnimatorController = TestAnimatorController.Create();
+            _created.Add(_animator.runtimeAnimatorController);
 
             var first = character.AddComponent<FakeMovementSourceScript>();
             var second = character.AddComponent<FakeMovementSourceScript>();
