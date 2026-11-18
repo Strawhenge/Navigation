@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Strawhenge.Navigation.Unity"
+        "Strawhenge.Navigation.Unity",
+        "Strawhenge.Common.Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
