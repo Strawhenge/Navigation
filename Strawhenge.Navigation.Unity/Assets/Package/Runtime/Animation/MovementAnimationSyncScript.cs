@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Strawhenge.Navigation.Unity
 {
-    public class MovementAnimationSyncScript : MonoBehaviour
+    public partial class MovementAnimationSyncScript : MonoBehaviour
     {
         [SerializeField] Animator _animator;
         [SerializeField] MovementSourceManagerScript _movementSourceManager;
@@ -50,7 +50,9 @@ namespace Strawhenge.Navigation.Unity
                     ? $"'{_animator.runtimeAnimatorController.name}'"
                     : "The Animator (no controller assigned)";
 
-                _pivotBehaviour = _animator.GetBehaviour<PivotStateMachineBehaviour>();
+                if (_pivotBehaviour == null)
+                    _pivotBehaviour = _animator.GetBehaviour<PivotStateMachineBehaviour>();
+
                 if (_pivotBehaviour != null)
                 {
                     _pivotBehaviour.Started += OnPivotStarted;
@@ -61,7 +63,9 @@ namespace Strawhenge.Navigation.Unity
                         $"{controllerName} has no {nameof(PivotStateMachineBehaviour)} - pivots will be skipped.",
                         this);
 
-                _landingBehaviour = _animator.GetBehaviour<LandingStateMachineBehaviour>();
+                if (_landingBehaviour == null)
+                    _landingBehaviour = _animator.GetBehaviour<LandingStateMachineBehaviour>();
+
                 if (_landingBehaviour != null)
                 {
                     _landingBehaviour.Started += OnLandingStarted;
