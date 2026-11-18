@@ -57,6 +57,24 @@ namespace Strawhenge.Navigation.Unity
             remove => _destinationController.LandingRequested -= value;
         }
 
+        public event Action PivotCancelled
+        {
+            add => _destinationController.PivotCancelled += value;
+            remove => _destinationController.PivotCancelled -= value;
+        }
+
+        public event Action LandingCancelled
+        {
+            add => _destinationController.LandingCancelled += value;
+            remove => _destinationController.LandingCancelled -= value;
+        }
+
+        public event Action JumpTriggerCancelled
+        {
+            add => _destinationController.JumpTriggerCancelled += value;
+            remove => _destinationController.JumpTriggerCancelled -= value;
+        }
+
         public event Action<bool> IsActiveChanged
         {
             add

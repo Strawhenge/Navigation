@@ -19,9 +19,13 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         internal event Action<int> PivotRequested;
 
+        // Stopped waiting without the Animator's reply: abandoned, or timed out.
+        internal event Action PivotCancelled;
+
         bool _strafe;
         int _pivotId;
         bool _agentUnavailable;
+        bool _isWaiting;
         float _waitTime;
         Vector3 _velocity;
 
@@ -111,6 +115,8 @@ namespace Strawhenge.Navigation.Unity.Destination
                 _agent.NavMeshAgent.updateRotation = false;
             }
 
+            _isWaiting = true;
+
             // Last: without a pivot animation, the Animator completes it straight away, which leaves this
             // phase before Enter returns.
             PivotRequested?.Invoke(_pivotId);
@@ -133,11 +139,14 @@ namespace Strawhenge.Navigation.Unity.Destination
                     "Animator has a transition for it.");
             }
 
+            Cancel();
             return OnPivotCompleted(Quaternion.identity);
         }
 
         public override PhaseStep OnPivotCompleted(Quaternion rotationDelta)
         {
+            _isWaiting = false;
+
             var transform = _agent.NavMeshAgent.transform;
             transform.rotation = rotationDelta * transform.rotation;
 
@@ -148,8 +157,12 @@ namespace Strawhenge.Navigation.Unity.Destination
             return PhaseStep.To(_agentUnavailable ? PhaseId.Preparing : PhaseId.Moving);
         }
 
+        // Left while still waiting: abandoned because the character can't navigate.
         public override void Exit()
         {
+            if (_isWaiting)
+                Cancel();
+
             _velocity = Vector3.zero;
 
             if (IsAgentUnavailable())
@@ -160,6 +173,12 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.updatePosition = true;
             _agent.NavMeshAgent.updateRotation = !_strafe;
             _agent.NavMeshAgent.isStopped = false;
+        }
+
+        void Cancel()
+        {
+            _isWaiting = false;
+            PivotCancelled?.Invoke();
         }
 
         bool IsAgentUnavailable() =>
