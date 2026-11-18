@@ -38,6 +38,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         DestinationController _controller;
         FakeDestinationSettings _settings;
         FakeLogger _logger;
+        int _pivotCancelledCount;
 
         [SetUp]
         public void SetUp()
@@ -78,6 +79,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             _created.Clear();
             _pivotIds.Clear();
             _results.Clear();
+            _pivotCancelledCount = 0;
 
             // Destroy is deferred to the end of the frame; wait so the next test starts clean.
             yield return null;
@@ -168,6 +170,37 @@ namespace Strawhenge.Navigation.Unity.Tests
                 "The timed-out pivot wasn't warned about.");
         }
 
+        // Baseline for the test below.
+        [UnityTest]
+        public IEnumerator Completed_pivot_is_not_cancelled()
+        {
+            yield return Create();
+
+            _controller.GoTo(Trip(Behind).Build());
+            _controller.Update(Time.deltaTime);
+            Assert.AreEqual(1, _pivotIds.Count, "Setup failed: expected the stationary pivot.");
+
+            _controller.CompletePivot(Quaternion.Euler(0, 180, 0));
+            yield return TickUntil(() => _results.Count > 0);
+
+            AssertArrived();
+            Assert.AreEqual(0, _pivotCancelledCount, "A completed pivot shouldn't be cancelled.");
+        }
+
+        // Its animation may still be playing, or yet to start: whatever plays it should drop it.
+        [UnityTest]
+        public IEnumerator Pivot_that_times_out_is_cancelled()
+        {
+            _settings.AnimatorWaitTimeout = 0.2f;
+            yield return Create();
+
+            _controller.GoTo(Trip(Behind).Build());
+            yield return TickUntil(() => _results.Count > 0);
+
+            AssertArrived();
+            Assert.AreEqual(1, _pivotCancelledCount, "The timed-out pivot should be cancelled once.");
+        }
+
         [UnityTest]
         public IEnumerator Cancel_mid_pivot_calls_back_straight_away_and_the_pivot_still_finishes()
         {
@@ -226,6 +259,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             _logger = new FakeLogger();
             _controller = new DestinationController(NullDestinationContext.Instance, agent, _logger, _settings);
             _controller.PivotRequested += _pivotIds.Add;
+            _controller.PivotCancelled += () => _pivotCancelledCount++;
 
             yield return null;
         }

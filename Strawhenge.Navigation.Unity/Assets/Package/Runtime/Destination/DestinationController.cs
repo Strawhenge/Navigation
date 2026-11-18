@@ -81,6 +81,13 @@ namespace Strawhenge.Navigation.Unity.Destination
         // called (MovementAnimationSyncScript does this), or the settings' AnimatorWaitTimeout passes.
         public event Action<int> LandingRequested;
 
+        // A requested pivot, landing or deferred jump trigger is no longer wanted, and won't be completed:
+        // the character couldn't navigate, or a pivot or landing timed out. Whatever plays them (e.g.
+        // MovementAnimationSyncScript) should drop them.
+        public event Action PivotCancelled;
+        public event Action LandingCancelled;
+        public event Action JumpTriggerCancelled;
+
         // Stays true until a jump or drop in progress lands, even if its request has already ended.
         public bool IsActive => _phase != null;
 

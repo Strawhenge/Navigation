@@ -36,6 +36,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         DestinationController _controller;
         FakeLogger _logger;
         int _deactivatedCount;
+        int _pivotCancelledCount;
 
         [UnityTearDown]
         public IEnumerator TearDown()
@@ -53,6 +54,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             _pivotIds.Clear();
             _results.Clear();
             _deactivatedCount = 0;
+            _pivotCancelledCount = 0;
 
             // Destroy is deferred to the end of the frame; wait so the next test starts clean.
             yield return null;
@@ -69,6 +71,31 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.IsFalse(_navMeshAgent.enabled, "The agent should be disabled as soon as the pause starts.");
             Assert.IsTrue(_controller.IsActive, "The trip should still be active while paused.");
             Assert.IsEmpty(_results, "A pause shouldn't end the trip.");
+        }
+
+        [UnityTest]
+        public IEnumerator Abandoned_pivot_is_cancelled()
+        {
+            yield return StartPivot();
+
+            _context.CanNavigate = false;
+            _controller.Update(Time.deltaTime);
+
+            Assert.AreEqual(1, _pivotCancelledCount, "The abandoned pivot should be cancelled once.");
+        }
+
+        [UnityTest]
+        public IEnumerator Abandoned_pivot_of_a_cancelled_trip_is_cancelled()
+        {
+            yield return StartPivot();
+
+            _controller.Cancel();
+            Assume(_controller.IsActive, "the controller should stay active while a cancelled pivot plays");
+
+            _context.CanNavigate = false;
+            _controller.Update(Time.deltaTime);
+
+            Assert.AreEqual(1, _pivotCancelledCount, "The abandoned pivot should be cancelled once.");
         }
 
         // The Animator could still finish the abandoned pivot, e.g. as the ragdoll ends.
@@ -121,6 +148,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return TickUntil(() => _results.Count > 0);
 
             CollectionAssert.AreEqual(new[] { DestinationResult.Arrived }, _results, "Expected one Arrived callback.");
+            Assert.AreEqual(1, _pivotCancelledCount, "Only the abandoned pivot should be cancelled, not the completed one.");
             Assert.Less(
                 Vector3.Distance(Behind, _navMeshAgent.transform.position),
                 DestinationTolerance,
@@ -204,6 +232,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             _controller = new DestinationController(_context, agent, _logger, settings);
             _controller.PivotRequested += _pivotIds.Add;
             _controller.Deactivated += () => _deactivatedCount++;
+            _controller.PivotCancelled += () => _pivotCancelledCount++;
         }
 
         static void Assume(bool condition, string failure) =>
