@@ -1,0 +1,17 @@
+{
+    "name": "Development.KCC",
+    "rootNamespace": "Development",
+    "references": [
+        "GUID:51a048c062397fb4a9b7fd901d625132",
+        "GUID:73c9d49cf3ab315469f1ca6e1dccc9c8"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

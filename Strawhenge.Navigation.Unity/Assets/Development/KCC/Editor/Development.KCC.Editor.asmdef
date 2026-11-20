@@ -1,0 +1,19 @@
+{
+    "name": "Development.KCC.Editor",
+    "rootNamespace": "Development.Editor",
+    "references": [
+        "GUID:957345f9928bb8b4d99cf6f7a97ca6f0",
+        "GUID:51a048c062397fb4a9b7fd901d625132"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
