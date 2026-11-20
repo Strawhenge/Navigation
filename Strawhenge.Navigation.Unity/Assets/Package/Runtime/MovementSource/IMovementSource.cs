@@ -27,7 +27,7 @@ namespace Strawhenge.Navigation.Unity
 
         void TriggerJump();
      
-        void CompletePivot(Quaternion rotationDelta);
+        void CompletePivot();
      
         void CompleteLanding();
     }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Tests
@@ -8,7 +7,6 @@ namespace Strawhenge.Navigation.Unity.Tests
     // records the completions it gets back.
     class FakeMovementSource : IMovementSource
     {
-        readonly List<Quaternion> _completedPivots = new();
         bool _isActive;
 
         public event Action<int> PivotRequested;
@@ -33,7 +31,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             remove { }
         }
 
-        public IReadOnlyList<Quaternion> CompletedPivots => _completedPivots;
+        public int CompletedPivots { get; private set; }
 
         public int CompletedLandings { get; private set; }
 
@@ -74,7 +72,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         {
         }
 
-        public void CompletePivot(Quaternion rotationDelta) => _completedPivots.Add(rotationDelta);
+        public void CompletePivot() => CompletedPivots++;
 
         public void CompleteLanding() => CompletedLandings++;
     }

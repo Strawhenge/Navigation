@@ -91,7 +91,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             StartPivot();
             EndPivot();
 
-            Assert.AreEqual(1, _first.CompletedPivots.Count, "The pivot should complete on the source that requested it.");
+            Assert.AreEqual(1, _first.CompletedPivots, "The pivot should complete on the source that requested it.");
             Assert.IsFalse(_animator.applyRootMotion, "Root motion should be off once the pivot ends.");
         }
 
@@ -117,7 +117,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             // Past MovementAnimationSyncScript's start timeout, which would otherwise complete it.
             yield return new WaitForSeconds(0.5f);
 
-            Assert.IsEmpty(_second.CompletedPivots, "The old source's pivot shouldn't complete on the new source.");
+            Assert.AreEqual(0, _second.CompletedPivots, "The old source's pivot shouldn't complete on the new source.");
         }
 
         [Test]
@@ -138,8 +138,8 @@ namespace Strawhenge.Navigation.Unity.Tests
             SwitchToSecondSource();
             EndPivot();
 
-            Assert.IsEmpty(_second.CompletedPivots, "The old source's pivot shouldn't complete on the new source.");
-            Assert.IsEmpty(_first.CompletedPivots, "The old source has stopped waiting for its pivot.");
+            Assert.AreEqual(0, _second.CompletedPivots, "The old source's pivot shouldn't complete on the new source.");
+            Assert.AreEqual(0, _first.CompletedPivots, "The old source has stopped waiting for its pivot.");
         }
 
         [Test]
@@ -166,7 +166,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 
             EndPivot();
 
-            Assert.IsEmpty(_first.CompletedPivots, "A cancelled pivot shouldn't complete.");
+            Assert.AreEqual(0, _first.CompletedPivots, "A cancelled pivot shouldn't complete.");
         }
 
         [Test]
