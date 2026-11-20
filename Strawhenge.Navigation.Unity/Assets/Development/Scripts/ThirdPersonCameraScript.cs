@@ -47,6 +47,21 @@ namespace Development
             _lookInput = context.ReadValue<Vector2>();
         }
 
+        // Snaps to the new target rather than gliding across the scene; the orbit (yaw, pitch, zoom) is kept.
+        public void SetTarget(Transform target)
+        {
+            _target = target;
+
+            if (_target == null)
+                return;
+
+            _pivot = GetTargetPivot();
+            _pivotVelocity = Vector3.zero;
+
+            // Start turns the camera off when it has no target.
+            enabled = true;
+        }
+
         void Start()
         {
             if (_target == null)

@@ -41,7 +41,8 @@ Navigation/                              <- git root
     └── Assets/Development/              <- dev/test harness, NOT part of the package
         ├── Scenes/Main.unity            <- test scene (terrain, ramps, steps, NavMesh)
         ├── Scripts/                     <- ControlsScript (Input System -> LocomotionController), ThirdPersonCameraScript,
-        │                                   RagdollScript, DevelopmentDestinationContextScript, RagdollLocomotionConditionsScript
+        │                                   RagdollScript, DevelopmentDestinationContextScript, RagdollLocomotionConditionsScript,
+        │                                   CharacterSwitcherScript (Tab switches the controls and camera between characters)
         ├── Editor/                      <- asmdef: Development.Editor (RagdollScriptEditor: Ragdoll On / Off buttons)
         ├── Character.controller         <- reference Animator Controller
         ├── ScriptableObjects/           <- example locomotion and destination settings, pivots, landings, agent modes

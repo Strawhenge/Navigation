@@ -11,6 +11,7 @@ namespace Development
         [SerializeField] Camera _camera;
 
         Vector2 _moveInput;
+        bool _sprintHeld;
         
         void Awake()
         {
@@ -19,6 +20,22 @@ namespace Development
 
             if (_camera == null)
                 _camera = Camera.main ?? FindObjectOfType<Camera>();
+        }
+
+        // Releases the previous character, so it doesn't carry on with the last input, and hands the held
+        // sprint over to the new one. Walk and Strafe are toggles, so each character keeps its own.
+        public void SetPlayer(LocomotionScript player)
+        {
+            if (_player != null && _player != player)
+            {
+                _player.LocomotionController.Move(Vector3.zero);
+                _player.LocomotionController.Sprint = false;
+            }
+
+            _player = player;
+
+            if (_player != null)
+                _player.LocomotionController.Sprint = _sprintHeld;
         }
 
         public void Move(InputAction.CallbackContext context)
@@ -35,9 +52,13 @@ namespace Development
         public void Sprint(InputAction.CallbackContext context)
         {
             if (context.started)
-                _player.LocomotionController.Sprint = true;
+                _sprintHeld = true;
             else if (context.canceled)
-                _player.LocomotionController.Sprint = false;
+                _sprintHeld = false;
+            else
+                return;
+
+            _player.LocomotionController.Sprint = _sprintHeld;
         }
 
         public void Jump(InputAction.CallbackContext context)
