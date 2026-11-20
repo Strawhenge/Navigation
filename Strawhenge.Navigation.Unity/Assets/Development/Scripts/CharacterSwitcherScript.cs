@@ -61,7 +61,7 @@ namespace Development
 
             var character = _characters[_index];
             var label = character != null
-                ? $"{character.name} ({_index + 1}/{_characters.Length}) - Tab to switch"
+                ? $"{character.name} ({_index + 1}/{_characters.Length})"
                 : "(missing character)";
 
             GUI.Label(new Rect(10, 10, 500, 25), label);
