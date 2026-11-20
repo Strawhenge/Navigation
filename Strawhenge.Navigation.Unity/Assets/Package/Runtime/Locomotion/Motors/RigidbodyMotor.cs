@@ -145,7 +145,7 @@ namespace Strawhenge.Navigation.Unity
                 }
 
                 // Along the ground at the same speed, so slopes neither launch the character nor slow it, and down
-                // onto it: the controller's own push down (GroundedGravity) isn't needed.
+                // onto it.
                 var alongGround = Vector3.ProjectOnPlane(horizontal, groundNormal);
                 if (alongGround.sqrMagnitude > 0f)
                     alongGround = alongGround.normalized * horizontal.magnitude;

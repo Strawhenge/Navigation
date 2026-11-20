@@ -17,7 +17,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         public bool DeferJumpTrigger { get; set; }
         public ILandingProfile[] JumpLandings { get; set; } = Array.Empty<ILandingProfile>();
         public float Gravity { get; set; } = DefaultLocomotionSettings.Gravity;
-        public float GroundedGravity { get; set; } = DefaultLocomotionSettings.GroundedGravity;
+        public float FallStartSpeed { get; set; } = DefaultLocomotionSettings.FallStartSpeed;
         public float FallDistance { get; set; } = DefaultLocomotionSettings.FallDistance;
         public ILandingProfile[] FallLandings { get; set; } = Array.Empty<ILandingProfile>();
     }

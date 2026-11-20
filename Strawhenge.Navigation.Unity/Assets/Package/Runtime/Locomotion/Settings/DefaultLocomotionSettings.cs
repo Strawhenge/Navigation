@@ -13,7 +13,7 @@ namespace Strawhenge.Navigation.Unity
         internal const float JumpHeight = 1;
         internal const float CoyoteTime = 0.2f;
         internal const float Gravity = -9.81f;
-        internal const float GroundedGravity = -2;
+        internal const float FallStartSpeed = 2;
         internal const float FallDistance = 1;
 
         public static ILocomotionSettings Instance { get; } = new DefaultLocomotionSettings();
@@ -48,7 +48,7 @@ namespace Strawhenge.Navigation.Unity
 
         float ILocomotionSettings.Gravity => Gravity;
 
-        float ILocomotionSettings.GroundedGravity => GroundedGravity;
+        float ILocomotionSettings.FallStartSpeed => FallStartSpeed;
 
         float ILocomotionSettings.FallDistance => FallDistance;
 

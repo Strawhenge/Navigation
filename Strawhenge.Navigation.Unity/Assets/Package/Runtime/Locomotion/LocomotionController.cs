@@ -23,6 +23,7 @@ namespace Strawhenge.Navigation.Unity
         bool _isActive;
         bool _isAwaitingEndStep;
         bool _isGrounded;
+        bool _wasGrounded;
         Vector3 _velocity;
 
         Vector3 _input;
@@ -105,6 +106,7 @@ namespace Strawhenge.Navigation.Unity
         internal void Activate()
         {
             _isActive = true;
+            _wasGrounded = false;
             _velocity = Vector3.zero;
             _motor.SetActive(true);
             IsActiveChanged?.Invoke(true);
@@ -525,13 +527,20 @@ namespace Strawhenge.Navigation.Unity
 
             if (!isGrounded)
             {
+                // Left the ground without jumping (walked off a ledge, or lost it going downhill): the fall starts
+                // at FallStartSpeed rather than from still.
+                if (_wasGrounded && !_isJumping)
+                    _verticalSpeed = Mathf.Min(_verticalSpeed, -_settings.FallStartSpeed);
+
+                _wasGrounded = false;
                 _verticalSpeed += _settings.Gravity * deltaTime;
                 return false;
             }
 
-            _verticalSpeed = _verticalSpeed < 0f
-                ? _settings.GroundedGravity
-                : _verticalSpeed;
+            // On the ground: no speed down. Motors keep the character on the ground their own way (the
+            // CharacterController motor pushes down, the others snap).
+            _wasGrounded = true;
+            _verticalSpeed = Mathf.Max(0f, _verticalSpeed);
 
             return false;
         }

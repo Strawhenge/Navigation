@@ -41,7 +41,7 @@ namespace Strawhenge.Navigation.Unity
 
         public float Gravity => _settings.Gravity;
 
-        public float GroundedGravity => _settings.GroundedGravity;
+        public float FallStartSpeed => _settings.FallStartSpeed;
 
         public float FallDistance => _settings.FallDistance;
 
