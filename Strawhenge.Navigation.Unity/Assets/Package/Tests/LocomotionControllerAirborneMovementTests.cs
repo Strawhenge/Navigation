@@ -23,6 +23,30 @@ namespace Strawhenge.Navigation.Unity.Tests
                 "The character should move the way it's steered.");
         }
 
+        // Not straight to the input at the same speed: slows to a stop at Deceleration, then speeds up the other
+        // way at Acceleration.
+        [TestCase(AirborneMovement.Controlled)]
+        [TestCase(AirborneMovement.ControlledKeepsMomentum)]
+        public void Slows_down_then_speeds_up_turning_around_in_the_air_when_controlled(AirborneMovement movement)
+        {
+            var harness = RunAndJump(new FakeLocomotionSettings { AirborneMovement = movement });
+
+            harness.Controller.Move(Vector3.back);
+            harness.Step();
+
+            var slowing = harness.Motor.LastMove.Velocity.z;
+            Assert.Greater(slowing, 0f, "The character should still be going forward, slowing down.");
+            Assert.Less(slowing, DefaultLocomotionSettings.RunSpeed, "The character should be slowing down.");
+
+            harness.StepFor(0.3f); // 5 m/s to a stop at 30 m/s/s takes about 0.17 s.
+
+            Assert.IsFalse(harness.Motor.IsGrounded, "Setup failed: the character landed too soon.");
+            var turnedAround = harness.Motor.LastMove.Velocity.z;
+            Assert.Less(turnedAround, 0f, "The character should be going back by now.");
+            Assert.Greater(turnedAround, -DefaultLocomotionSettings.RunSpeed / 2f,
+                "The character should still be speeding up going back.");
+        }
+
         [Test]
         public void Slows_to_a_stop_in_the_air_when_the_input_is_released_with_controlled()
         {
@@ -46,9 +70,11 @@ namespace Strawhenge.Navigation.Unity.Tests
                 AllowAirborneRotation = false
             });
             harness.Controller.Move(Vector3.right);
-            harness.StepFor(0.1f);
+            harness.StepFor(0.3f);
             Assert.Less(Quaternion.Angle(harness.Motor.Rotation, Quaternion.identity), 0.01f,
                 "Setup failed: the character turned in the air.");
+            Assert.Greater(Vector3.Dot(LastHorizontalVelocity(harness).normalized, Vector3.right), 0.99f,
+                "Setup failed: the character isn't moving right.");
 
             harness.Controller.Move(Vector3.zero);
             harness.Step();
