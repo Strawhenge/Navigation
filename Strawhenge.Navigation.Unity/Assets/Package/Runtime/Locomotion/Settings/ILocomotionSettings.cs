@@ -27,8 +27,10 @@ namespace Strawhenge.Navigation.Unity
         ILandingProfile[] JumpLandings { get; }
        
         float Gravity { get; }
-      
-        float GroundedGravity { get; }
+
+        // The downward speed (metres per second) a fall starts at when the character leaves the ground without
+        // jumping, e.g. walking off a ledge. Also keeps it close to downhill slopes and stairs.
+        float FallStartSpeed { get; }
       
         float FallDistance { get; }
        

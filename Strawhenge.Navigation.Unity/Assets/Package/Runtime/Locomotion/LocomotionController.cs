@@ -23,6 +23,8 @@ namespace Strawhenge.Navigation.Unity
         bool _isActive;
         bool _isAwaitingEndStep;
         bool _isGrounded;
+        bool _wasGrounded;
+        Vector3 _velocity;
 
         Vector3 _input;
 
@@ -44,6 +46,7 @@ namespace Strawhenge.Navigation.Unity
 
         float _turnAngle;
         bool _isPivoting;
+        Quaternion _pivotStartRotation;
         bool _isAwaitingStationaryPivot;
         bool _suppressPivotsUntilTurned;
         IPivotProfile _stationaryPivot;
@@ -89,7 +92,9 @@ namespace Strawhenge.Navigation.Unity
 
         public bool IsActive => _isActive;
 
-        public Vector3 CurrentVelocity => _motor.Velocity;
+        // The velocity of the last step that moved, kept through steps that don't (a pivot playing): Pivoting and
+        // the animation sync expect the velocity coming in. Kept here so motors only report their last move.
+        public Vector3 CurrentVelocity => _velocity;
 
         public bool Walk { get; set; }
 
@@ -102,6 +107,8 @@ namespace Strawhenge.Navigation.Unity
         internal void Activate()
         {
             _isActive = true;
+            _wasGrounded = false;
+            _velocity = Vector3.zero;
             _motor.SetActive(true);
             IsActiveChanged?.Invoke(true);
         }
@@ -115,6 +122,7 @@ namespace Strawhenge.Navigation.Unity
 
             _isActive = false;
             _isAwaitingEndStep = false;
+            _velocity = Vector3.zero;
             _motor.SetActive(false);
             IsActiveChanged?.Invoke(false);
         }
@@ -133,7 +141,7 @@ namespace Strawhenge.Navigation.Unity
         void ILocomotionStepper.EndStep(MotorMoveResult result) => EndStep(result);
 
         // When ShouldMove is false (inactive, or a pivot is playing), the motor must leave the character
-        // where it is, keep Rotation, and keep reporting the velocity of its last move. EndStep isn't needed.
+        // where it is and keep Rotation; CurrentVelocity keeps the last move's velocity. EndStep isn't needed.
         LocomotionStep BeginStep(float deltaTime)
         {
             if (!_isActive)
@@ -152,10 +160,10 @@ namespace Strawhenge.Navigation.Unity
                 return LocomotionStep.Stationary(rotation);
 
             CalculateHorizontalSpeed(deltaTime);
-            CalculateVerticalSpeed(deltaTime);
+            var jumpStarted = CalculateVerticalSpeed(deltaTime);
 
             _isAwaitingEndStep = true;
-            return LocomotionStep.Moving(GetVelocity(rotation), rotation);
+            return LocomotionStep.Moving(GetVelocity(rotation), rotation, jumpStarted);
         }
 
         void EndStep(MotorMoveResult result)
@@ -163,6 +171,7 @@ namespace Strawhenge.Navigation.Unity
             if (!_isAwaitingEndStep) return;
             _isAwaitingEndStep = false;
 
+            _velocity = _motor.Velocity;
             ManageCollisions(result);
         }
 
@@ -221,17 +230,17 @@ namespace Strawhenge.Navigation.Unity
             _jump = true;
         }
 
-        public void CompletePivot(Quaternion rotationDelta)
+        // Root motion has turned the character while the pivot played, so there's nothing left to apply.
+        public void CompletePivot()
         {
             if (!_isPivoting) return;
 
-            _motor.SetRotation(rotationDelta * _motor.Rotation);
             _isPivoting = false;
 
             // A pivot that didn't turn the character (no animation played it, e.g. no
             // PivotStateMachineBehaviour, or a clip without root rotation) would match again next step
             // and stop the character ever turning. Turn normally until out of every pivot's angle range.
-            if (rotationDelta == Quaternion.identity)
+            if (!PivotTurn.DidTurn(_pivotStartRotation, _motor.Rotation))
                 _suppressPivotsUntilTurned = true;
         }
 
@@ -266,7 +275,7 @@ namespace Strawhenge.Navigation.Unity
                 if (_pivotWaitTime > _animatorWaitTimeout)
                 {
                     WarnTimedOut(_timedOutPivotIds, _pivotId, "Pivot");
-                    CompletePivot(Quaternion.identity);
+                    CompletePivot();
                 }
             }
 
@@ -485,7 +494,8 @@ namespace Strawhenge.Navigation.Unity
             _horizontalSpeed = speed;
         }
 
-        void CalculateVerticalSpeed(float deltaTime)
+        // Returns true when a jump begins this step.
+        bool CalculateVerticalSpeed(float deltaTime)
         {
             var isGrounded = _isGrounded;
 
@@ -495,7 +505,7 @@ namespace Strawhenge.Navigation.Unity
                 _isJumping = true;
                 _verticalSpeed = Mathf.Sqrt(_settings.JumpHeight * -2f * _settings.Gravity);
                 JumpBegan?.Invoke();
-                return;
+                return true;
             }
 
             if (_isJumping && isGrounded && _verticalSpeed <= 0f)
@@ -518,13 +528,22 @@ namespace Strawhenge.Navigation.Unity
 
             if (!isGrounded)
             {
+                // Left the ground without jumping (walked off a ledge, or lost it going downhill): the fall starts
+                // at FallStartSpeed rather than from still.
+                if (_wasGrounded && !_isJumping)
+                    _verticalSpeed = Mathf.Min(_verticalSpeed, -_settings.FallStartSpeed);
+
+                _wasGrounded = false;
                 _verticalSpeed += _settings.Gravity * deltaTime;
-                return;
+                return false;
             }
 
-            _verticalSpeed = _verticalSpeed < 0f
-                ? _settings.GroundedGravity
-                : _verticalSpeed;
+            // On the ground: no speed down. Motors keep the character on the ground their own way (the
+            // CharacterController motor pushes down, the others snap).
+            _wasGrounded = true;
+            _verticalSpeed = Mathf.Max(0f, _verticalSpeed);
+
+            return false;
         }
 
         void ManageCollisions(MotorMoveResult result)
@@ -535,7 +554,7 @@ namespace Strawhenge.Navigation.Unity
             {
                 _horizontalSpeed = Mathf.Min(
                     _horizontalSpeed,
-                    _motor.Velocity.magnitude);
+                    _velocity.magnitude);
             }
         }
 
@@ -568,6 +587,7 @@ namespace Strawhenge.Navigation.Unity
         void Pivot(int pivotId)
         {
             _isPivoting = true;
+            _pivotStartRotation = _motor.Rotation;
             _pivotId = pivotId;
             _pivotWaitTime = 0f;
             PivotRequested?.Invoke(pivotId);

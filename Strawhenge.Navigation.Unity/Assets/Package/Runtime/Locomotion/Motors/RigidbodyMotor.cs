@@ -18,9 +18,6 @@ namespace Strawhenge.Navigation.Unity
         const float CastOffset = 0.1f;
         const float ProbeRadiusScale = 0.95f;
 
-        // Moving up faster than this leaves the ground (a jump), so the snap doesn't pull the character back.
-        const float RisingSpeed = 0.01f;
-
         // Closer to the ground than this isn't snapped: the capsule is resting on it. Snapping that close would
         // push into a slope every step, and a frictionless body pushed into a slope slides down it.
         const float SnapTolerance = 0.02f;
@@ -45,7 +42,6 @@ namespace Strawhenge.Navigation.Unity
         bool _hasMovedThisStep;
         bool _blockedSideways;
         Vector3 _velocity;
-        float _lastVerticalSpeed;
 
         // Held for root motion: kinematic and uninterpolated, with the transform leading.
         bool _isHeld;
@@ -63,10 +59,11 @@ namespace Strawhenge.Navigation.Unity
 
         public Quaternion Rotation => _isHeld ? _root.rotation : _rigidbody.rotation;
 
-        // The velocity the body managed in the physics step before the last move, kept between moves.
+        // The velocity the body managed in the physics step before the last move (the body's own velocity is the
+        // one just set until physics runs).
         public Vector3 Velocity => _velocity;
 
-        public bool IsGrounded => _isActive && CheckGround(_lastVerticalSpeed, out _, out _);
+        public bool IsGrounded => _isActive && CheckGround(out _, out _);
 
         public MotorUpdateMode UpdateMode => MotorUpdateMode.FixedUpdate;
 
@@ -79,7 +76,6 @@ namespace Strawhenge.Navigation.Unity
             _hasMovedThisStep = false;
             _blockedSideways = false;
             _velocity = Vector3.zero;
-            _lastVerticalSpeed = 0f;
             _isHeld = false;
 
             if (active)
@@ -133,7 +129,12 @@ namespace Strawhenge.Navigation.Unity
 
             var velocity = step.Velocity;
             var horizontal = new Vector3(velocity.x, 0f, velocity.z);
-            var isGrounded = CheckGround(velocity.y, out var groundNormal, out var groundGap);
+
+            // A jump leaves the ground, so the snap doesn't pull the character back. After this step it's no longer
+            // grounded, so only GroundDistance (not the snap distance) counts, and the jump has already left that.
+            var groundNormal = Vector3.up;
+            var groundGap = 0f;
+            var isGrounded = !step.JumpStarted && CheckGround(out groundNormal, out groundGap);
 
             if (isGrounded)
             {
@@ -144,7 +145,7 @@ namespace Strawhenge.Navigation.Unity
                 }
 
                 // Along the ground at the same speed, so slopes neither launch the character nor slow it, and down
-                // onto it: the controller's own push down (GroundedGravity) isn't needed.
+                // onto it.
                 var alongGround = Vector3.ProjectOnPlane(horizontal, groundNormal);
                 if (alongGround.sqrMagnitude > 0f)
                     alongGround = alongGround.normalized * horizontal.magnitude;
@@ -154,7 +155,6 @@ namespace Strawhenge.Navigation.Unity
             }
 
             _wasGrounded = isGrounded;
-            _lastVerticalSpeed = step.Velocity.y;
             _rigidbody.velocity = velocity;
 
             return new MotorMoveResult(blockedSideways);
@@ -226,14 +226,8 @@ namespace Strawhenge.Navigation.Unity
                 _blockedSideways = true;
         }
 
-        bool CheckGround(float verticalSpeed, out Vector3 normal, out float gap)
+        bool CheckGround(out Vector3 normal, out float gap)
         {
-            normal = Vector3.up;
-            gap = 0f;
-
-            if (verticalSpeed > RisingSpeed)
-                return false;
-
             var maxGap = _wasGrounded
                 ? Mathf.Max(_settings.GroundDistance, _settings.GroundSnapDistance)
                 : _settings.GroundDistance;

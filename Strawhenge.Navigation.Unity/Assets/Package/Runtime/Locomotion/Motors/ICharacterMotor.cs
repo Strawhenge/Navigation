@@ -10,8 +10,8 @@ namespace Strawhenge.Navigation.Unity
 
         Quaternion Rotation { get; }
 
-        // The velocity of the last move. Kept while the character isn't moved (e.g. while a pivot plays):
-        // Pivoting and the animation sync expect the velocity coming in.
+        // The velocity the last move achieved (walls included), read straight after it. Needn't be kept while the
+        // character isn't moved: the controller keeps it through pivots.
         Vector3 Velocity { get; }
 
         // Whether the character was on the ground after the last move.

@@ -10,10 +10,6 @@ namespace Development
     // state each frame, past its interpolation.
     public sealed class KccMotor : IExternallySteppedMotor, IRootMotionHandler, ICharacterController
     {
-        // Moving up faster than this while grounded is a jump: KCC is told to leave the ground, or its ground
-        // snapping pulls the character straight back down.
-        const float JumpSpeed = 0.01f;
-
         readonly KinematicCharacterMotor _motor;
         readonly Transform _root;
 
@@ -21,7 +17,6 @@ namespace Development
         LocomotionStep _step;
         bool _isActive;
         bool _blockedSideways;
-        Vector3 _velocity;
 
         public KccMotor(KinematicCharacterMotor motor)
         {
@@ -34,8 +29,8 @@ namespace Development
 
         public Quaternion Rotation => _motor.TransientRotation;
 
-        // KCC's velocity after the last step that moved (collisions included), kept while not moving.
-        public Vector3 Velocity => _velocity;
+        // KCC's velocity after the last step (collisions included). The controller keeps it through pivots.
+        public Vector3 Velocity => _motor.BaseVelocity;
 
         public bool IsGrounded => _motor.GroundingStatus.IsStableOnGround;
 
@@ -48,7 +43,6 @@ namespace Development
         public void SetActive(bool active)
         {
             _isActive = active;
-            _velocity = Vector3.zero;
             _blockedSideways = false;
             _motor.BaseVelocity = Vector3.zero;
 
@@ -91,7 +85,8 @@ namespace Development
                 ? _stepper.BeginStep(deltaTime)
                 : LocomotionStep.Stationary(_motor.TransientRotation);
 
-            if (_step.ShouldMove && _step.Velocity.y > JumpSpeed && _motor.GroundingStatus.IsStableOnGround)
+            // KCC must be told to leave the ground for a jump, or its ground snapping pulls the character back down.
+            if (_step.ShouldMove && _step.JumpStarted)
                 _motor.ForceUnground();
         }
 
@@ -111,8 +106,7 @@ namespace Development
             var velocity = _step.Velocity;
             var grounding = _motor.GroundingStatus;
 
-            // On the ground and not jumping: along it at the same speed. KCC snaps to the ground itself, so the
-            // controller's push down (GroundedGravity) is dropped.
+            // On the ground and not jumping: along it at the same speed. KCC snaps to the ground itself.
             if (grounding.IsStableOnGround && !_motor.MustUnground())
             {
                 var horizontal = new Vector3(velocity.x, 0f, velocity.z);
@@ -135,7 +129,6 @@ namespace Development
             if (!_step.ShouldMove)
                 return;
 
-            _velocity = _motor.BaseVelocity;
             _stepper?.EndStep(new MotorMoveResult(_blockedSideways));
         }
 
