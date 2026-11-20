@@ -11,6 +11,8 @@ namespace Strawhenge.Navigation.Unity.Tests
     // Coyote time: a jump is allowed for CoyoteTime after leaving the ground, then not until landing.
     // It used to count only once the character had dropped FallDistance, so a jump was allowed
     // throughout the first metre of a fall, and throughout any drop shorter than FallDistance.
+    [TestFixture(TestMotor.CharacterController)]
+    [TestFixture(TestMotor.Rigidbody)]
     public class LocomotionCoyoteTimeTests
     {
         const float CoyoteTime = 0.2f;
@@ -24,8 +26,14 @@ namespace Strawhenge.Navigation.Unity.Tests
         const float LedgeEdgeX = 5f;
 
         readonly List<Object> _created = new();
+        readonly TestMotor _testMotor;
         LocomotionScript _locomotion;
-        CharacterController _characterController;
+        ICharacterMotor _motor;
+
+        public LocomotionCoyoteTimeTests(TestMotor testMotor)
+        {
+            _testMotor = testMotor;
+        }
 
         [UnityTearDown]
         public IEnumerator TearDown()
@@ -91,23 +99,24 @@ namespace Strawhenge.Navigation.Unity.Tests
                 settings,
                 new Vector3(2, ledgeHeight + 1.1f, 0),
                 _created,
-                Quaternion.LookRotation(Vector3.right));
-            _characterController = _locomotion.GetComponent<CharacterController>();
+                Quaternion.LookRotation(Vector3.right),
+                _testMotor);
+            _motor = _locomotion.GetComponent<CharacterMotorScript>().Motor;
 
             yield return new WaitForSeconds(SettleTime);
-            Assert.IsTrue(_characterController.isGrounded, "Setup failed: the character never landed on the ledge.");
+            Assert.IsTrue(_motor.IsGrounded, "Setup failed: the character never landed on the ledge.");
 
             // Off the ledge = past its edge and not grounded, so a grounded flicker on top can't count.
             _locomotion.LocomotionController.Move(Vector3.right);
             yield return WaitUntilOrTimeout(() =>
-                _locomotion.transform.position.x > LedgeEdgeX && !_characterController.isGrounded);
+                _locomotion.transform.position.x > LedgeEdgeX && !_motor.IsGrounded);
 
-            Assert.IsFalse(_characterController.isGrounded, "Setup failed: the character never ran off the ledge.");
+            Assert.IsFalse(_motor.IsGrounded, "Setup failed: the character never ran off the ledge.");
         }
 
         IEnumerator AssertJump(bool expected, string message)
         {
-            Assert.IsFalse(_characterController.isGrounded, "Setup failed: the character had already landed.");
+            Assert.IsFalse(_motor.IsGrounded, "Setup failed: the character had already landed.");
 
             var jumpBegan = false;
             _locomotion.LocomotionController.JumpBegan += () => jumpBegan = true;

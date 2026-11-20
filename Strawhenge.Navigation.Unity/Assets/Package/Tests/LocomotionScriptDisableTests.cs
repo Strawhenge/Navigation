@@ -13,6 +13,8 @@ namespace Strawhenge.Navigation.Unity.Tests
     // disables it when a destination starts, and the Animator's completion call is then routed to the
     // destination movement source instead, so it never arrives. These tests reproduce both halves:
     // they toggle 'enabled' directly and never call CompletePivot / CompleteLanding / TriggerJump.
+    [TestFixture(TestMotor.CharacterController)]
+    [TestFixture(TestMotor.Rigidbody)]
     public class LocomotionScriptDisableTests
     {
         const float SettleTime = 0.2f;
@@ -24,7 +26,13 @@ namespace Strawhenge.Navigation.Unity.Tests
         static readonly ValueRange Any = new(float.NegativeInfinity, float.PositiveInfinity);
 
         readonly List<Object> _created = new();
+        readonly TestMotor _testMotor;
         LocomotionScript _locomotion;
+
+        public LocomotionScriptDisableTests(TestMotor testMotor)
+        {
+            _testMotor = testMotor;
+        }
 
         [UnityTearDown]
         public IEnumerator TearDown()
@@ -92,7 +100,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             _locomotion.LocomotionController.Move(Vector3.forward);
             yield return new WaitForSeconds(AccelerateTime);
             _locomotion.LocomotionController.Move(Vector3.back);
-            yield return null;
+            yield return WaitUntilOrTimeout(() => pivotRequested); // A Rigidbody motor steps in FixedUpdate.
 
             Assert.IsTrue(pivotRequested, "Setup failed: the pivot was never requested.");
 
@@ -176,7 +184,11 @@ namespace Strawhenge.Navigation.Unity.Tests
             _created.Add(ground);
 
             // Feet 0.1 m above the ground.
-            _locomotion = LocomotionTestCharacter.Create(settings, new Vector3(0, 1.1f, 0), _created);
+            _locomotion = LocomotionTestCharacter.Create(
+                settings,
+                new Vector3(0, 1.1f, 0),
+                _created,
+                motor: _testMotor);
         }
 
         static IEnumerator Settle()
