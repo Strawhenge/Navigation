@@ -83,7 +83,13 @@ crashlytics-build.properties
 !/[Aa]ssets/KinematicCharacterController.meta
 /[Aa]ssets/KinematicCharacterController/*
 !/[Aa]ssets/KinematicCharacterController/Core/
+!/[Aa]ssets/KinematicCharacterController/Core.meta
 /[Aa]ssets/KinematicCharacterController/Core/*
 !/[Aa]ssets/KinematicCharacterController/Core/KinematicCharacterController.asmdef
 !/[Aa]ssets/KinematicCharacterController/Core/KinematicCharacterController.asmdef.meta
+!/[Aa]ssets/KinematicCharacterController/Core/Editor/
+!/[Aa]ssets/KinematicCharacterController/Core/Editor.meta
+/[Aa]ssets/KinematicCharacterController/Core/Editor/*
+!/[Aa]ssets/KinematicCharacterController/Core/Editor/KinematicCharacterController.Editor.asmdef
+!/[Aa]ssets/KinematicCharacterController/Core/Editor/KinematicCharacterController.Editor.asmdef.meta
 
