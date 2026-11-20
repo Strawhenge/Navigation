@@ -1,4 +1,5 @@
 using Strawhenge.Common.Unity;
+using Strawhenge.Common.Unity.Helpers;
 using Strawhenge.Common.Unity.Serialization;
 using System;
 using UnityEngine;
@@ -10,10 +11,6 @@ namespace Strawhenge.Navigation.Unity
     public sealed partial class LocomotionScript : MonoBehaviour
     {
         [SerializeField] CharacterMotorScript _motor;
-
-        // Characters set up before motors existed. Only read when no motor is set or found, to add a
-        // CharacterControllerMotorScript for it. Same field name, so existing prefabs keep the reference.
-        [SerializeField, HideInInspector] CharacterController _characterController;
 
         [SerializeField] SerializedSource<
             ILocomotionSettings,
@@ -179,54 +176,14 @@ namespace Strawhenge.Navigation.Unity
             return controller;
         }
 
+        // Without a motor the character stays where it is.
         ICharacterMotor ResolveMotor()
         {
-            if (_motor == null)
-            {
-                _motor = GetComponentInChildren<CharacterMotorScript>(includeInactive: true);
+            ComponentRefHelper.EnsureHierarchyComponent(ref _motor, nameof(_motor), this);
 
-                if (_motor != null)
-                {
-                    Debug.LogWarning(
-                        $"'{nameof(_motor)}' not set - using the {_motor.GetType().Name} on '{_motor.name}'.",
-                        this);
-                }
-                else
-                {
-                    _motor = AddMotorForCharacterController();
-                }
-            }
-
-            if (_motor == null)
-            {
-                Debug.LogError(
-                    $"'{nameof(_motor)}' not set, and no {nameof(CharacterMotorScript)} or CharacterController " +
-                    "found in hierarchy - the character won't move.",
-                    this);
-
-                return NullCharacterMotor.Instance;
-            }
-
-            return _motor.Motor;
-        }
-
-        // Characters set up before motors existed have a CharacterController and no motor.
-        CharacterMotorScript AddMotorForCharacterController()
-        {
-            if (_characterController == null)
-                _characterController = GetComponentInChildren<CharacterController>(includeInactive: true);
-
-            if (_characterController == null)
-                return null;
-
-            Debug.LogWarning(
-                $"'{nameof(_motor)}' not set - adding a {nameof(CharacterControllerMotorScript)} for the " +
-                "CharacterController. Add one and assign it to remove this warning.",
-                this);
-
-            var motor = _characterController.gameObject.AddComponent<CharacterControllerMotorScript>();
-            motor.SetCharacterController(_characterController);
-            return motor;
+            return _motor != null
+                ? _motor.Motor
+                : NullCharacterMotor.Instance;
         }
 
         ILocomotionSettings ResolveSettings()
