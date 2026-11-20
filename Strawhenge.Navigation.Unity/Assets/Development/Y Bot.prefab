@@ -1586,7 +1586,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _motor: {fileID: 4801859453012539102}
-  _characterController: {fileID: 4096637538250244151}
   _settings:
     _serialized:
       _walkSpeed: 1.5
@@ -1621,7 +1620,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f063562140e9c4ebce6cc377f05e1f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _characterController: {fileID: 0}
+  _characterController: {fileID: 4096637538250244151}
 --- !u!114 &4096637538250244150
 MonoBehaviour:
   m_ObjectHideFlags: 0
