@@ -28,6 +28,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         bool _isWaiting;
         float _waitTime;
         Vector3 _velocity;
+        Quaternion _startRotation;
 
         // A pivot that didn't turn the character (no animation played it, or a clip without root rotation)
         // would match again straight away and stop the character ever turning. The agent turns normally
@@ -101,6 +102,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _waitTime = 0f;
             _agentUnavailable = IsAgentUnavailable();
             _velocity = Vector3.zero;
+            _startRotation = _agent.NavMeshAgent.transform.rotation;
 
             if (!_agentUnavailable)
             {
@@ -140,17 +142,16 @@ namespace Strawhenge.Navigation.Unity.Destination
             }
 
             Cancel();
-            return OnPivotCompleted(Quaternion.identity);
+            return OnPivotCompleted();
         }
 
-        public override PhaseStep OnPivotCompleted(Quaternion rotationDelta)
+        // Root motion has turned the character while the pivot played (the agent's updateRotation is off), so
+        // there's nothing left to apply: just check whether it turned at all.
+        public override PhaseStep OnPivotCompleted()
         {
             _isWaiting = false;
 
-            var transform = _agent.NavMeshAgent.transform;
-            transform.rotation = rotationDelta * transform.rotation;
-
-            if (rotationDelta == Quaternion.identity)
+            if (!PivotTurn.DidTurn(_startRotation, _agent.NavMeshAgent.transform.rotation))
                 _suppressUntilTurned = true;
 
             // The agent's path is gone if it was unavailable during the pivot, so set it up again.

@@ -107,13 +107,11 @@ namespace Strawhenge.Navigation.Unity.Tests
             _context.CanNavigate = false;
             _controller.Update(Time.deltaTime);
 
-            var forward = _navMeshAgent.transform.forward;
-            _controller.CompletePivot(Quaternion.Euler(0, 180, 0));
+            _controller.CompletePivot();
+            _controller.Update(Time.deltaTime);
 
-            Assert.Less(
-                Vector3.Angle(forward, _navMeshAgent.transform.forward),
-                1f,
-                "The abandoned pivot's rotation shouldn't be applied.");
+            Assert.IsFalse(_navMeshAgent.enabled, "The trip should stay paused while the character can't navigate.");
+            CollectionAssert.IsEmpty(_results, "The trip shouldn't be called back.");
         }
 
         // DestinationPivotTests shows this warning is logged for a pivot nobody completes.
@@ -144,7 +142,9 @@ namespace Strawhenge.Navigation.Unity.Tests
                 _pivotIds,
                 "The restarted trip should play its stationary pivot again.");
 
-            _controller.CompletePivot(Quaternion.Euler(0, 180, 0));
+            var transform = _navMeshAgent.transform;
+            transform.rotation = Quaternion.Euler(0, 180, 0) * transform.rotation; // Root motion played the turn.
+            _controller.CompletePivot();
             yield return TickUntil(() => _results.Count > 0);
 
             CollectionAssert.AreEqual(new[] { DestinationResult.Arrived }, _results, "Expected one Arrived callback.");

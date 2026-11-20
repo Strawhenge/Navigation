@@ -184,10 +184,10 @@ namespace Strawhenge.Navigation.Unity.Destination
                 Apply(_phase.OnJumpTriggered());
         }
 
-        internal void CompletePivot(Quaternion rotationDelta)
+        internal void CompletePivot()
         {
             if (_phase != null)
-                Apply(_phase.OnPivotCompleted(rotationDelta));
+                Apply(_phase.OnPivotCompleted());
         }
 
         internal void CompleteLanding()

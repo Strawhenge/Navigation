@@ -126,7 +126,7 @@ namespace Strawhenge.Navigation.Unity
                     AbandonPendingPivot();
                     WarnNotStarted(_unstartedPivotIds, pivotId, "Pivot");
 
-                    _movementSourceManager?.CompletePivot(Quaternion.identity);
+                    _movementSourceManager?.CompletePivot();
                 }
             }
 
@@ -257,7 +257,7 @@ namespace Strawhenge.Navigation.Unity
             // LocomotionScript then turns normally instead.
             if (_pivotBehaviour == null)
             {
-                _movementSourceManager?.CompletePivot(Quaternion.identity);
+                _movementSourceManager?.CompletePivot();
                 return;
             }
 
@@ -297,10 +297,10 @@ namespace Strawhenge.Navigation.Unity
             _isPivotPlaying = false;
             _pendingPivotId = null;
 
-            var rotationDelta = _animator.deltaRotation;
+            // Root motion has already turned the character: the movement source measures the turn itself.
             _animator.applyRootMotion = false;
 
-            _movementSourceManager?.CompletePivot(rotationDelta);
+            _movementSourceManager?.CompletePivot();
         }
 
         void OnFallBegan()

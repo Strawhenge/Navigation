@@ -87,7 +87,7 @@ namespace Strawhenge.Navigation.Unity
         {
         }
 
-        public void CompletePivot(Quaternion rotationDelta)
+        public void CompletePivot()
         {
         }
 

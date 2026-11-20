@@ -46,6 +46,7 @@ namespace Strawhenge.Navigation.Unity
 
         float _turnAngle;
         bool _isPivoting;
+        Quaternion _pivotStartRotation;
         bool _isAwaitingStationaryPivot;
         bool _suppressPivotsUntilTurned;
         IPivotProfile _stationaryPivot;
@@ -229,17 +230,17 @@ namespace Strawhenge.Navigation.Unity
             _jump = true;
         }
 
-        public void CompletePivot(Quaternion rotationDelta)
+        // Root motion has turned the character while the pivot played, so there's nothing left to apply.
+        public void CompletePivot()
         {
             if (!_isPivoting) return;
 
-            _motor.SetRotation(rotationDelta * _motor.Rotation);
             _isPivoting = false;
 
             // A pivot that didn't turn the character (no animation played it, e.g. no
             // PivotStateMachineBehaviour, or a clip without root rotation) would match again next step
             // and stop the character ever turning. Turn normally until out of every pivot's angle range.
-            if (rotationDelta == Quaternion.identity)
+            if (!PivotTurn.DidTurn(_pivotStartRotation, _motor.Rotation))
                 _suppressPivotsUntilTurned = true;
         }
 
@@ -274,7 +275,7 @@ namespace Strawhenge.Navigation.Unity
                 if (_pivotWaitTime > _animatorWaitTimeout)
                 {
                     WarnTimedOut(_timedOutPivotIds, _pivotId, "Pivot");
-                    CompletePivot(Quaternion.identity);
+                    CompletePivot();
                 }
             }
 
@@ -586,6 +587,7 @@ namespace Strawhenge.Navigation.Unity
         void Pivot(int pivotId)
         {
             _isPivoting = true;
+            _pivotStartRotation = _motor.Rotation;
             _pivotId = pivotId;
             _pivotWaitTime = 0f;
             PivotRequested?.Invoke(pivotId);

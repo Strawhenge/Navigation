@@ -44,7 +44,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         // The Animator's replies to what a phase asked for. Ignored by phases that aren't waiting for them.
         public virtual PhaseStep OnJumpTriggered() => PhaseStep.Continue;
 
-        public virtual PhaseStep OnPivotCompleted(Quaternion rotationDelta) => PhaseStep.Continue;
+        public virtual PhaseStep OnPivotCompleted() => PhaseStep.Continue;
 
         public virtual PhaseStep OnLandingCompleted() => PhaseStep.Continue;
     }

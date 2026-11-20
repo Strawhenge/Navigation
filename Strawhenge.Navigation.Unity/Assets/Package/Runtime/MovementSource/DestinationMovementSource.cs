@@ -116,9 +116,9 @@ namespace Strawhenge.Navigation.Unity
             _destinationController.TriggerJump();
         }
 
-        public void CompletePivot(Quaternion rotationDelta)
+        public void CompletePivot()
         {
-            _destinationController.CompletePivot(rotationDelta);
+            _destinationController.CompletePivot();
         }
 
         public void CompleteLanding()
