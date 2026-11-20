@@ -36,7 +36,9 @@ namespace Strawhenge.Navigation.Unity
 
         public MotorMoveResult Move(LocomotionStep step, float deltaTime)
         {
-            _transform.rotation = step.Rotation;
+            // Only when it changed: each write notifies the whole hierarchy and syncs its colliders.
+            if (step.Rotation != _transform.rotation)
+                _transform.rotation = step.Rotation;
 
             var collisionFlags = _characterController.Move(step.Velocity * deltaTime);
 

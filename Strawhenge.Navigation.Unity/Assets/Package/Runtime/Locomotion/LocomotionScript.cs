@@ -25,7 +25,7 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] LoggerScript _logger;
 
         LocomotionController _controller;
-        ICharacterMotor _characterMotor;
+        MotorUpdateMode _updateMode;
         ILocomotionSettings _settingsOverride;
         ILogger _loggerOverride;
 
@@ -65,16 +65,17 @@ namespace Strawhenge.Navigation.Unity
             IsActiveChanged?.Invoke(false);
         }
 
+        // _controller is always created by now (in Awake at the latest).
         void Update()
         {
-            if (_characterMotor.UpdateMode == MotorUpdateMode.Update)
-                Controller.Step(Time.deltaTime);
+            if (_updateMode == MotorUpdateMode.Update)
+                _controller.Step(Time.deltaTime);
         }
 
         void FixedUpdate()
         {
-            if (_characterMotor.UpdateMode == MotorUpdateMode.FixedUpdate)
-                Controller.Step(Time.fixedDeltaTime);
+            if (_updateMode == MotorUpdateMode.FixedUpdate)
+                _controller.Step(Time.fixedDeltaTime);
         }
 
         public event Action JumpTriggerRequested
@@ -156,21 +157,22 @@ namespace Strawhenge.Navigation.Unity
 
         LocomotionController Create()
         {
-            _characterMotor = ResolveMotor();
+            var motor = ResolveMotor();
+            _updateMode = motor.UpdateMode;
 
             var logger = _loggerOverride;
             if (logger == null)
                 logger = _logger != null ? _logger.Logger : new UnityLogger(gameObject);
 
             var controller = new LocomotionController(
-                _characterMotor,
+                motor,
                 new CachedLocomotionSettings(ResolveSettings()),
                 _animatorWaitTimeout,
                 logger);
 
             // A motor that steps itself (e.g. from a third-party controller's callbacks) calls BeginStep /
             // EndStep, so neither Update nor FixedUpdate steps for it.
-            if (_characterMotor is IExternallySteppedMotor externallySteppedMotor)
+            if (motor is IExternallySteppedMotor externallySteppedMotor)
                 externallySteppedMotor.SetStepper(controller);
 
             return controller;

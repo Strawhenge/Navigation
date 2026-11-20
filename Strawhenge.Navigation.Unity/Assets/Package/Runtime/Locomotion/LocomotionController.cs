@@ -20,6 +20,7 @@ namespace Strawhenge.Navigation.Unity
         ILocomotionSettings _settings;
         bool _isActive;
         bool _isAwaitingEndStep;
+        bool _isGrounded;
 
         Vector3 _input;
 
@@ -123,6 +124,10 @@ namespace Strawhenge.Navigation.Unity
             if (!_isActive)
                 return LocomotionStep.Stationary(_motor.Rotation);
 
+            // Read once, so every part of the step sees the same value (and a motor that works it out on
+            // demand does that once).
+            _isGrounded = _motor.IsGrounded;
+
             HandleAnimatorWaitTimeouts(deltaTime);
             HandleFalling(deltaTime);
 
@@ -158,7 +163,7 @@ namespace Strawhenge.Navigation.Unity
 
             if (_isAwaitingStationaryPivot)
             {
-                if (_input.magnitude < 0.001f)
+                if (_input.sqrMagnitude < 0.000001f)
                 {
                     _isAwaitingStationaryPivot = false;
 
@@ -169,7 +174,7 @@ namespace Strawhenge.Navigation.Unity
 
                     _stationaryPivot = null;
                 }
-                else if (input.magnitude > _input.magnitude)
+                else if (input.sqrMagnitude > _input.sqrMagnitude)
                 {
                     _isAwaitingStationaryPivot = false;
                     _stationaryPivot = null;
@@ -396,7 +401,7 @@ namespace Strawhenge.Navigation.Unity
 
         void HandleFalling(float deltaTime)
         {
-            var isGrounded = _motor.IsGrounded;
+            var isGrounded = _isGrounded;
             var positionY = _motor.Position.y;
 
             // Coyote time counts from leaving the ground, however far the character has dropped.
@@ -463,7 +468,7 @@ namespace Strawhenge.Navigation.Unity
 
         void CalculateVerticalSpeed(float deltaTime)
         {
-            var isGrounded = _motor.IsGrounded;
+            var isGrounded = _isGrounded;
 
             if (_jump)
             {
@@ -517,7 +522,7 @@ namespace Strawhenge.Navigation.Unity
 
         Vector3 GetVelocity(Quaternion rotation)
         {
-            var direction = _input.magnitude > 0.1f ? _input : rotation * Vector3.forward;
+            var direction = _input.sqrMagnitude > 0.01f ? _input : rotation * Vector3.forward;
             var velocity = direction * _horizontalSpeed;
             velocity.y = _verticalSpeed;
             return velocity;
