@@ -39,6 +39,7 @@ namespace Strawhenge.Navigation.Unity
         float _timeSinceGrounded;
         float _fallDistance;
         float _groundedY;
+        float _landingDrop;
         bool _isLanding;
 
         float _turnAngle;
@@ -424,10 +425,14 @@ namespace Strawhenge.Navigation.Unity
                 ? 0f
                 : _timeSinceGrounded + deltaTime;
 
+            // How far below the last grounded height the character is, measured before landing resets that
+            // height: what fall and jump landings match on. Like the destination's landings, it's the drop from
+            // where the character left the ground to where it landed.
+            _landingDrop = Mathf.Max(0f, _groundedY - positionY);
+
             if (isGrounded)
                 _groundedY = positionY;
 
-            var fallDistance = _fallDistance;
             _fallDistance = Mathf.Max(0f, _groundedY - positionY);
 
             var isFalling = !isGrounded && _fallDistance >= _settings.FallDistance;
@@ -442,7 +447,7 @@ namespace Strawhenge.Navigation.Unity
 
                 foreach (var landing in _settings.FallLandings)
                 {
-                    if (landing.Matches(_horizontalSpeed, fallDistance) && landing.Id is int landingId)
+                    if (landing.Matches(_horizontalSpeed, _landingDrop) && landing.Id is int landingId)
                     {
                         Land(landingId);
                         break;
@@ -502,7 +507,7 @@ namespace Strawhenge.Navigation.Unity
                 {
                     foreach (var landing in _settings.JumpLandings)
                     {
-                        if (landing.Matches(_horizontalSpeed, _fallDistance) && landing.Id is int landingId)
+                        if (landing.Matches(_horizontalSpeed, _landingDrop) && landing.Id is int landingId)
                         {
                             Land(landingId);
                             break;
