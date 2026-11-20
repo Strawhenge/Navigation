@@ -31,6 +31,40 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.IsTrue(harness.Motor.IsGrounded, "The character should be back on the ground.");
         }
 
+        // Motors that snap to the ground rely on it to let go, so it must be on the step the jump begins, and only
+        // that one.
+        [Test]
+        public void Flags_the_step_a_jump_begins_and_no_other()
+        {
+            var harness = new LocomotionControllerHarness();
+
+            harness.Step();
+            Assert.IsFalse(harness.Motor.LastMove.JumpStarted, "A step without a jump shouldn't be flagged.");
+
+            harness.Controller.Jump();
+            harness.Step();
+            Assert.IsTrue(harness.Motor.LastMove.JumpStarted, "The step the jump begins should be flagged.");
+
+            harness.Step();
+            Assert.IsFalse(harness.Motor.LastMove.JumpStarted, "The steps after the jump began shouldn't be flagged.");
+        }
+
+        [Test]
+        public void Flags_a_deferred_jump_on_the_step_after_its_trigger()
+        {
+            var harness = new LocomotionControllerHarness(new FakeLocomotionSettings { DeferJumpTrigger = true });
+
+            harness.Controller.Jump();
+            harness.Step(5);
+            Assert.IsFalse(harness.Motor.Moves.Any(m => m.JumpStarted),
+                "No step should be flagged while waiting for the trigger.");
+
+            harness.Controller.TriggerJump();
+            harness.Step();
+
+            Assert.IsTrue(harness.Motor.LastMove.JumpStarted, "The step after the trigger should be flagged.");
+        }
+
         [Test]
         public void Jumps_to_the_jump_height()
         {

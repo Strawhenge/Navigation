@@ -152,10 +152,10 @@ namespace Strawhenge.Navigation.Unity
                 return LocomotionStep.Stationary(rotation);
 
             CalculateHorizontalSpeed(deltaTime);
-            CalculateVerticalSpeed(deltaTime);
+            var jumpStarted = CalculateVerticalSpeed(deltaTime);
 
             _isAwaitingEndStep = true;
-            return LocomotionStep.Moving(GetVelocity(rotation), rotation);
+            return LocomotionStep.Moving(GetVelocity(rotation), rotation, jumpStarted);
         }
 
         void EndStep(MotorMoveResult result)
@@ -485,7 +485,8 @@ namespace Strawhenge.Navigation.Unity
             _horizontalSpeed = speed;
         }
 
-        void CalculateVerticalSpeed(float deltaTime)
+        // Returns true when a jump begins this step.
+        bool CalculateVerticalSpeed(float deltaTime)
         {
             var isGrounded = _isGrounded;
 
@@ -495,7 +496,7 @@ namespace Strawhenge.Navigation.Unity
                 _isJumping = true;
                 _verticalSpeed = Mathf.Sqrt(_settings.JumpHeight * -2f * _settings.Gravity);
                 JumpBegan?.Invoke();
-                return;
+                return true;
             }
 
             if (_isJumping && isGrounded && _verticalSpeed <= 0f)
@@ -519,12 +520,14 @@ namespace Strawhenge.Navigation.Unity
             if (!isGrounded)
             {
                 _verticalSpeed += _settings.Gravity * deltaTime;
-                return;
+                return false;
             }
 
             _verticalSpeed = _verticalSpeed < 0f
                 ? _settings.GroundedGravity
                 : _verticalSpeed;
+
+            return false;
         }
 
         void ManageCollisions(MotorMoveResult result)
