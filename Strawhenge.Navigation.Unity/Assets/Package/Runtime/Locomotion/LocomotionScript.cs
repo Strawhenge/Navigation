@@ -2,7 +2,6 @@ using Strawhenge.Common.Unity;
 using Strawhenge.Common.Unity.Helpers;
 using Strawhenge.Common.Unity.Serialization;
 using UnityEngine;
-using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity
 {
@@ -18,16 +17,13 @@ namespace Strawhenge.Navigation.Unity
 
         [Tooltip("Longest wait for a pivot or landing to be completed, or a deferred jump to be launched, " +
                  "before carrying on without it. Must be longer than the longest pivot or landing animation.")]
-        [SerializeField]
-        float _animatorWaitTimeout = 2f;
+        [SerializeField] float _animatorWaitTimeout = 2f;
 
         // Optional: without one, the controller logs through a UnityLogger on this GameObject.
         [SerializeField] LoggerScript _logger;
 
         LocomotionController _controller;
         MotorUpdateMode _updateMode;
-        ILocomotionSettings _settingsOverride;
-        ILogger _loggerOverride;
 
         // Where consumers make requests and subscribe to events. Created on first use, so they can do that
         // before this Awake runs.

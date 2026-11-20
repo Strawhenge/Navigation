@@ -5,6 +5,9 @@ namespace Strawhenge.Navigation.Unity
     // Test hooks. Call them before Awake (while the GameObject is inactive); Awake keeps what was set.
     public sealed partial class LocomotionScript
     {
+        ILocomotionSettings _settingsOverride;
+        ILogger _loggerOverride;
+
         internal void SetMotor(CharacterMotorScript motor) => _motor = motor;
 
         internal void SetSettings(ILocomotionSettings settings)
