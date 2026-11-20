@@ -85,6 +85,18 @@ namespace Strawhenge.Navigation.Unity.Tests
         }
 
         [Test]
+        public void Reports_the_velocity_of_the_last_move()
+        {
+            var harness = new LocomotionControllerHarness();
+
+            harness.Controller.Move(Vector3.forward);
+            harness.StepFor(1f);
+
+            Assert.AreEqual(harness.Motor.Velocity, harness.Controller.CurrentVelocity);
+            Assert.AreEqual(DefaultLocomotionSettings.RunSpeed, harness.Controller.CurrentVelocity.magnitude, 0.01f);
+        }
+
+        [Test]
         public void Turns_to_face_the_input_direction()
         {
             var harness = new LocomotionControllerHarness();

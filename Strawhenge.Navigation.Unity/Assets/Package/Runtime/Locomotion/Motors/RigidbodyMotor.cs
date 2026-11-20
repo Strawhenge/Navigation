@@ -59,7 +59,8 @@ namespace Strawhenge.Navigation.Unity
 
         public Quaternion Rotation => _isHeld ? _root.rotation : _rigidbody.rotation;
 
-        // The velocity the body managed in the physics step before the last move, kept between moves.
+        // The velocity the body managed in the physics step before the last move (the body's own velocity is the
+        // one just set until physics runs).
         public Vector3 Velocity => _velocity;
 
         public bool IsGrounded => _isActive && CheckGround(out _, out _);

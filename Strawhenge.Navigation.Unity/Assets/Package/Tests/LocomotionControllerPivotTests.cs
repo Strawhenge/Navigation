@@ -57,6 +57,25 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.Greater(harness.Motor.Moves.Count, moves, "The motor should move again once the pivot is complete.");
         }
 
+        // The animation sync and Pivoting expect the velocity coming in, whatever the motor reports meanwhile.
+        [Test]
+        public void Keeps_the_velocity_coming_in_while_a_pivot_plays()
+        {
+            var harness = RunAndTurnAround();
+            var pivotRequested = false;
+            harness.Controller.PivotRequested += _ => pivotRequested = true;
+            harness.Step();
+            Assert.IsTrue(pivotRequested, "Setup failed: no pivot was requested.");
+            var comingIn = harness.Controller.CurrentVelocity;
+            Assert.Greater(comingIn.magnitude, 3f, "Setup failed: the character wasn't moving into the pivot.");
+
+            harness.Motor.ForgetVelocity();
+            harness.StepFor(0.5f);
+
+            Assert.AreEqual(comingIn, harness.Controller.CurrentVelocity,
+                "CurrentVelocity should stay the velocity coming in while the pivot plays.");
+        }
+
         // A pivot that didn't turn the character (no animation played it) would match again straight away and
         // stop it ever turning. Instead the character turns normally.
         [Test]
