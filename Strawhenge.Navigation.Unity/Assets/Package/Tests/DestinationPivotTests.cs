@@ -103,11 +103,11 @@ namespace Strawhenge.Navigation.Unity.Tests
                 StillTolerance,
                 "The agent set off before the pivot was completed.");
 
-            _controller.CompletePivot(Quaternion.Euler(0, 180, 0));
+            CompletePivotTurnedBy(180);
             Assert.Less(
                 Vector3.Angle(_navMeshAgent.transform.forward, Vector3.back),
                 1f,
-                "The pivot's rotation wasn't applied.");
+                "The character should face where the pivot turned it.");
 
             yield return TickUntil(() => _results.Count > 0);
             AssertArrived();
@@ -147,7 +147,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             _controller.Update(Time.deltaTime);
             Assert.AreEqual(1, _pivotIds.Count, "Setup failed: expected the stationary pivot.");
 
-            _controller.CompletePivot(Quaternion.identity);
+            _controller.CompletePivot();
             yield return TickUntil(() => _results.Count > 0);
 
             AssertArrived();
@@ -167,7 +167,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 
             var turned = Quaternion.LookRotation(Vector3.back);
             _navMeshAgent.transform.rotation = turned; // Root motion played the turn.
-            _controller.CompletePivot(Quaternion.Euler(0, 5, 0)); // The Animator's last-frame delta.
+            _controller.CompletePivot();
 
             Assert.Less(
                 Quaternion.Angle(_navMeshAgent.transform.rotation, turned),
@@ -175,10 +175,9 @@ namespace Strawhenge.Navigation.Unity.Tests
                 "The character should face where root motion turned it.");
         }
 
-        // Whether the pivot turned the character is measured, not read from the delta, which can be a little off
-        // identity even when nothing turned it.
+        // Root motion can drift a little even when the clip doesn't turn the character: that's still no turn.
         [UnityTest]
-        public IEnumerator Pivot_that_did_not_turn_is_not_repeated_when_it_completes_with_a_tiny_delta()
+        public IEnumerator Pivot_that_barely_turned_the_character_is_not_repeated()
         {
             yield return Create();
 
@@ -186,7 +185,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             _controller.Update(Time.deltaTime);
             Assert.AreEqual(1, _pivotIds.Count, "Setup failed: expected the stationary pivot.");
 
-            _controller.CompletePivot(Quaternion.Euler(0, 0.5f, 0));
+            CompletePivotTurnedBy(0.5f);
             yield return TickUntil(() => _results.Count > 0);
 
             AssertArrived();
@@ -219,7 +218,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             _controller.Update(Time.deltaTime);
             Assert.AreEqual(1, _pivotIds.Count, "Setup failed: expected the stationary pivot.");
 
-            _controller.CompletePivot(Quaternion.Euler(0, 180, 0));
+            CompletePivotTurnedBy(180);
             yield return TickUntil(() => _results.Count > 0);
 
             AssertArrived();
@@ -254,7 +253,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             CollectionAssert.AreEqual(new[] { DestinationResult.Cancelled }, _results, "Expected one Cancelled callback.");
             Assert.IsTrue(_controller.IsActive, "The controller should stay active until the pivot finishes.");
 
-            _controller.CompletePivot(Quaternion.Euler(0, 180, 0));
+            CompletePivotTurnedBy(180);
 
             Assert.IsFalse(_controller.IsActive, "The controller should stop once the pivot finishes.");
             Assert.AreEqual(1, _results.Count, "The cancelled request was called back again.");
@@ -305,6 +304,14 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         IDestinationArgsBuilder Trip(Vector3 location) =>
             DestinationArgs.GoToApproximately(location).WithSpeed(Speed).Callback(_results.Add);
+
+        // Plays the Animator's part: root motion turns the character, then the pivot completes.
+        void CompletePivotTurnedBy(float degrees)
+        {
+            var transform = _navMeshAgent.transform;
+            transform.rotation = Quaternion.Euler(0, degrees, 0) * transform.rotation;
+            _controller.CompletePivot();
+        }
 
         void AssertArrived() =>
             CollectionAssert.AreEqual(new[] { DestinationResult.Arrived }, _results, "Expected the trip to arrive.");

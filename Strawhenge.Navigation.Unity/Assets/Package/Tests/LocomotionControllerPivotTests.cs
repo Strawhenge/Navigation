@@ -49,11 +49,12 @@ namespace Strawhenge.Navigation.Unity.Tests
             harness.StepFor(0.5f);
             Assert.AreEqual(moves, harness.Motor.Moves.Count, "The motor was moved during the pivot.");
 
-            harness.Controller.CompletePivot(Quaternion.Euler(0, 180, 0));
+            harness.Motor.Rotation = Quaternion.LookRotation(Vector3.back); // Root motion played the turn.
+            harness.Controller.CompletePivot();
             harness.Step();
 
             Assert.Less(Quaternion.Angle(harness.Motor.Rotation, Quaternion.LookRotation(Vector3.back)), AngleTolerance,
-                "The pivot's rotation should have been applied.");
+                "The character should face where the pivot turned it.");
             Assert.Greater(harness.Motor.Moves.Count, moves, "The motor should move again once the pivot is complete.");
         }
 
@@ -87,7 +88,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             harness.Step();
             Assert.AreEqual(1, pivotsRequested, "Setup failed: no pivot was requested.");
 
-            harness.Controller.CompletePivot(Quaternion.identity);
+            harness.Controller.CompletePivot();
             harness.StepFor(1f); // 180 degrees at the default 360 degrees per second takes 0.5 s.
 
             Assert.AreEqual(1, pivotsRequested, "The pivot shouldn't be requested again straight away.");
@@ -96,7 +97,8 @@ namespace Strawhenge.Navigation.Unity.Tests
         }
 
         // Root motion turns the character while the pivot plays, so completing it mustn't turn it any further
-        // (the Animator's last-frame delta used to be applied again on top).
+        // (the Animator's last-frame delta used to be applied again on top). Not stepped afterwards, as turning
+        // towards the input would hide an over-rotation.
         [Test]
         public void Pivot_turned_by_root_motion_is_not_turned_again_when_it_completes()
         {
@@ -107,16 +109,15 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.IsTrue(pivotRequested, "Setup failed: no pivot was requested.");
 
             harness.Motor.Rotation = Quaternion.LookRotation(Vector3.back); // Root motion played the turn.
-            harness.Controller.CompletePivot(Quaternion.Euler(0, 5, 0)); // The Animator's last-frame delta.
+            harness.Controller.CompletePivot();
 
             Assert.Less(Quaternion.Angle(harness.Motor.Rotation, Quaternion.LookRotation(Vector3.back)), AngleTolerance,
                 "The character should face where root motion turned it.");
         }
 
-        // Whether the pivot turned the character is measured, not read from the delta, which can be a little off
-        // identity even when nothing turned it.
+        // Root motion can drift a little even when the clip doesn't turn the character: that's still no turn.
         [Test]
-        public void Turns_normally_after_a_pivot_that_did_not_turn_completes_with_a_tiny_delta()
+        public void Turns_normally_after_a_pivot_that_barely_turned_the_character()
         {
             var harness = RunAndTurnAround();
             var pivotsRequested = 0;
@@ -124,7 +125,8 @@ namespace Strawhenge.Navigation.Unity.Tests
             harness.Step();
             Assert.AreEqual(1, pivotsRequested, "Setup failed: no pivot was requested.");
 
-            harness.Controller.CompletePivot(Quaternion.Euler(0, 0.5f, 0));
+            harness.Motor.Rotation = Quaternion.Euler(0, 0.5f, 0) * harness.Motor.Rotation;
+            harness.Controller.CompletePivot();
             harness.StepFor(1f);
 
             Assert.AreEqual(1, pivotsRequested, "The pivot shouldn't be requested again straight away.");
