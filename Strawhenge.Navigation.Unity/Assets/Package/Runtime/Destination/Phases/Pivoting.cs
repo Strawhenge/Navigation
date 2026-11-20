@@ -43,8 +43,8 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public override bool CanInterrupt => false;
 
-        // The velocity coming in, as LocomotionScript reports while a pivot plays: its CharacterController
-        // keeps the velocity of its last move.
+        // The velocity coming in, as LocomotionScript reports while a pivot plays: its motor keeps the velocity
+        // of its last move.
         public override Vector3 Velocity => _velocity;
 
         public override bool IsStrafing(DestinationArgs current) => _strafe;

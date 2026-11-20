@@ -8,12 +8,16 @@ namespace Strawhenge.Navigation.Unity.Editor
     [CustomEditor(typeof(LocomotionScript))]
     public class LocomotionScriptEditor : UnityEditor.Editor
     {
-        PrivateFieldInspector<LocomotionScript> _privateFieldInspector;
+        PrivateFieldInspector<LocomotionController> _privateFieldInspector;
 
         void OnEnable()
         {
             EditorApplication.update += Update;
-            _privateFieldInspector ??= new PrivateFieldInspector<LocomotionScript>(target as LocomotionScript);
+            var locomotion = (LocomotionScript)target;
+
+            // The logic and its state live in the controller.
+            _privateFieldInspector ??= new PrivateFieldInspector<LocomotionController>(
+                () => locomotion != null ? locomotion.ControllerIfCreated : null);
         }
 
         void OnDisable()

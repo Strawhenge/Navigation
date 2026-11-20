@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace Development
 {
-    // Keeps LocomotionScript off while the character is ragdolled. LocomotionScript owns the
-    // CharacterController, so otherwise it would keep the controller on and keep moving the root while the
-    // ragdoll is down. Assign it to the LocomotionToggleScript's Conditions.
+    // Keeps LocomotionScript off while the character is ragdolled. LocomotionScript turns its motor (here the
+    // CharacterController) on and off, so otherwise it would keep the motor on and keep moving the root while
+    // the ragdoll is down. Assign it to the LocomotionToggleScript's Conditions.
     public class RagdollLocomotionConditionsScript : BaseLocomotionToggleConditionsScript
     {
         [SerializeField] RagdollScript _ragdoll;
