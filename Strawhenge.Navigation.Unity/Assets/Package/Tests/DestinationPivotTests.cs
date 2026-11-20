@@ -154,6 +154,45 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.AreEqual(1, _pivotIds.Count, "The pivot was requested again after completing without turning.");
         }
 
+        // Root motion turns the character while the pivot plays, so completing it mustn't turn it any further
+        // (the Animator's last-frame delta used to be applied again on top).
+        [UnityTest]
+        public IEnumerator Pivot_turned_by_root_motion_is_not_turned_again_when_it_completes()
+        {
+            yield return Create();
+
+            _controller.GoTo(Trip(Behind).Build());
+            _controller.Update(Time.deltaTime);
+            Assert.AreEqual(1, _pivotIds.Count, "Setup failed: expected the stationary pivot.");
+
+            var turned = Quaternion.LookRotation(Vector3.back);
+            _navMeshAgent.transform.rotation = turned; // Root motion played the turn.
+            _controller.CompletePivot(Quaternion.Euler(0, 5, 0)); // The Animator's last-frame delta.
+
+            Assert.Less(
+                Quaternion.Angle(_navMeshAgent.transform.rotation, turned),
+                1f,
+                "The character should face where root motion turned it.");
+        }
+
+        // Whether the pivot turned the character is measured, not read from the delta, which can be a little off
+        // identity even when nothing turned it.
+        [UnityTest]
+        public IEnumerator Pivot_that_did_not_turn_is_not_repeated_when_it_completes_with_a_tiny_delta()
+        {
+            yield return Create();
+
+            _controller.GoTo(Trip(Behind).Build());
+            _controller.Update(Time.deltaTime);
+            Assert.AreEqual(1, _pivotIds.Count, "Setup failed: expected the stationary pivot.");
+
+            _controller.CompletePivot(Quaternion.Euler(0, 0.5f, 0));
+            yield return TickUntil(() => _results.Count > 0);
+
+            AssertArrived();
+            Assert.AreEqual(1, _pivotIds.Count, "The pivot was requested again after completing without turning.");
+        }
+
         [UnityTest]
         public IEnumerator Pivot_nobody_completes_times_out_and_the_trip_carries_on()
         {

@@ -95,6 +95,43 @@ namespace Strawhenge.Navigation.Unity.Tests
                 "The character should have turned around normally.");
         }
 
+        // Root motion turns the character while the pivot plays, so completing it mustn't turn it any further
+        // (the Animator's last-frame delta used to be applied again on top).
+        [Test]
+        public void Pivot_turned_by_root_motion_is_not_turned_again_when_it_completes()
+        {
+            var harness = RunAndTurnAround();
+            var pivotRequested = false;
+            harness.Controller.PivotRequested += _ => pivotRequested = true;
+            harness.Step();
+            Assert.IsTrue(pivotRequested, "Setup failed: no pivot was requested.");
+
+            harness.Motor.Rotation = Quaternion.LookRotation(Vector3.back); // Root motion played the turn.
+            harness.Controller.CompletePivot(Quaternion.Euler(0, 5, 0)); // The Animator's last-frame delta.
+
+            Assert.Less(Quaternion.Angle(harness.Motor.Rotation, Quaternion.LookRotation(Vector3.back)), AngleTolerance,
+                "The character should face where root motion turned it.");
+        }
+
+        // Whether the pivot turned the character is measured, not read from the delta, which can be a little off
+        // identity even when nothing turned it.
+        [Test]
+        public void Turns_normally_after_a_pivot_that_did_not_turn_completes_with_a_tiny_delta()
+        {
+            var harness = RunAndTurnAround();
+            var pivotsRequested = 0;
+            harness.Controller.PivotRequested += _ => pivotsRequested++;
+            harness.Step();
+            Assert.AreEqual(1, pivotsRequested, "Setup failed: no pivot was requested.");
+
+            harness.Controller.CompletePivot(Quaternion.Euler(0, 0.5f, 0));
+            harness.StepFor(1f);
+
+            Assert.AreEqual(1, pivotsRequested, "The pivot shouldn't be requested again straight away.");
+            Assert.Less(Quaternion.Angle(harness.Motor.Rotation, Quaternion.LookRotation(Vector3.back)), AngleTolerance,
+                "The character should have turned around normally.");
+        }
+
         [Test]
         public void Pivot_is_given_up_when_it_is_never_completed()
         {
