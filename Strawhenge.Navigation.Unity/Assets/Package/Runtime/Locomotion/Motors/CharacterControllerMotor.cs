@@ -5,11 +5,15 @@ namespace Strawhenge.Navigation.Unity
     public sealed class CharacterControllerMotor : ICharacterMotor
     {
         readonly CharacterController _characterController;
+        readonly ICharacterControllerMotorSettings _settings;
         readonly Transform _transform;
 
-        public CharacterControllerMotor(CharacterController characterController)
+        public CharacterControllerMotor(
+            CharacterController characterController,
+            ICharacterControllerMotorSettings settings)
         {
             _characterController = characterController;
+            _settings = settings;
             _transform = characterController.transform;
         }
 
@@ -40,7 +44,13 @@ namespace Strawhenge.Navigation.Unity
             if (step.Rotation != _transform.rotation)
                 _transform.rotation = step.Rotation;
 
-            var collisionFlags = _characterController.Move(step.Velocity * deltaTime);
+            var velocity = step.Velocity;
+
+            // Locomotion asks for no speed down while grounded; push into the ground so isGrounded stays true.
+            if (_characterController.isGrounded && velocity.y <= 0f)
+                velocity.y = _settings.GroundedPush;
+
+            var collisionFlags = _characterController.Move(velocity * deltaTime);
 
             return new MotorMoveResult(
                 blockedSideways: (collisionFlags & CollisionFlags.Sides) != 0);

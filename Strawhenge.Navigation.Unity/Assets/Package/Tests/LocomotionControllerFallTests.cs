@@ -26,6 +26,20 @@ namespace Strawhenge.Navigation.Unity.Tests
         }
 
         [Test]
+        public void Walking_off_a_ledge_starts_the_fall_at_fall_start_speed()
+        {
+            var harness = new LocomotionControllerHarness(new FakeLocomotionSettings { FallStartSpeed = 2f });
+            harness.Step();
+            Assert.IsTrue(harness.Motor.IsGrounded, "Setup failed: the character isn't on the ground.");
+
+            harness.Motor.GroundHeight = null;
+            harness.Step();
+
+            var expected = -2f + DefaultLocomotionSettings.Gravity * LocomotionControllerHarness.FrameTime;
+            Assert.AreEqual(expected, harness.Motor.LastMove.Velocity.y, 0.001f);
+        }
+
+        [Test]
         public void A_drop_shorter_than_fall_distance_is_not_a_fall()
         {
             var harness = new LocomotionControllerHarness(new FakeLocomotionSettings { FallDistance = FallDistance });
