@@ -23,6 +23,7 @@ namespace Strawhenge.Navigation.Unity
         bool _isActive;
         bool _isAwaitingEndStep;
         bool _isGrounded;
+        Vector3 _velocity;
 
         Vector3 _input;
 
@@ -89,7 +90,9 @@ namespace Strawhenge.Navigation.Unity
 
         public bool IsActive => _isActive;
 
-        public Vector3 CurrentVelocity => _motor.Velocity;
+        // The velocity of the last step that moved, kept through steps that don't (a pivot playing): Pivoting and
+        // the animation sync expect the velocity coming in. Kept here so motors only report their last move.
+        public Vector3 CurrentVelocity => _velocity;
 
         public bool Walk { get; set; }
 
@@ -102,6 +105,7 @@ namespace Strawhenge.Navigation.Unity
         internal void Activate()
         {
             _isActive = true;
+            _velocity = Vector3.zero;
             _motor.SetActive(true);
             IsActiveChanged?.Invoke(true);
         }
@@ -115,6 +119,7 @@ namespace Strawhenge.Navigation.Unity
 
             _isActive = false;
             _isAwaitingEndStep = false;
+            _velocity = Vector3.zero;
             _motor.SetActive(false);
             IsActiveChanged?.Invoke(false);
         }
@@ -133,7 +138,7 @@ namespace Strawhenge.Navigation.Unity
         void ILocomotionStepper.EndStep(MotorMoveResult result) => EndStep(result);
 
         // When ShouldMove is false (inactive, or a pivot is playing), the motor must leave the character
-        // where it is, keep Rotation, and keep reporting the velocity of its last move. EndStep isn't needed.
+        // where it is and keep Rotation; CurrentVelocity keeps the last move's velocity. EndStep isn't needed.
         LocomotionStep BeginStep(float deltaTime)
         {
             if (!_isActive)
@@ -163,6 +168,7 @@ namespace Strawhenge.Navigation.Unity
             if (!_isAwaitingEndStep) return;
             _isAwaitingEndStep = false;
 
+            _velocity = _motor.Velocity;
             ManageCollisions(result);
         }
 
@@ -538,7 +544,7 @@ namespace Strawhenge.Navigation.Unity
             {
                 _horizontalSpeed = Mathf.Min(
                     _horizontalSpeed,
-                    _motor.Velocity.magnitude);
+                    _velocity.magnitude);
             }
         }
 

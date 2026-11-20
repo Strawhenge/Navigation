@@ -36,6 +36,9 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         public LocomotionStep LastMove => _moves[_moves.Count - 1];
 
+        // Plays a motor that reports no velocity while it isn't moved (KCC does, as it's given none during a pivot).
+        public void ForgetVelocity() => Velocity = Vector3.zero;
+
         public void SetActive(bool active) => IsActive = active;
 
         public void SetRotation(Quaternion rotation) => Rotation = rotation;

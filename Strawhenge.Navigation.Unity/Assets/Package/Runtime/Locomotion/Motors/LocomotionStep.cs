@@ -14,7 +14,7 @@ namespace Strawhenge.Navigation.Unity
         }
 
         // False while inactive or while a pivot plays: the motor leaves the character where it is, keeps
-        // Rotation, and keeps reporting the velocity of its last move. EndStep isn't needed.
+        // Rotation (the controller keeps the last move's velocity). EndStep isn't needed.
         public bool ShouldMove { get; }
 
         public Vector3 Velocity { get; }
