@@ -20,5 +20,6 @@ namespace Strawhenge.Navigation.Unity.Tests
         public float FallStartSpeed { get; set; } = DefaultLocomotionSettings.FallStartSpeed;
         public float FallDistance { get; set; } = DefaultLocomotionSettings.FallDistance;
         public ILandingProfile[] FallLandings { get; set; } = Array.Empty<ILandingProfile>();
+        public bool AllowAirborneRotation { get; set; } = DefaultLocomotionSettings.AllowAirborneRotation;
     }
 }
