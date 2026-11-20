@@ -119,6 +119,7 @@ Two timeouts stop a pivot, landing or deferred jump from waiting forever. Both a
 
 Follow the existing style. The ReSharper settings are in `Strawhenge.Navigation.Unity.sln.DotSettings`.
 - Leave out `private`/`internal` where they're the default (`readonly Foo _foo;`, `class Agent`).
+- No empty `if` / `else` / loop blocks, not even with a comment: invert the condition, or extract a method (e.g. `LocomotionController.HandlePivots`). Deliberately empty member bodies (private constructors, null objects, no-op virtual hooks) are fine.
 - Serialized fields are `[SerializeField] T _camelCase;`, never public fields. Expose them through get-only properties.
 - **One type per file**, named after the type (`FakePivotProfile.cs` holds `FakePivotProfile`). Don't put several classes, interfaces or enums in one file, and don't nest classes inside other classes. The only exceptions are partial-class files: a private implementation type kept in its own file, as `DestinationArgs.Builder.cs` does for `DestinationArgs.ArgsBuilder`, and a script's test hooks in `<Type>.Setup.cs` (see Testing).
 - Naming suffixes: `...Script` for MonoBehaviours, `...ScriptableObject` for ScriptableObjects, `Serialized...` for `[Serializable]` inline equivalents. Interfaces sit behind all three (`IPivotProfile`, `ILandingProfile`, `ILocomotionSettings`).

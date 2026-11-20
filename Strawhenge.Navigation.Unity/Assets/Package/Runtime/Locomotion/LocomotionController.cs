@@ -379,34 +379,40 @@ namespace Strawhenge.Navigation.Unity
                 Vector3.up
             );
 
-            if (isAirborne)
-            {
-                // No pivots in the air (see above); turns normally.
-            }
-            else if (_suppressPivotsUntilTurned)
-            {
-                if (!IsInAnyPivotAngleRange())
-                    _suppressPivotsUntilTurned = false;
-            }
-            else
-            {
-                if (CheckForStationaryPivots(out var stationaryPivot))
-                {
-                    _isAwaitingStationaryPivot = true;
-                    _stationaryPivot = stationaryPivot;
-                }
-
-                if (CheckForMovingPivots(out var movingPivot) && movingPivot.Id is int movingPivotId)
-                {
-                    Pivot(movingPivotId);
-                    return rotation;
-                }
-            }
+            // No pivots in the air (see above): the character turns normally.
+            if (!isAirborne && HandlePivots())
+                return rotation;
 
             return Quaternion.RotateTowards(
                 rotation,
                 _targetRotation,
                 _settings.TurnSpeed * deltaTime);
+        }
+
+        // Queues a stationary pivot, or starts a moving one. Returns true when a moving pivot starts.
+        bool HandlePivots()
+        {
+            if (_suppressPivotsUntilTurned)
+            {
+                if (!IsInAnyPivotAngleRange())
+                    _suppressPivotsUntilTurned = false;
+
+                return false;
+            }
+
+            if (CheckForStationaryPivots(out var stationaryPivot))
+            {
+                _isAwaitingStationaryPivot = true;
+                _stationaryPivot = stationaryPivot;
+            }
+
+            if (CheckForMovingPivots(out var movingPivot) && movingPivot.Id is int movingPivotId)
+            {
+                Pivot(movingPivotId);
+                return true;
+            }
+
+            return false;
         }
 
         bool IsInAnyPivotAngleRange() =>
