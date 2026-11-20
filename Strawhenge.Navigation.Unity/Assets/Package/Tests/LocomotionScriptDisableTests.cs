@@ -13,6 +13,8 @@ namespace Strawhenge.Navigation.Unity.Tests
     // disables it when a destination starts, and the Animator's completion call is then routed to the
     // destination movement source instead, so it never arrives. These tests reproduce both halves:
     // they toggle 'enabled' directly and never call CompletePivot / CompleteLanding / TriggerJump.
+    [TestFixture(TestMotor.CharacterController)]
+    [TestFixture(TestMotor.Rigidbody)]
     public class LocomotionScriptDisableTests
     {
         const float SettleTime = 0.2f;
@@ -24,7 +26,13 @@ namespace Strawhenge.Navigation.Unity.Tests
         static readonly ValueRange Any = new(float.NegativeInfinity, float.PositiveInfinity);
 
         readonly List<Object> _created = new();
+        readonly TestMotor _testMotor;
         LocomotionScript _locomotion;
+
+        public LocomotionScriptDisableTests(TestMotor testMotor)
+        {
+            _testMotor = testMotor;
+        }
 
         [UnityTearDown]
         public IEnumerator TearDown()
@@ -61,9 +69,9 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return Settle();
 
             var jumpBegan = false;
-            _locomotion.JumpBegan += () => jumpBegan = true;
+            _locomotion.LocomotionController.JumpBegan += () => jumpBegan = true;
 
-            _locomotion.Jump();
+            _locomotion.LocomotionController.Jump();
             yield return WaitUntilOrTimeout(() => jumpBegan);
 
             Assert.IsTrue(jumpBegan, "Jump() did not start a jump.");
@@ -86,13 +94,13 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return Settle();
 
             var pivotRequested = false;
-            _locomotion.PivotRequested += _ => pivotRequested = true;
+            _locomotion.LocomotionController.PivotRequested += _ => pivotRequested = true;
 
             // Run forward, then reverse: a 180° turn at speed matches the pivot profile.
-            _locomotion.Move(Vector3.forward);
+            _locomotion.LocomotionController.Move(Vector3.forward);
             yield return new WaitForSeconds(AccelerateTime);
-            _locomotion.Move(Vector3.back);
-            yield return null;
+            _locomotion.LocomotionController.Move(Vector3.back);
+            yield return WaitUntilOrTimeout(() => pivotRequested); // A Rigidbody motor steps in FixedUpdate.
 
             Assert.IsTrue(pivotRequested, "Setup failed: the pivot was never requested.");
 
@@ -115,9 +123,9 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return Settle();
 
             var landingRequested = false;
-            _locomotion.LandingRequested += _ => landingRequested = true;
+            _locomotion.LocomotionController.LandingRequested += _ => landingRequested = true;
 
-            _locomotion.Jump();
+            _locomotion.LocomotionController.Jump();
             yield return WaitUntilOrTimeout(() => landingRequested);
 
             Assert.IsTrue(landingRequested, "Setup failed: the landing was never requested.");
@@ -135,9 +143,9 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return Settle();
 
             var jumpTriggerRequested = false;
-            _locomotion.JumpTriggerRequested += () => jumpTriggerRequested = true;
+            _locomotion.LocomotionController.JumpTriggerRequested += () => jumpTriggerRequested = true;
 
-            _locomotion.Jump();
+            _locomotion.LocomotionController.Jump();
 
             Assert.IsTrue(jumpTriggerRequested, "Setup failed: the jump trigger was never requested.");
 
@@ -154,10 +162,10 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return Settle();
 
             var jumpBegan = false;
-            _locomotion.JumpBegan += () => jumpBegan = true;
+            _locomotion.LocomotionController.JumpBegan += () => jumpBegan = true;
 
             // Same frame: the jump is accepted but not applied until the next Update.
-            _locomotion.Jump();
+            _locomotion.LocomotionController.Jump();
             _locomotion.enabled = false;
             yield return null;
             _locomotion.enabled = true;
@@ -176,7 +184,11 @@ namespace Strawhenge.Navigation.Unity.Tests
             _created.Add(ground);
 
             // Feet 0.1 m above the ground.
-            _locomotion = LocomotionTestCharacter.Create(settings, new Vector3(0, 1.1f, 0), _created);
+            _locomotion = LocomotionTestCharacter.Create(
+                settings,
+                new Vector3(0, 1.1f, 0),
+                _created,
+                motor: _testMotor);
         }
 
         static IEnumerator Settle()
@@ -196,7 +208,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         {
             var start = _locomotion.transform.position;
 
-            _locomotion.Move(Vector3.forward);
+            _locomotion.LocomotionController.Move(Vector3.forward);
             yield return new WaitForSeconds(MoveTime);
 
             var horizontalDistance = Vector3

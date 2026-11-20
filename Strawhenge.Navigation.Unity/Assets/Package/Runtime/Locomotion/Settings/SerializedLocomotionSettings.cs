@@ -41,7 +41,9 @@ namespace Strawhenge.Navigation.Unity
 
         [Header("Gravity")]
         [SerializeField] float _gravity = DefaultLocomotionSettings.Gravity;
-        [SerializeField] float _groundedGravity = DefaultLocomotionSettings.GroundedGravity;
+
+        [Tooltip("The downward speed a fall starts at when leaving the ground without jumping (walking off a ledge).")]
+        [SerializeField] float _fallStartSpeed = DefaultLocomotionSettings.FallStartSpeed;
 
         [Header("Falling")]
         [SerializeField] float _fallDistance = DefaultLocomotionSettings.FallDistance;
@@ -81,7 +83,7 @@ namespace Strawhenge.Navigation.Unity
 
         public float Gravity => _gravity;
 
-        public float GroundedGravity => _groundedGravity;
+        public float FallStartSpeed => _fallStartSpeed;
 
         public float FallDistance => _fallDistance;
 

@@ -48,7 +48,7 @@ namespace Strawhenge.Navigation.Unity
 
         public void TriggerJump() => _activeSource.TriggerJump();
 
-        public void CompletePivot(Quaternion rotationDelta) => _activeSource.CompletePivot(rotationDelta);
+        public void CompletePivot() => _activeSource.CompletePivot();
 
         public void CompleteLanding() => _activeSource.CompleteLanding();
 

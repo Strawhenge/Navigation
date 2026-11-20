@@ -1475,7 +1475,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4096637538250244149}
   - component: {fileID: 7942664149976357455}
-  - component: {fileID: 4096637538250244151}
   - component: {fileID: 4096637538250244153}
   - component: {fileID: 4096637538250244148}
   - component: {fileID: 4096637538250244150}
@@ -1488,7 +1487,7 @@ GameObject:
   - component: {fileID: 4901668163869598422}
   - component: {fileID: 2630842745138120503}
   m_Layer: 0
-  m_Name: Y Bot
+  m_Name: Y Bot (Base)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1532,24 +1531,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
---- !u!143 &4096637538250244151
-CharacterController:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3716031054509742735}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Height: 2
-  m_Radius: 0.2
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 1, z: 0}
 --- !u!195 &4096637538250244153
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1584,7 +1565,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 158d2dd635cd2a940a711d139ff28cf6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _characterController: {fileID: 4096637538250244151}
+  _motor: {fileID: 0}
   _settings:
     _serialized:
       _walkSpeed: 1.5
@@ -1606,6 +1587,7 @@ MonoBehaviour:
     _scriptableObject: {fileID: 11400000, guid: a787ed6e6322d564c930586c134a40cd, type: 2}
     _type: 2
   _animatorWaitTimeout: 2
+  _logger: {fileID: 0}
 --- !u!114 &4096637538250244150
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -3,7 +3,6 @@ using Strawhenge.Common.Unity.Helpers;
 using Strawhenge.Common.Unity.Serialization;
 using UnityEngine;
 using UnityEngine.AI;
-using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
@@ -22,9 +21,6 @@ namespace Strawhenge.Navigation.Unity.Destination
             DestinationSettingsScriptableObject> _settings;
 
         DestinationController _destinationController;
-        INavMeshAgentModes _modesOverride;
-        IDestinationSettings _settingsOverride;
-        ILogger _loggerOverride;
 
         public DestinationController DestinationController => _destinationController ??= Create();
 
