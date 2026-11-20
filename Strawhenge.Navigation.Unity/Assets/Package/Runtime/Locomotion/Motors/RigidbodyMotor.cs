@@ -6,7 +6,13 @@ namespace Strawhenge.Navigation.Unity
     // locomotion controller owns gravity (the Rigidbody doesn't use its own), so jump height and coyote time mean
     // the same as with the CharacterController motor. Grounding is a sphere cast below the capsule; while grounded
     // the character is moved along the ground, snapped down onto it, and lifted up steps up to StepHeight.
-    public sealed class RigidbodyMotor : ICharacterMotor
+    //
+    // Root motion (from a RootMotionRelayScript; only played during pivots, while the body isn't moved) is applied
+    // to the transform each frame,
+    // with the body held kinematic and uninterpolated meanwhile, exactly as the CharacterController motor gets it.
+    // Driving it through the dynamic, interpolated body instead had the Animator (per frame) and physics (per
+    // step) fighting over the rotation, and the turn shook.
+    public sealed class RigidbodyMotor : ICharacterMotor, IRootMotionHandler
     {
         // The ground probe starts this far up inside the capsule, so it can't start overlapping the ground.
         const float CastOffset = 0.1f;
@@ -41,6 +47,9 @@ namespace Strawhenge.Navigation.Unity
         Vector3 _velocity;
         float _lastVerticalSpeed;
 
+        // Held for root motion: kinematic and uninterpolated, with the transform leading.
+        bool _isHeld;
+
         public RigidbodyMotor(Rigidbody rigidbody, CapsuleCollider capsule, IRigidbodyMotorSettings settings)
         {
             _rigidbody = rigidbody;
@@ -50,9 +59,9 @@ namespace Strawhenge.Navigation.Unity
             _interpolation = rigidbody.interpolation;
         }
 
-        public Vector3 Position => _rigidbody.position;
+        public Vector3 Position => _isHeld ? _root.position : _rigidbody.position;
 
-        public Quaternion Rotation => _rigidbody.rotation;
+        public Quaternion Rotation => _isHeld ? _root.rotation : _rigidbody.rotation;
 
         // The velocity the body managed in the physics step before the last move, kept between moves.
         public Vector3 Velocity => _velocity;
@@ -71,6 +80,7 @@ namespace Strawhenge.Navigation.Unity
             _blockedSideways = false;
             _velocity = Vector3.zero;
             _lastVerticalSpeed = 0f;
+            _isHeld = false;
 
             if (active)
             {
@@ -107,6 +117,10 @@ namespace Strawhenge.Navigation.Unity
                 return default;
 
             _hasMovedThisStep = true;
+
+            // Moves own the body: root motion only plays while it isn't moved (pivots).
+            if (_isHeld)
+                Release();
 
             // What the last physics step did, which is what the controller reacts to: the velocity the body
             // managed, and whether a wall stopped it.
@@ -146,17 +160,64 @@ namespace Strawhenge.Navigation.Unity
             return new MotorMoveResult(blockedSideways);
         }
 
-        // Called each physics step after LocomotionScript's. A step without a move (inactive aside, a pivot
-        // playing) leaves the character where it is, as LocomotionStep.ShouldMove asks, so the body is stopped.
-        internal void EndFixedStep()
+        // Called each physics step after LocomotionScript's. A step without a move (a pivot playing) leaves the
+        // character where locomotion has it, as LocomotionStep.ShouldMove asks: a dynamic body is stopped, and a
+        // held one is left to its root motion. Returns true when it stopped one, with no root motion to follow.
+        internal bool EndFixedStep()
         {
-            if (_isActive && !_hasMovedThisStep)
+            var stopped = _isActive && !_hasMovedThisStep && !_isHeld;
+
+            if (stopped)
             {
                 _rigidbody.velocity = Vector3.zero;
                 _blockedSideways = false;
             }
 
             _hasMovedThisStep = false;
+            return stopped;
+        }
+
+        // A frame of the Animator's root motion (a pivot's turn and steps), applied to the transform straight away.
+        // The first holds the body until the next move. Not taken while off.
+        public bool TryApplyRootMotion(Vector3 deltaPosition, Quaternion deltaRotation)
+        {
+            if (!_isActive)
+                return false;
+
+            if (!_isHeld)
+                Hold();
+
+            _root.SetPositionAndRotation(
+                _root.position + new Vector3(deltaPosition.x, 0f, deltaPosition.z),
+                deltaRotation * _root.rotation);
+
+            return true;
+        }
+
+        void Hold()
+        {
+            _isHeld = true;
+            _blockedSideways = false;
+
+            _rigidbody.velocity = Vector3.zero;
+            _rigidbody.interpolation = RigidbodyInterpolation.None;
+            _rigidbody.isKinematic = true;
+
+            // From the pose on screen (interpolated, up to a step behind the body's), so the pivot starts where the
+            // character is seen.
+            _rigidbody.position = _root.position;
+            _rigidbody.rotation = _root.rotation;
+        }
+
+        void Release()
+        {
+            _isHeld = false;
+
+            _rigidbody.position = _root.position;
+            _rigidbody.rotation = _root.rotation;
+            _rigidbody.isKinematic = false;
+            _rigidbody.interpolation = _interpolation;
+            _rigidbody.velocity = Vector3.zero;
         }
 
         // From the body's collisions: a contact steeper than walkable, and not a ceiling, is a wall.
@@ -194,7 +255,7 @@ namespace Strawhenge.Navigation.Unity
 
             // From the probe sphere's bottom to the capsule's bottom.
             var probeStart = CastOffset + (capsuleRadius - probeRadius);
-            var origin = BottomSphereCentre(_rigidbody.position) + Vector3.up * CastOffset;
+            var origin = BottomSphereCentre(Position) + Vector3.up * CastOffset;
 
             var hitCount = Physics.SphereCastNonAlloc(
                 origin,
