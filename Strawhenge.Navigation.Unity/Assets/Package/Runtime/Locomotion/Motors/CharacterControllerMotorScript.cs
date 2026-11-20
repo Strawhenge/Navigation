@@ -7,7 +7,7 @@ namespace Strawhenge.Navigation.Unity
     {
         [SerializeField] CharacterController _characterController;
 
-        [Tooltip("Vertical speed (negative) applied while grounded, so the CharacterController stays grounded.")]
+        [Tooltip("The least vertical speed (negative) applied while grounded, so the CharacterController stays grounded. Moving pushes harder, enough to follow slopes up to the CharacterController's Slope Limit.")]
         [SerializeField] float _groundedPush = -2f;
 
         ICharacterMotor _motor;

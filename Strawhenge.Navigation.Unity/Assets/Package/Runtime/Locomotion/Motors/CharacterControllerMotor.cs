@@ -48,12 +48,22 @@ namespace Strawhenge.Navigation.Unity
 
             // Locomotion asks for no speed down while grounded; push into the ground so isGrounded stays true.
             if (_characterController.isGrounded && velocity.y <= 0f)
-                velocity.y = _settings.GroundedPush;
+                velocity.y = GetGroundedPush(velocity);
 
             var collisionFlags = _characterController.Move(velocity * deltaTime);
 
             return new MotorMoveResult(
                 blockedSideways: (collisionFlags & CollisionFlags.Sides) != 0);
+        }
+
+        // At least enough to follow any walkable slope (and crest) at this speed: a fixed push can't keep up going
+        // downhill fast, and the character would fly off. Pushing harder into the ground does nothing, as the
+        // CharacterController stops there.
+        float GetGroundedPush(Vector3 velocity)
+        {
+            var horizontalSpeed = new Vector2(velocity.x, velocity.z).magnitude;
+            var slopePush = -horizontalSpeed * Mathf.Tan(_characterController.slopeLimit * Mathf.Deg2Rad);
+            return Mathf.Min(_settings.GroundedPush, slopePush);
         }
     }
 }
