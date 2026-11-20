@@ -162,19 +162,16 @@ namespace Strawhenge.Navigation.Unity
 
         // Called each physics step after LocomotionScript's. A step without a move (a pivot playing) leaves the
         // character where locomotion has it, as LocomotionStep.ShouldMove asks: a dynamic body is stopped, and a
-        // held one is left to its root motion. Returns true when it stopped one, with no root motion to follow.
-        internal bool EndFixedStep()
+        // held one is left to its root motion.
+        internal void EndFixedStep()
         {
-            var stopped = _isActive && !_hasMovedThisStep && !_isHeld;
-
-            if (stopped)
+            if (_isActive && !_hasMovedThisStep && !_isHeld)
             {
                 _rigidbody.velocity = Vector3.zero;
                 _blockedSideways = false;
             }
 
             _hasMovedThisStep = false;
-            return stopped;
         }
 
         // A frame of the Animator's root motion (a pivot's turn and steps), applied to the transform straight away.
