@@ -7,6 +7,10 @@ namespace Strawhenge.Navigation.Unity.Destination
     // once, so later calls have no effect.
     public sealed partial class DestinationScript
     {
+        INavMeshAgentModes _modesOverride;
+        IDestinationSettings _settingsOverride;
+        ILogger _loggerOverride;
+
         internal void SetNavMeshAgent(NavMeshAgent navMeshAgent) => _navMeshAgent = navMeshAgent;
 
         internal void SetModes(INavMeshAgentModes modes) => _modesOverride = modes;

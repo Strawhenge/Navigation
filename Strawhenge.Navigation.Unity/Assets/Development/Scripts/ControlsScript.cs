@@ -29,27 +29,27 @@ namespace Development
         public void Walk(InputAction.CallbackContext context)
         {
             if (context.performed)
-                _player.Walk = !_player.Walk;
+                _player.LocomotionController.Walk = !_player.LocomotionController.Walk;
         }
 
         public void Sprint(InputAction.CallbackContext context)
         {
             if (context.started)
-                _player.Sprint = true;
+                _player.LocomotionController.Sprint = true;
             else if (context.canceled)
-                _player.Sprint = false;
+                _player.LocomotionController.Sprint = false;
         }
 
         public void Jump(InputAction.CallbackContext context)
         {
             if (context.performed)
-                _player.Jump();
+                _player.LocomotionController.Jump();
         }
 
         public void Strafe(InputAction.CallbackContext context)
         {
             if (context.performed)
-                _player.Strafe = !_player.Strafe;
+                _player.LocomotionController.Strafe = !_player.LocomotionController.Strafe;
         }
 
         void Update()
@@ -67,7 +67,7 @@ namespace Development
                 cameraForward * _moveInput.y +
                 cameraRight * _moveInput.x;
 
-            _player.Move(moveDirection);
+            _player.LocomotionController.Move(moveDirection);
         }
     }
 }

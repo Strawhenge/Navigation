@@ -1,14 +1,14 @@
+using Strawhenge.Common.Unity;
 using Strawhenge.Common.Unity.Helpers;
 using Strawhenge.Common.Unity.Serialization;
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity
 {
+    // Wires up and steps a LocomotionController, which holds the logic, and the motor that moves the character.
     public sealed partial class LocomotionScript : MonoBehaviour
     {
-        [SerializeField] CharacterController _characterController;
+        [SerializeField] CharacterMotorScript _motor;
 
         [SerializeField] SerializedSource<
             ILocomotionSettings,
@@ -19,50 +19,19 @@ namespace Strawhenge.Navigation.Unity
                  "before carrying on without it. Must be longer than the longest pivot or landing animation.")]
         [SerializeField] float _animatorWaitTimeout = 2f;
 
-        ILocomotionSettings _locomotionSettings;
-        bool _settingsSetFromCode;
-        Transform _rootTransform;
+        // Optional: without one, the controller logs through a UnityLogger on this GameObject.
+        [SerializeField] LoggerScript _logger;
 
-        Vector3 _input;
+        LocomotionController _controller;
+        MotorUpdateMode _updateMode;
 
-        float _horizontalSpeed;
-        float _verticalSpeed;
-
-        bool _isAwaitingJumpTrigger;
-        bool _jump;
-        bool _isJumping;
-
-        Quaternion _targetRotation;
-
-        bool _isFalling;
-        float _timeSinceGrounded;
-        float _fallDistance;
-        float _groundedY;
-        bool _isLanding;
-
-        float _turnAngle;
-        bool _isPivoting;
-        bool _isAwaitingStationaryPivot;
-        bool _suppressPivotsUntilTurned;
-        IPivotProfile _stationaryPivot;
-
-        int _pivotId;
-        float _pivotWaitTime;
-        int _landingId;
-        float _landingWaitTime;
-        float _jumpTriggerWaitTime;
-        readonly HashSet<int> _timedOutPivotIds = new();
-        readonly HashSet<int> _timedOutLandingIds = new();
-        bool _jumpTriggerTimedOut;
+        // Where consumers make requests and subscribe to events. Created on first use, so they can do that
+        // before this Awake runs.
+        public LocomotionController LocomotionController => _controller ??= Create();
 
         void Awake()
         {
-            ComponentRefHelper
-                .EnsureHierarchyComponent(ref _characterController, nameof(_characterController), this);
-
-            _locomotionSettings ??= new CachedLocomotionSettings(ResolveSettings());
-
-            _rootTransform = _characterController.transform;
+            _controller ??= Create();
         }
 
         // Inline settings edits, and swapping the settings asset, apply in play mode. Settings given to
@@ -71,489 +40,79 @@ namespace Strawhenge.Navigation.Unity
         {
             CachedLocomotionSettings.Invalidate();
 
-            if (Application.isPlaying && _locomotionSettings != null && !_settingsSetFromCode)
-                _locomotionSettings = new CachedLocomotionSettings(ResolveSettings());
+            if (Application.isPlaying && _controller != null && _settingsOverride == null)
+                _controller.SetSettings(new CachedLocomotionSettings(ResolveSettings()));
+        }
+
+        void OnEnable()
+        {
+            LocomotionController.Activate();
+        }
+
+        // While disabled, MovementSourceManagerScript routes the Animator's completion calls (CompletePivot,
+        // CompleteLanding, TriggerJump) to another movement source, so Deactivate also clears everything
+        // waiting on them. It also makes the steps of an externally stepped motor do nothing.
+        void OnDisable()
+        {
+            LocomotionController.Deactivate();
+        }
+
+        // _controller is always created by now (in Awake at the latest).
+        void Update()
+        {
+            if (_updateMode == MotorUpdateMode.Update)
+                _controller.Step(Time.deltaTime);
+        }
+
+        void FixedUpdate()
+        {
+            if (_updateMode == MotorUpdateMode.FixedUpdate)
+                _controller.Step(Time.fixedDeltaTime);
+        }
+
+        LocomotionController Create()
+        {
+            var motor = ResolveMotor();
+            _updateMode = motor.UpdateMode;
+
+            var logger = _loggerOverride ?? (_logger != null
+                ? _logger.Logger
+                : new UnityLogger(gameObject));
+
+            var controller = new LocomotionController(
+                motor,
+                new CachedLocomotionSettings(ResolveSettings()),
+                _animatorWaitTimeout,
+                logger);
+
+            // A motor that steps itself (e.g. from a third-party controller's callbacks) calls BeginStep /
+            // EndStep, so neither Update nor FixedUpdate steps for it.
+            if (motor is IExternallySteppedMotor externallySteppedMotor)
+                externallySteppedMotor.SetStepper(controller);
+
+            return controller;
+        }
+
+        // Without a motor the character stays where it is.
+        ICharacterMotor ResolveMotor()
+        {
+            ComponentRefHelper.EnsureHierarchyComponent(ref _motor, nameof(_motor), this);
+
+            return _motor != null
+                ? _motor.Motor
+                : NullCharacterMotor.Instance;
         }
 
         ILocomotionSettings ResolveSettings()
         {
+            if (_settingsOverride != null)
+                return _settingsOverride;
+
             if (_settings != null && _settings.TryGetValue(out var settings))
                 return settings;
 
             Debug.LogWarning($"'{nameof(_settings)}' not set - using defaults.", this);
             return DefaultLocomotionSettings.Instance;
-        }
-
-        void Update()
-        {
-            HandleAnimatorWaitTimeouts();
-            HandleFalling();
-            HandleRotation();
-            HandleMovement();
-        }
-
-        void OnEnable()
-        {
-            _characterController.enabled = true;
-            IsActiveChanged?.Invoke(true);
-        }
-
-        void OnDisable()
-        {
-            CancelAnimatorWaits();
-
-            _characterController.enabled = false;
-            IsActiveChanged?.Invoke(false);
-        }
-
-        // While disabled, MovementSourceManagerScript routes the Animator's completion calls
-        // (CompletePivot, CompleteLanding, TriggerJump) to another movement source, so anything
-        // still waiting on them would block this script forever once it is re-enabled.
-        void CancelAnimatorWaits()
-        {
-            _isPivoting = false;
-            _isAwaitingStationaryPivot = false;
-            _stationaryPivot = null;
-            _suppressPivotsUntilTurned = false;
-
-            _isLanding = false;
-
-            _isAwaitingJumpTrigger = false;
-            _jump = false;
-        }
-
-        public event Action JumpTriggerRequested;
-
-        public event Action JumpBegan;
-
-        public event Action JumpEnded;
-
-        public event Action<int> PivotRequested;
-
-        public event Action FallBegan;
-
-        public event Action FallEnded;
-
-        public event Action<int> LandingRequested;
-
-        public event Action<bool> IsActiveChanged;
-
-        public Vector3 CurrentVelocity => _characterController.velocity;
-
-        public bool IsActive => isActiveAndEnabled;
-
-        public bool Walk { get; set; }
-
-        public bool Sprint { get; set; }
-
-        public bool Strafe { get; set; }
-
-        public void Move(Vector3 input)
-        {
-            input.y = 0;
-
-            if (input.sqrMagnitude > 1f)
-                input.Normalize();
-
-            if (input.sqrMagnitude > 0.001f)
-                _targetRotation = Quaternion.LookRotation(input);
-
-            if (_isAwaitingStationaryPivot)
-            {
-                if (_input.magnitude < 0.001f)
-                {
-                    _isAwaitingStationaryPivot = false;
-
-                    // Held since it matched, so its pivot asset may have been cleared meanwhile:
-                    // then there's no pivot, and the character turns normally.
-                    if (_stationaryPivot.Id is int stationaryPivotId)
-                        Pivot(stationaryPivotId);
-
-                    _stationaryPivot = null;
-                }
-                else if (input.magnitude > _input.magnitude)
-                {
-                    _isAwaitingStationaryPivot = false;
-                    _stationaryPivot = null;
-                }
-            }
-
-            _input = input;
-        }
-
-        public void Jump()
-        {
-            if (_isJumping || _isPivoting || _isLanding || _timeSinceGrounded > _locomotionSettings.CoyoteTime)
-                return;
-
-            _isAwaitingJumpTrigger = true;
-            _jumpTriggerWaitTime = 0f;
-
-            if (_locomotionSettings.DeferJumpTrigger)
-                JumpTriggerRequested?.Invoke();
-            else
-                TriggerJump();
-        }
-
-        public void TriggerJump()
-        {
-            if (!_isAwaitingJumpTrigger) return;
-            _isAwaitingJumpTrigger = false;
-
-            _jump = true;
-        }
-
-        public void CompletePivot(Quaternion rotationDelta)
-        {
-            if (!_isPivoting) return;
-
-            _rootTransform.rotation = rotationDelta * _rootTransform.rotation;
-            _isPivoting = false;
-
-            // A pivot that didn't turn the character (no animation played it, e.g. no
-            // PivotStateMachineBehaviour, or a clip without root rotation) would match again next frame
-            // and stop the character ever turning. Turn normally until out of every pivot's angle range.
-            if (rotationDelta == Quaternion.identity)
-                _suppressPivotsUntilTurned = true;
-        }
-
-        public void CompleteLanding()
-        {
-            if (!_isLanding) return;
-            _isLanding = false;
-        }
-
-        // Safety net for waits nobody completes: no MovementAnimationSyncScript, nothing wired up, or an
-        // animation that never finishes. MovementAnimationSyncScript gives up much sooner on an animation that
-        // never starts; this covers everything else.
-        void HandleAnimatorWaitTimeouts()
-        {
-            var deltaTime = Time.deltaTime;
-
-            if (_isPivoting)
-            {
-                _pivotWaitTime += deltaTime;
-
-                if (_pivotWaitTime > _animatorWaitTimeout)
-                {
-                    WarnTimedOut(_timedOutPivotIds, _pivotId, "Pivot");
-                    CompletePivot(Quaternion.identity);
-                }
-            }
-
-            if (_isLanding)
-            {
-                _landingWaitTime += deltaTime;
-
-                if (_landingWaitTime > _animatorWaitTimeout)
-                {
-                    WarnTimedOut(_timedOutLandingIds, _landingId, "Landing");
-                    CompleteLanding();
-                }
-            }
-
-            if (_isAwaitingJumpTrigger)
-            {
-                _jumpTriggerWaitTime += deltaTime;
-
-                if (_jumpTriggerWaitTime > _animatorWaitTimeout)
-                {
-                    if (!_jumpTriggerTimedOut)
-                    {
-                        _jumpTriggerTimedOut = true;
-                        Debug.LogWarning(
-                            $"Deferred jump wasn't launched within {_animatorWaitTimeout} s - cancelling it. " +
-                            "Check the jump animation calls MovementAnimationSyncScript.OnJumpLaunch.",
-                            this);
-                    }
-
-                    // Cancelled rather than launched: a jump this long after the button press would be unexpected.
-                    _isAwaitingJumpTrigger = false;
-                }
-            }
-        }
-
-        void WarnTimedOut(HashSet<int> timedOutIds, int id, string kind)
-        {
-            if (!timedOutIds.Add(id))
-                return;
-
-            Debug.LogWarning(
-                $"{kind} ID {id} wasn't completed within {_animatorWaitTimeout} s - carrying on without it. " +
-                $"Check a {nameof(MovementAnimationSyncScript)} is set up and the Animator has a transition for it.",
-                this);
-        }
-
-        void HandleRotation()
-        {
-            if (_isPivoting || _isLanding) return;
-
-            if (_horizontalSpeed >= 1f)
-            {
-                _isAwaitingStationaryPivot = false;
-                _stationaryPivot = null;
-            }
-
-            if (Strafe)
-            {
-                _turnAngle = 0;
-                _targetRotation = _rootTransform.rotation;
-                return;
-            }
-
-            _turnAngle = Vector3.SignedAngle(
-                _rootTransform.forward,
-                _input.normalized,
-                Vector3.up
-            );
-
-            if (_suppressPivotsUntilTurned)
-            {
-                if (!IsInAnyPivotAngleRange())
-                    _suppressPivotsUntilTurned = false;
-            }
-            else
-            {
-                if (CheckForStationaryPivots(out var stationaryPivot))
-                {
-                    _isAwaitingStationaryPivot = true;
-                    _stationaryPivot = stationaryPivot;
-                }
-
-                if (CheckForMovingPivots(out var movingPivot) && movingPivot.Id is int movingPivotId)
-                {
-                    Pivot(movingPivotId);
-                    return;
-                }
-            }
-
-            _rootTransform.rotation = Quaternion.RotateTowards(
-                _rootTransform.rotation,
-                _targetRotation,
-                _locomotionSettings.TurnSpeed * Time.deltaTime);
-        }
-
-        bool IsInAnyPivotAngleRange() =>
-            IsInAngleRange(_locomotionSettings.StationaryPivots) ||
-            IsInAngleRange(_locomotionSettings.MovingPivots);
-
-        bool IsInAngleRange(IPivotProfile[] pivots)
-        {
-            foreach (var pivot in pivots)
-            {
-                if (pivot.IsInAngleRange(_turnAngle))
-                    return true;
-            }
-
-            return false;
-        }
-
-        bool CheckForStationaryPivots(out IPivotProfile matchingPivot)
-        {
-            foreach (var pivot in _locomotionSettings.StationaryPivots)
-            {
-                if (pivot.Matches(_horizontalSpeed, _turnAngle))
-                {
-                    matchingPivot = pivot;
-                    return true;
-                }
-            }
-
-            matchingPivot = null;
-            return false;
-        }
-
-        bool CheckForMovingPivots(out IPivotProfile matchingPivot)
-        {
-            if (_isAwaitingStationaryPivot)
-            {
-                matchingPivot = null;
-                return false;
-            }
-
-            foreach (var pivot in _locomotionSettings.MovingPivots)
-            {
-                if (pivot.Matches(_horizontalSpeed, _turnAngle))
-                {
-                    matchingPivot = pivot;
-                    return true;
-                }
-            }
-
-            matchingPivot = null;
-            return false;
-        }
-
-        void HandleMovement()
-        {
-            if (_isPivoting) return;
-
-            CalculateHorizontalSpeed();
-            CalculateVerticalSpeed();
-
-            var velocity = GetVelocity();
-            var collisionFlags = _characterController.Move(velocity * Time.deltaTime);
-
-            ManageCollisions(collisionFlags);
-        }
-
-        void HandleFalling()
-        {
-            // Coyote time counts from leaving the ground, however far the character has dropped.
-            // The fall itself (FallBegan, landings) still waits for FallDistance.
-            _timeSinceGrounded = _characterController.isGrounded
-                ? 0f
-                : _timeSinceGrounded + Time.deltaTime;
-
-            if (_characterController.isGrounded)
-                _groundedY = _rootTransform.position.y;
-
-            var fallDistance = _fallDistance;
-            _fallDistance = Mathf.Max(0f, _groundedY - _rootTransform.position.y);
-
-            var isFalling = !_characterController.isGrounded && _fallDistance >= _locomotionSettings.FallDistance;
-            if (isFalling != _isFalling)
-            {
-                _isFalling = isFalling;
-                if (_isFalling)
-                {
-                    FallBegan?.Invoke();
-                    return;
-                }
-
-                foreach (var landing in _locomotionSettings.FallLandings)
-                {
-                    if (landing.Matches(_horizontalSpeed, fallDistance) && landing.Id is int landingId)
-                    {
-                        Land(landingId);
-                        break;
-                    }
-                }
-
-                FallEnded?.Invoke();
-            }
-        }
-
-        void CalculateHorizontalSpeed()
-        {
-            if (_isAwaitingJumpTrigger)
-                return;
-
-            if (_isLanding)
-            {
-                _horizontalSpeed = 0;
-                return;
-            }
-
-            var targetSpeed = GetTargetSpeed();
-            var acceleration = GetAcceleration(targetSpeed);
-
-            var speed = Mathf.MoveTowards(
-                _horizontalSpeed,
-                targetSpeed,
-                acceleration * Time.deltaTime);
-
-            if (Mathf.Abs(_turnAngle) >= 120f)
-                speed = Mathf.Min(speed, _locomotionSettings.WalkSpeed);
-            else if (Mathf.Abs(_turnAngle) >= 40f)
-                speed = Mathf.Min(speed, _locomotionSettings.RunSpeed);
-
-            _horizontalSpeed = speed;
-        }
-
-        void CalculateVerticalSpeed()
-        {
-            if (_jump)
-            {
-                _jump = false;
-                _isJumping = true;
-                _verticalSpeed = Mathf.Sqrt(_locomotionSettings.JumpHeight * -2f * _locomotionSettings.Gravity);
-                JumpBegan?.Invoke();
-                return;
-            }
-
-            if (_isJumping && _characterController.isGrounded && _verticalSpeed <= 0f)
-            {
-                _isJumping = false;
-                JumpEnded?.Invoke();
-
-                if (!_isLanding)
-                {
-                    foreach (var landing in _locomotionSettings.JumpLandings)
-                    {
-                        if (landing.Matches(_horizontalSpeed, _fallDistance) && landing.Id is int landingId)
-                        {
-                            Land(landingId);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!_characterController.isGrounded)
-            {
-                _verticalSpeed += _locomotionSettings.Gravity * Time.deltaTime;
-                return;
-            }
-
-            _verticalSpeed = _verticalSpeed < 0f
-                ? _locomotionSettings.GroundedGravity
-                : _verticalSpeed;
-        }
-
-        void ManageCollisions(CollisionFlags collisionFlags)
-        {
-            var blocked =
-                (collisionFlags & CollisionFlags.Sides) != 0 &&
-                _input.sqrMagnitude > 0.001f;
-
-            if (blocked)
-            {
-                _horizontalSpeed = Mathf.Min(
-                    _horizontalSpeed,
-                    _characterController.velocity.magnitude);
-            }
-        }
-
-        Vector3 GetVelocity()
-        {
-            var velocity = (_input.magnitude > 0.1f ? _input : _rootTransform.forward) * _horizontalSpeed;
-            velocity.y = _verticalSpeed;
-            return velocity;
-        }
-
-        float GetTargetSpeed()
-        {
-            if (_input.sqrMagnitude < 0.001f)
-                return 0f;
-            if (Sprint)
-                return Strafe ? _locomotionSettings.RunSpeed : _locomotionSettings.SprintSpeed;
-            if (Walk)
-                return _locomotionSettings.WalkSpeed;
-            return _locomotionSettings.RunSpeed;
-        }
-
-        float GetAcceleration(float targetSpeed)
-        {
-            return targetSpeed > _horizontalSpeed
-                ? _locomotionSettings.Acceleration
-                : _locomotionSettings.Deceleration;
-        }
-
-        void Pivot(int pivotId)
-        {
-            _isPivoting = true;
-            _pivotId = pivotId;
-            _pivotWaitTime = 0f;
-            PivotRequested?.Invoke(pivotId);
-        }
-
-        void Land(int landId)
-        {
-            _isLanding = true;
-            _landingId = landId;
-            _landingWaitTime = 0f;
-            LandingRequested?.Invoke(landId);
         }
     }
 }
