@@ -31,6 +31,9 @@ namespace Strawhenge.Navigation.Unity
         float _horizontalSpeed;
         float _verticalSpeed;
 
+        // The horizontal velocity asked for in the last step that moved: what carries on through the air.
+        Vector3 _momentum;
+
         bool _isAwaitingJumpTrigger;
         bool _jump;
         bool _isJumping;
@@ -106,6 +109,16 @@ namespace Strawhenge.Navigation.Unity
         // stairs or a small bump, and coyote time, are still on the ground as far as control goes.
         bool IsAirborne => _isJumping || _isFalling;
 
+        // The same threshold GetVelocity has always used for following the input rather than the facing.
+        bool HasMoveInput => _input.sqrMagnitude > 0.01f;
+
+        // Airborne and carrying on at _momentum: always with Momentum, and while there's no input with
+        // ControlledKeepsMomentum.
+        bool IsKeepingMomentum =>
+            IsAirborne &&
+            (_settings.AirborneMovement == AirborneMovement.Momentum ||
+             (_settings.AirborneMovement == AirborneMovement.ControlledKeepsMomentum && !HasMoveInput));
+
         internal void SetSettings(ILocomotionSettings settings) => _settings = settings;
 
         internal void Activate()
@@ -113,6 +126,7 @@ namespace Strawhenge.Navigation.Unity
             _isActive = true;
             _wasGrounded = false;
             _velocity = Vector3.zero;
+            _momentum = Vector3.zero;
 
             // Keep facing the way the character does until there's input. Otherwise it would turn to the input
             // from before it was deactivated (something else may have turned it since), or, before any input,
@@ -133,6 +147,7 @@ namespace Strawhenge.Navigation.Unity
             _isActive = false;
             _isAwaitingEndStep = false;
             _velocity = Vector3.zero;
+            _momentum = Vector3.zero;
             _motor.SetActive(false);
             IsActiveChanged?.Invoke(false);
         }
@@ -515,6 +530,10 @@ namespace Strawhenge.Navigation.Unity
             if (_isAwaitingJumpTrigger)
                 return;
 
+            // Carrying on at the speed it had. Kept up to date (walls cap it) for landings, which match on it.
+            if (IsKeepingMomentum)
+                return;
+
             if (_isLanding)
             {
                 _horizontalSpeed = 0;
@@ -591,22 +610,46 @@ namespace Strawhenge.Navigation.Unity
 
         void ManageCollisions(MotorMoveResult result)
         {
-            var blocked = result.BlockedSideways && _input.sqrMagnitude > 0.001f;
+            var isKeepingMomentum = IsKeepingMomentum;
+            var blocked = result.BlockedSideways && (_input.sqrMagnitude > 0.001f || isKeepingMomentum);
 
-            if (blocked)
+            if (!blocked)
+                return;
+
+            _horizontalSpeed = Mathf.Min(
+                _horizontalSpeed,
+                _velocity.magnitude);
+
+            if (isKeepingMomentum)
             {
-                _horizontalSpeed = Mathf.Min(
-                    _horizontalSpeed,
-                    _velocity.magnitude);
+                // Momentum carries on as the move turned out: stopped by a wall, or sliding along it.
+                _momentum = Vector3.ProjectOnPlane(_velocity, Vector3.up);
+                _horizontalSpeed = Mathf.Min(_horizontalSpeed, _momentum.magnitude);
             }
         }
 
         Vector3 GetVelocity(Quaternion rotation)
         {
-            var direction = _input.sqrMagnitude > 0.01f ? _input : rotation * Vector3.forward;
-            var velocity = direction * _horizontalSpeed;
+            var velocity = GetHorizontalVelocity(rotation);
+            _momentum = velocity;
             velocity.y = _verticalSpeed;
             return velocity;
+        }
+
+        Vector3 GetHorizontalVelocity(Quaternion rotation)
+        {
+            if (IsKeepingMomentum)
+                return _momentum;
+
+            if (HasMoveInput)
+                return _input * _horizontalSpeed;
+
+            // Slowing down in the air without input: the way it was going, not the way it's facing, which can be
+            // well off it there (airborne rotation off, or still turning).
+            if (IsAirborne && _momentum.sqrMagnitude > 0.0001f)
+                return _momentum.normalized * _horizontalSpeed;
+
+            return rotation * Vector3.forward * _horizontalSpeed;
         }
 
         float GetTargetSpeed()
