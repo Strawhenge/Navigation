@@ -5,9 +5,9 @@ namespace Strawhenge.Navigation.Unity
 {
     public class LocomotionMovementSource : IMovementSource
     {
-        readonly LocomotionScript _locomotion;
+        readonly LocomotionController _locomotion;
 
-        public LocomotionMovementSource(LocomotionScript locomotion)
+        public LocomotionMovementSource(LocomotionController locomotion)
         {
             _locomotion = locomotion;
         }
@@ -54,7 +54,7 @@ namespace Strawhenge.Navigation.Unity
             remove => _locomotion.LandingRequested -= value;
         }
 
-        // Never raised: LocomotionScript clears its own waits when it's disabled, which also changes the
+        // Never raised: LocomotionController clears its own waits when it's deactivated, which also changes the
         // active movement source.
         public event Action PivotCancelled
         {

@@ -6,11 +6,13 @@ using ILogger = Strawhenge.Common.Logging.ILogger;
 namespace Strawhenge.Navigation.Unity
 {
     // Direct-control locomotion: speeds, turning, pivots, jumps, coyote time, falls and landings. Knows nothing
-    // about how the character is moved; ICharacterMotor does that. LocomotionScript wires it up and steps it.
+    // about how the character is moved; ICharacterMotor does that. LocomotionScript wires it up, steps it and
+    // turns it on and off; consumers make their requests here (LocomotionScript.LocomotionController).
     //
     // Each step is two halves either side of the motor's move:
     // BeginStep reads the motor (grounded, position, rotation) and works out the move; EndStep reacts to the
-    // result. Pull motors are driven by Step; externally stepped motors call the halves from their callbacks.
+    // result. Pull motors are driven by Step; externally stepped motors call the halves from their callbacks,
+    // through ILocomotionStepper.
     public sealed class LocomotionController : ILocomotionStepper
     {
         readonly ICharacterMotor _motor;
@@ -81,6 +83,11 @@ namespace Strawhenge.Navigation.Unity
 
         public event Action<int> LandingRequested;
 
+        // Follows LocomotionScript being enabled and disabled.
+        public event Action<bool> IsActiveChanged;
+
+        public bool IsActive => _isActive;
+
         public Vector3 CurrentVelocity => _motor.Velocity;
 
         public bool Walk { get; set; }
@@ -89,27 +96,29 @@ namespace Strawhenge.Navigation.Unity
 
         public bool Strafe { get; set; }
 
-        public void SetSettings(ILocomotionSettings settings) => _settings = settings;
+        internal void SetSettings(ILocomotionSettings settings) => _settings = settings;
 
-        public void Activate()
+        internal void Activate()
         {
             _isActive = true;
             _motor.SetActive(true);
+            IsActiveChanged?.Invoke(true);
         }
 
         // While inactive, MovementSourceManagerScript routes the Animator's completion calls
         // (CompletePivot, CompleteLanding, TriggerJump) to another movement source, so anything
         // still waiting on them would block this controller forever once it is activated again.
-        public void Deactivate()
+        internal void Deactivate()
         {
             CancelAnimatorWaits();
 
             _isActive = false;
             _isAwaitingEndStep = false;
             _motor.SetActive(false);
+            IsActiveChanged?.Invoke(false);
         }
 
-        public void Step(float deltaTime)
+        internal void Step(float deltaTime)
         {
             var step = BeginStep(deltaTime);
 
@@ -117,9 +126,14 @@ namespace Strawhenge.Navigation.Unity
                 EndStep(_motor.Move(step, deltaTime));
         }
 
+        // Explicit, so the stepping only shows to the motors given the stepper, not on the controller's API.
+        LocomotionStep ILocomotionStepper.BeginStep(float deltaTime) => BeginStep(deltaTime);
+
+        void ILocomotionStepper.EndStep(MotorMoveResult result) => EndStep(result);
+
         // When ShouldMove is false (inactive, or a pivot is playing), the motor must leave the character
         // where it is, keep Rotation, and keep reporting the velocity of its last move. EndStep isn't needed.
-        public LocomotionStep BeginStep(float deltaTime)
+        LocomotionStep BeginStep(float deltaTime)
         {
             if (!_isActive)
                 return LocomotionStep.Stationary(_motor.Rotation);
@@ -143,7 +157,7 @@ namespace Strawhenge.Navigation.Unity
             return LocomotionStep.Moving(GetVelocity(rotation), rotation);
         }
 
-        public void EndStep(MotorMoveResult result)
+        void EndStep(MotorMoveResult result)
         {
             if (!_isAwaitingEndStep) return;
             _isAwaitingEndStep = false;

@@ -1,7 +1,6 @@
 using Strawhenge.Common.Unity;
 using Strawhenge.Common.Unity.Helpers;
 using Strawhenge.Common.Unity.Serialization;
-using System;
 using UnityEngine;
 using ILogger = Strawhenge.Common.Logging.ILogger;
 
@@ -29,11 +28,9 @@ namespace Strawhenge.Navigation.Unity
         ILocomotionSettings _settingsOverride;
         ILogger _loggerOverride;
 
-        // Created on first use, so consumers can subscribe to events before this Awake runs.
-        internal LocomotionController Controller => _controller ??= Create();
-
-        // For the inspector: null until created, so the Editor never creates one.
-        internal LocomotionController ControllerIfCreated => _controller;
+        // Where consumers make requests and subscribe to events. Created on first use, so they can do that
+        // before this Awake runs.
+        public LocomotionController LocomotionController => _controller ??= Create();
 
         void Awake()
         {
@@ -52,8 +49,7 @@ namespace Strawhenge.Navigation.Unity
 
         void OnEnable()
         {
-            Controller.Activate();
-            IsActiveChanged?.Invoke(true);
+            LocomotionController.Activate();
         }
 
         // While disabled, MovementSourceManagerScript routes the Animator's completion calls (CompletePivot,
@@ -61,8 +57,7 @@ namespace Strawhenge.Navigation.Unity
         // waiting on them. It also makes the steps of an externally stepped motor do nothing.
         void OnDisable()
         {
-            Controller.Deactivate();
-            IsActiveChanged?.Invoke(false);
+            LocomotionController.Deactivate();
         }
 
         // _controller is always created by now (in Awake at the latest).
@@ -77,83 +72,6 @@ namespace Strawhenge.Navigation.Unity
             if (_updateMode == MotorUpdateMode.FixedUpdate)
                 _controller.Step(Time.fixedDeltaTime);
         }
-
-        public event Action JumpTriggerRequested
-        {
-            add => Controller.JumpTriggerRequested += value;
-            remove => Controller.JumpTriggerRequested -= value;
-        }
-
-        public event Action JumpBegan
-        {
-            add => Controller.JumpBegan += value;
-            remove => Controller.JumpBegan -= value;
-        }
-
-        public event Action JumpEnded
-        {
-            add => Controller.JumpEnded += value;
-            remove => Controller.JumpEnded -= value;
-        }
-
-        public event Action<int> PivotRequested
-        {
-            add => Controller.PivotRequested += value;
-            remove => Controller.PivotRequested -= value;
-        }
-
-        public event Action FallBegan
-        {
-            add => Controller.FallBegan += value;
-            remove => Controller.FallBegan -= value;
-        }
-
-        public event Action FallEnded
-        {
-            add => Controller.FallEnded += value;
-            remove => Controller.FallEnded -= value;
-        }
-
-        public event Action<int> LandingRequested
-        {
-            add => Controller.LandingRequested += value;
-            remove => Controller.LandingRequested -= value;
-        }
-
-        // Raised here rather than by the controller: it reports this component being enabled or disabled.
-        public event Action<bool> IsActiveChanged;
-
-        public Vector3 CurrentVelocity => Controller.CurrentVelocity;
-
-        public bool IsActive => isActiveAndEnabled;
-
-        public bool Walk
-        {
-            get => Controller.Walk;
-            set => Controller.Walk = value;
-        }
-
-        public bool Sprint
-        {
-            get => Controller.Sprint;
-            set => Controller.Sprint = value;
-        }
-
-        public bool Strafe
-        {
-            get => Controller.Strafe;
-            set => Controller.Strafe = value;
-        }
-
-        public void Move(Vector3 input) => Controller.Move(input);
-
-        public void Jump() => Controller.Jump();
-
-        public void TriggerJump() => Controller.TriggerJump();
-
-        public void CompletePivot(Quaternion rotationDelta) => Controller.CompletePivot(rotationDelta);
-
-        public void CompleteLanding() => Controller.CompleteLanding();
 
         LocomotionController Create()
         {

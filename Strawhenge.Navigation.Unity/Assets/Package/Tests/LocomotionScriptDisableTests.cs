@@ -61,9 +61,9 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return Settle();
 
             var jumpBegan = false;
-            _locomotion.JumpBegan += () => jumpBegan = true;
+            _locomotion.LocomotionController.JumpBegan += () => jumpBegan = true;
 
-            _locomotion.Jump();
+            _locomotion.LocomotionController.Jump();
             yield return WaitUntilOrTimeout(() => jumpBegan);
 
             Assert.IsTrue(jumpBegan, "Jump() did not start a jump.");
@@ -86,12 +86,12 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return Settle();
 
             var pivotRequested = false;
-            _locomotion.PivotRequested += _ => pivotRequested = true;
+            _locomotion.LocomotionController.PivotRequested += _ => pivotRequested = true;
 
             // Run forward, then reverse: a 180° turn at speed matches the pivot profile.
-            _locomotion.Move(Vector3.forward);
+            _locomotion.LocomotionController.Move(Vector3.forward);
             yield return new WaitForSeconds(AccelerateTime);
-            _locomotion.Move(Vector3.back);
+            _locomotion.LocomotionController.Move(Vector3.back);
             yield return null;
 
             Assert.IsTrue(pivotRequested, "Setup failed: the pivot was never requested.");
@@ -115,9 +115,9 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return Settle();
 
             var landingRequested = false;
-            _locomotion.LandingRequested += _ => landingRequested = true;
+            _locomotion.LocomotionController.LandingRequested += _ => landingRequested = true;
 
-            _locomotion.Jump();
+            _locomotion.LocomotionController.Jump();
             yield return WaitUntilOrTimeout(() => landingRequested);
 
             Assert.IsTrue(landingRequested, "Setup failed: the landing was never requested.");
@@ -135,9 +135,9 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return Settle();
 
             var jumpTriggerRequested = false;
-            _locomotion.JumpTriggerRequested += () => jumpTriggerRequested = true;
+            _locomotion.LocomotionController.JumpTriggerRequested += () => jumpTriggerRequested = true;
 
-            _locomotion.Jump();
+            _locomotion.LocomotionController.Jump();
 
             Assert.IsTrue(jumpTriggerRequested, "Setup failed: the jump trigger was never requested.");
 
@@ -154,10 +154,10 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return Settle();
 
             var jumpBegan = false;
-            _locomotion.JumpBegan += () => jumpBegan = true;
+            _locomotion.LocomotionController.JumpBegan += () => jumpBegan = true;
 
             // Same frame: the jump is accepted but not applied until the next Update.
-            _locomotion.Jump();
+            _locomotion.LocomotionController.Jump();
             _locomotion.enabled = false;
             yield return null;
             _locomotion.enabled = true;
@@ -196,7 +196,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         {
             var start = _locomotion.transform.position;
 
-            _locomotion.Move(Vector3.forward);
+            _locomotion.LocomotionController.Move(Vector3.forward);
             yield return new WaitForSeconds(MoveTime);
 
             var horizontalDistance = Vector3

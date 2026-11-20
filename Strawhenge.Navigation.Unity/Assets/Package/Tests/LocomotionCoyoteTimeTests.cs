@@ -98,7 +98,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.IsTrue(_characterController.isGrounded, "Setup failed: the character never landed on the ledge.");
 
             // Off the ledge = past its edge and not grounded, so a grounded flicker on top can't count.
-            _locomotion.Move(Vector3.right);
+            _locomotion.LocomotionController.Move(Vector3.right);
             yield return WaitUntilOrTimeout(() =>
                 _locomotion.transform.position.x > LedgeEdgeX && !_characterController.isGrounded);
 
@@ -110,9 +110,9 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.IsFalse(_characterController.isGrounded, "Setup failed: the character had already landed.");
 
             var jumpBegan = false;
-            _locomotion.JumpBegan += () => jumpBegan = true;
+            _locomotion.LocomotionController.JumpBegan += () => jumpBegan = true;
 
-            _locomotion.Jump();
+            _locomotion.LocomotionController.Jump();
             yield return new WaitForSeconds(JumpObservationTime);
 
             Assert.AreEqual(expected, jumpBegan, message);

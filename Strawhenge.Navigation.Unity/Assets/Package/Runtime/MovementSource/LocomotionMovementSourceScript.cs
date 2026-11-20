@@ -9,6 +9,6 @@ namespace Strawhenge.Navigation.Unity
         LocomotionMovementSource _movementSource;
 
         public override IMovementSource MovementSource =>
-            _movementSource ??= new LocomotionMovementSource(_locomotion);
+            _movementSource ??= new LocomotionMovementSource(_locomotion.LocomotionController);
     }
 }
