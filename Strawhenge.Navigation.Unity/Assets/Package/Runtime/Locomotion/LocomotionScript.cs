@@ -18,7 +18,8 @@ namespace Strawhenge.Navigation.Unity
 
         [Tooltip("Longest wait for a pivot or landing to be completed, or a deferred jump to be launched, " +
                  "before carrying on without it. Must be longer than the longest pivot or landing animation.")]
-        [SerializeField] float _animatorWaitTimeout = 2f;
+        [SerializeField]
+        float _animatorWaitTimeout = 2f;
 
         // Optional: without one, the controller logs through a UnityLogger on this GameObject.
         [SerializeField] LoggerScript _logger;
@@ -78,9 +79,9 @@ namespace Strawhenge.Navigation.Unity
             var motor = ResolveMotor();
             _updateMode = motor.UpdateMode;
 
-            var logger = _loggerOverride;
-            if (logger == null)
-                logger = _logger != null ? _logger.Logger : new UnityLogger(gameObject);
+            var logger = _loggerOverride ?? (_logger != null
+                ? _logger.Logger
+                : new UnityLogger(gameObject));
 
             var controller = new LocomotionController(
                 motor,
