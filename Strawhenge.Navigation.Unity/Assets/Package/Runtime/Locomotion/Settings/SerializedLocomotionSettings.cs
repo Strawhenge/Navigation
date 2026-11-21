@@ -53,6 +53,15 @@ namespace Strawhenge.Navigation.Unity
             SerializedLandingProfile,
             LandingProfileScriptableObject>[] _fallLandings;
 
+        [Header("Airborne")]
+        [Tooltip("Whether the character can turn while jumping or falling. When off, it turns to the input once it lands.")]
+        [SerializeField] bool _allowAirborneRotation = DefaultLocomotionSettings.AllowAirborneRotation;
+
+        [Tooltip("Control over horizontal movement while jumping or falling. Controlled: as on the ground. " +
+                 "Controlled Keeps Momentum: as on the ground, but carries on when the input is released. " +
+                 "Momentum: none, carries on at the velocity it left the ground with.")]
+        [SerializeField] AirborneMovement _airborneMovement = DefaultLocomotionSettings.AirborneMovement;
+
         public float WalkSpeed => _walkSpeed;
 
         public float RunSpeed => _runSpeed;
@@ -89,5 +98,9 @@ namespace Strawhenge.Navigation.Unity
 
         public ILandingProfile[] FallLandings =>
             ProfileSources.Resolve(_fallLandings, landing => landing.Id, nameof(_fallLandings), null);
+
+        public bool AllowAirborneRotation => _allowAirborneRotation;
+
+        public AirborneMovement AirborneMovement => _airborneMovement;
     }
 }

@@ -35,5 +35,12 @@ namespace Strawhenge.Navigation.Unity
         float FallDistance { get; }
        
         ILandingProfile[] FallLandings { get; }
+
+        // Whether the character can turn while airborne: jumping, or falling once it has dropped FallDistance.
+        // When it can't, it turns to the input once it lands.
+        bool AllowAirborneRotation { get; }
+
+        // How much control there is over horizontal movement while airborne.
+        AirborneMovement AirborneMovement { get; }
     }
 }
