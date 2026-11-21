@@ -102,6 +102,10 @@ namespace Strawhenge.Navigation.Unity
 
         public bool Strafe { get; set; }
 
+        // Jumping, or falling once the character has dropped FallDistance. Not just off the ground: stepping down
+        // stairs or a small bump, and coyote time, are still on the ground as far as control goes.
+        bool IsAirborne => _isJumping || _isFalling;
+
         internal void SetSettings(ILocomotionSettings settings) => _settings = settings;
 
         internal void Activate()
@@ -190,6 +194,13 @@ namespace Strawhenge.Navigation.Unity
 
             if (input.sqrMagnitude > 0.001f)
                 _targetRotation = Quaternion.LookRotation(input);
+
+            // Queued on the ground, but pivots don't play in the air.
+            if (_isAwaitingStationaryPivot && IsAirborne)
+            {
+                _isAwaitingStationaryPivot = false;
+                _stationaryPivot = null;
+            }
 
             if (_isAwaitingStationaryPivot)
             {
@@ -333,6 +344,22 @@ namespace Strawhenge.Navigation.Unity
 
             if (_isPivoting || _isLanding) return rotation;
 
+            var isAirborne = IsAirborne;
+            if (isAirborne)
+            {
+                // Pivots are turns on the ground, so none in the air, and one queued on the ground is dropped.
+                _isAwaitingStationaryPivot = false;
+                _stationaryPivot = null;
+
+                if (!_settings.AllowAirborneRotation)
+                {
+                    // Not turning, so the speed isn't limited for a sharp turn. _targetRotation keeps following
+                    // the input, so the character turns to it once it lands.
+                    _turnAngle = 0;
+                    return rotation;
+                }
+            }
+
             if (_horizontalSpeed >= 1f)
             {
                 _isAwaitingStationaryPivot = false;
@@ -352,30 +379,40 @@ namespace Strawhenge.Navigation.Unity
                 Vector3.up
             );
 
-            if (_suppressPivotsUntilTurned)
-            {
-                if (!IsInAnyPivotAngleRange())
-                    _suppressPivotsUntilTurned = false;
-            }
-            else
-            {
-                if (CheckForStationaryPivots(out var stationaryPivot))
-                {
-                    _isAwaitingStationaryPivot = true;
-                    _stationaryPivot = stationaryPivot;
-                }
-
-                if (CheckForMovingPivots(out var movingPivot) && movingPivot.Id is int movingPivotId)
-                {
-                    Pivot(movingPivotId);
-                    return rotation;
-                }
-            }
+            // No pivots in the air (see above): the character turns normally.
+            if (!isAirborne && HandlePivots())
+                return rotation;
 
             return Quaternion.RotateTowards(
                 rotation,
                 _targetRotation,
                 _settings.TurnSpeed * deltaTime);
+        }
+
+        // Queues a stationary pivot, or starts a moving one. Returns true when a moving pivot starts.
+        bool HandlePivots()
+        {
+            if (_suppressPivotsUntilTurned)
+            {
+                if (!IsInAnyPivotAngleRange())
+                    _suppressPivotsUntilTurned = false;
+
+                return false;
+            }
+
+            if (CheckForStationaryPivots(out var stationaryPivot))
+            {
+                _isAwaitingStationaryPivot = true;
+                _stationaryPivot = stationaryPivot;
+            }
+
+            if (CheckForMovingPivots(out var movingPivot) && movingPivot.Id is int movingPivotId)
+            {
+                Pivot(movingPivotId);
+                return true;
+            }
+
+            return false;
         }
 
         bool IsInAnyPivotAngleRange() =>

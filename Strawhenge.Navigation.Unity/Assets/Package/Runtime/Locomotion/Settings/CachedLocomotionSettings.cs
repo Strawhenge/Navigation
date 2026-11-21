@@ -45,6 +45,8 @@ namespace Strawhenge.Navigation.Unity
 
         public float FallDistance => _settings.FallDistance;
 
+        public bool AllowAirborneRotation => _settings.AllowAirborneRotation;
+
         public IPivotProfile[] StationaryPivots
         {
             get
