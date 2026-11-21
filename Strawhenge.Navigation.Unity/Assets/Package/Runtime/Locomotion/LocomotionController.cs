@@ -109,6 +109,12 @@ namespace Strawhenge.Navigation.Unity
             _isActive = true;
             _wasGrounded = false;
             _velocity = Vector3.zero;
+
+            // Keep facing the way the character does until there's input. Otherwise it would turn to the input
+            // from before it was deactivated (something else may have turned it since), or, before any input,
+            // towards an all-zero quaternion.
+            _targetRotation = _motor.Rotation;
+
             _motor.SetActive(true);
             IsActiveChanged?.Invoke(true);
         }
