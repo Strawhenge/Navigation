@@ -39,6 +39,37 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.AreEqual(true, isActiveChanged, "IsActiveChanged(true) should have been raised.");
         }
 
+        // Nothing to turn to before the first input: the character keeps facing the way it did when activated.
+        [Test]
+        public void Keeps_its_facing_without_input()
+        {
+            var harness = new LocomotionControllerHarness();
+
+            harness.StepFor(0.5f);
+
+            Assert.Less(Quaternion.Angle(harness.Motor.Rotation, Quaternion.identity), 0.01f,
+                "The character shouldn't turn without input.");
+        }
+
+        // While inactive something else (Destination) can turn the character; activating again mustn't turn it
+        // back to the input it had before.
+        [Test]
+        public void Keeps_the_facing_it_was_given_while_inactive()
+        {
+            var harness = new LocomotionControllerHarness();
+            harness.Controller.Move(Vector3.forward);
+            harness.Step();
+            harness.Controller.Move(Vector3.zero);
+            harness.Controller.Deactivate();
+            harness.Motor.Rotation = Quaternion.LookRotation(Vector3.right);
+
+            harness.Controller.Activate();
+            harness.StepFor(0.5f);
+
+            Assert.Less(Quaternion.Angle(harness.Motor.Rotation, Quaternion.LookRotation(Vector3.right)), 0.01f,
+                "The character should keep the facing it was given while inactive.");
+        }
+
         [Test]
         public void Does_not_move_the_character_while_inactive()
         {
