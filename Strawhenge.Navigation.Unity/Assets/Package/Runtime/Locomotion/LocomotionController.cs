@@ -31,6 +31,10 @@ namespace Strawhenge.Navigation.Unity
         float _horizontalSpeed;
         float _verticalSpeed;
 
+        // The horizontal velocity asked for in the last step that moved. In the air it's the velocity itself:
+        // steered towards the input, or held.
+        Vector3 _momentum;
+
         bool _isAwaitingJumpTrigger;
         bool _jump;
         bool _isJumping;
@@ -106,6 +110,15 @@ namespace Strawhenge.Navigation.Unity
         // stairs or a small bump, and coyote time, are still on the ground as far as control goes.
         bool IsAirborne => _isJumping || _isFalling;
 
+        // The same threshold GetVelocity has always used for following the input rather than the facing.
+        bool HasMoveInput => _input.sqrMagnitude > 0.01f;
+
+        // In the air, whether _momentum is held rather than steered: always with Momentum, and while there's no
+        // input with ControlledKeepsMomentum.
+        bool HoldsMomentum =>
+            _settings.AirborneMovement == AirborneMovement.Momentum ||
+            (_settings.AirborneMovement == AirborneMovement.ControlledKeepsMomentum && !HasMoveInput);
+
         internal void SetSettings(ILocomotionSettings settings) => _settings = settings;
 
         internal void Activate()
@@ -113,6 +126,7 @@ namespace Strawhenge.Navigation.Unity
             _isActive = true;
             _wasGrounded = false;
             _velocity = Vector3.zero;
+            _momentum = Vector3.zero;
 
             // Keep facing the way the character does until there's input. Otherwise it would turn to the input
             // from before it was deactivated (something else may have turned it since), or, before any input,
@@ -133,6 +147,7 @@ namespace Strawhenge.Navigation.Unity
             _isActive = false;
             _isAwaitingEndStep = false;
             _velocity = Vector3.zero;
+            _momentum = Vector3.zero;
             _motor.SetActive(false);
             IsActiveChanged?.Invoke(false);
         }
@@ -169,11 +184,15 @@ namespace Strawhenge.Navigation.Unity
             if (_isPivoting)
                 return LocomotionStep.Stationary(rotation);
 
-            CalculateHorizontalSpeed(deltaTime);
+            // Read before CalculateVerticalSpeed starts or ends a jump, so the whole step is either in the air
+            // or on the ground.
+            var isAirborne = IsAirborne;
+
+            CalculateHorizontalSpeed(deltaTime, isAirborne);
             var jumpStarted = CalculateVerticalSpeed(deltaTime);
 
             _isAwaitingEndStep = true;
-            return LocomotionStep.Moving(GetVelocity(rotation), rotation, jumpStarted);
+            return LocomotionStep.Moving(GetVelocity(rotation, isAirborne), rotation, jumpStarted);
         }
 
         void EndStep(MotorMoveResult result)
@@ -510,10 +529,20 @@ namespace Strawhenge.Navigation.Unity
             }
         }
 
-        void CalculateHorizontalSpeed(float deltaTime)
+        void CalculateHorizontalSpeed(float deltaTime, bool isAirborne)
         {
             if (_isAwaitingJumpTrigger)
                 return;
+
+            if (isAirborne)
+            {
+                // Held, the speed stays as it was; walls still cap it. Kept up to date either way for landings,
+                // which match on it, and for carrying on once landed.
+                if (!HoldsMomentum)
+                    SteerInTheAir(deltaTime);
+
+                return;
+            }
 
             if (_isLanding)
             {
@@ -589,24 +618,68 @@ namespace Strawhenge.Navigation.Unity
             return false;
         }
 
+        // On the ground the direction follows the input straight away (turning limits the speed instead). In the
+        // air the velocity changes at the ground rates: what's across or against the input slows at Deceleration,
+        // and what's along it speeds up at Acceleration (or slows at Deceleration, above the target speed). So
+        // reversing slows to a stop, then speeds up the other way. Without input it all slows at Deceleration.
+        void SteerInTheAir(float deltaTime)
+        {
+            var target = _input * GetTargetSpeed();
+            var targetSpeed = target.magnitude;
+            var direction = targetSpeed > 0.0001f ? target / targetSpeed : Vector3.zero;
+
+            var along = Vector3.Dot(_momentum, direction);
+            var across = _momentum - direction * along;
+
+            across = Vector3.MoveTowards(across, Vector3.zero, _settings.Deceleration * deltaTime);
+
+            var rate = along >= 0f && along < targetSpeed
+                ? _settings.Acceleration
+                : _settings.Deceleration;
+            along = Mathf.MoveTowards(along, targetSpeed, rate * deltaTime);
+
+            _momentum = across + direction * along;
+            _horizontalSpeed = _momentum.magnitude;
+        }
+
         void ManageCollisions(MotorMoveResult result)
         {
-            var blocked = result.BlockedSideways && _input.sqrMagnitude > 0.001f;
+            var isAirborne = IsAirborne;
+            var blocked = result.BlockedSideways && (_input.sqrMagnitude > 0.001f || isAirborne);
 
-            if (blocked)
+            if (!blocked)
+                return;
+
+            _horizontalSpeed = Mathf.Min(
+                _horizontalSpeed,
+                _velocity.magnitude);
+
+            if (isAirborne)
             {
-                _horizontalSpeed = Mathf.Min(
-                    _horizontalSpeed,
-                    _velocity.magnitude);
+                // The velocity in the air carries on as the move turned out: stopped by a wall, or sliding along it.
+                _momentum = Vector3.ProjectOnPlane(_velocity, Vector3.up);
+                _horizontalSpeed = Mathf.Min(_horizontalSpeed, _momentum.magnitude);
             }
         }
 
-        Vector3 GetVelocity(Quaternion rotation)
+        Vector3 GetVelocity(Quaternion rotation, bool isAirborne)
         {
-            var direction = _input.sqrMagnitude > 0.01f ? _input : rotation * Vector3.forward;
-            var velocity = direction * _horizontalSpeed;
+            var velocity = GetHorizontalVelocity(rotation, isAirborne);
+            _momentum = velocity;
             velocity.y = _verticalSpeed;
             return velocity;
+        }
+
+        Vector3 GetHorizontalVelocity(Quaternion rotation, bool isAirborne)
+        {
+            // Steered or held by CalculateHorizontalSpeed.
+            if (isAirborne)
+                return _momentum;
+
+            if (HasMoveInput)
+                return _input * _horizontalSpeed;
+
+            return rotation * Vector3.forward * _horizontalSpeed;
         }
 
         float GetTargetSpeed()

@@ -16,6 +16,7 @@ namespace Strawhenge.Navigation.Unity
         internal const float FallStartSpeed = 2;
         internal const float FallDistance = 1;
         internal const bool AllowAirborneRotation = true;
+        internal const AirborneMovement AirborneMovement = Unity.AirborneMovement.Controlled;
 
         public static ILocomotionSettings Instance { get; } = new DefaultLocomotionSettings();
 
@@ -56,5 +57,7 @@ namespace Strawhenge.Navigation.Unity
         ILandingProfile[] ILocomotionSettings.FallLandings => Array.Empty<ILandingProfile>();
 
         bool ILocomotionSettings.AllowAirborneRotation => AllowAirborneRotation;
+
+        AirborneMovement ILocomotionSettings.AirborneMovement => AirborneMovement;
     }
 }
