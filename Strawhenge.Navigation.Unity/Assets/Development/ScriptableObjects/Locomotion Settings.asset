@@ -83,7 +83,7 @@ MonoBehaviour:
     _scriptableObject: {fileID: 11400000, guid: 2dd9f2aecd727b645a18cb48a849e04c, type: 2}
     _type: 2
   _gravity: -9.81
-  _groundedGravity: -2
+  _fallStartSpeed: 2
   _fallDistance: 1
   _fallLandings:
   - _serialized:
@@ -106,3 +106,5 @@ MonoBehaviour:
         _max: 0
     _scriptableObject: {fileID: 11400000, guid: 0f48ec33a16c3ad47a425a9d0a22a063, type: 2}
     _type: 2
+  _allowAirborneRotation: 0
+  _airborneMovement: 1
