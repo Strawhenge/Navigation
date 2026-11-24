@@ -18,5 +18,9 @@ namespace Strawhenge.Navigation.Unity
 
             return false;
         }
+
+        // Why settings can't use the profile, or null if they can.
+        public static string FindProblem(this IPivotProfile pivot) =>
+            pivot.Id == null ? "has no pivot asset assigned" : null;
     }
 }

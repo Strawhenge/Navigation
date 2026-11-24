@@ -41,7 +41,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _context = context;
             _agent = agent;
 
-            settings = new CachedDestinationSettings(settings ?? DefaultDestinationSettings.Instance);
+            settings = new CachedDestinationSettings(settings ?? DefaultDestinationSettings.Instance, logger);
 
             var targets = new TargetResolver(agent, settings);
 
@@ -67,9 +67,10 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public event Action Activated;
         public event Action Deactivated;
-        // A jump reached its off-mesh link with DeferJumpTrigger set: it waits there until TriggerJump is
-        // called (MovementAnimationSyncScript.OnJumpLaunch does this), or the AnimatorWaitTimeout passes.
-        public event Action JumpTriggerRequested;
+        // A jump reached its off-mesh link and a jump profile matched: it waits there for the profile's wind-up
+        // animation, until TriggerJump is called (MovementAnimationSyncScript.OnJumpLaunch does this), or the
+        // AnimatorWaitTimeout passes.
+        public event Action<int> JumpTriggerRequested;
         public event Action JumpBegan;
         public event Action JumpEnded;
         public event Action FallBegan;
@@ -323,7 +324,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _ => throw new ArgumentOutOfRangeException(nameof(id), id, null)
         };
 
-        void OnJumpTriggerRequested() => JumpTriggerRequested?.Invoke();
+        void OnJumpTriggerRequested(int jumpId) => JumpTriggerRequested?.Invoke(jumpId);
 
         void OnJumpBegan() => JumpBegan?.Invoke();
 

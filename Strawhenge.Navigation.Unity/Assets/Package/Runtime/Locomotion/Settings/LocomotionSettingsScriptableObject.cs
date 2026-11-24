@@ -31,7 +31,20 @@ namespace Strawhenge.Navigation.Unity
         [Header("Jumping")]
         [SerializeField] float _jumpHeight = DefaultLocomotionSettings.JumpHeight;
         [SerializeField] float _coyoteTime = DefaultLocomotionSettings.CoyoteTime;
-        [SerializeField] bool _deferJumpTrigger;
+
+        [Tooltip("Jumps played while not strafing. The first that matches plays its wind-up animation, which " +
+                 "launches the jump; with no match, the character jumps straight away.")]
+        [SerializeField] SerializedSource<
+            IJumpProfile,
+            SerializedJumpProfile,
+            JumpProfileScriptableObject>[] _jumps;
+
+        [Tooltip("Jumps played while strafing, matched on speed and direction. With no match, the character " +
+                 "jumps straight away.")]
+        [SerializeField] SerializedSource<
+            IStrafeJumpProfile,
+            SerializedStrafeJumpProfile,
+            StrafeJumpProfileScriptableObject>[] _strafeJumps;
 
         [SerializeField] SerializedSource<
             ILandingProfile,
@@ -75,19 +88,23 @@ namespace Strawhenge.Navigation.Unity
 
         // The profile lists are resolved on every read; LocomotionScript reads them through CachedLocomotionSettings.
         public IPivotProfile[] StationaryPivots =>
-            ProfileSources.Resolve(_stationaryPivots, pivot => pivot.Id, nameof(_stationaryPivots), this);
+            ProfileSources.Resolve(_stationaryPivots);
 
         public IPivotProfile[] MovingPivots =>
-            ProfileSources.Resolve(_movingPivots, pivot => pivot.Id, nameof(_movingPivots), this);
+            ProfileSources.Resolve(_movingPivots);
 
         public float JumpHeight => _jumpHeight;
 
         public float CoyoteTime => _coyoteTime;
 
-        public bool DeferJumpTrigger => _deferJumpTrigger;
+        public IJumpProfile[] Jumps =>
+            ProfileSources.Resolve(_jumps);
+
+        public IStrafeJumpProfile[] StrafeJumps =>
+            ProfileSources.Resolve(_strafeJumps);
 
         public ILandingProfile[] JumpLandings =>
-            ProfileSources.Resolve(_jumpLandings, landing => landing.Id, nameof(_jumpLandings), this);
+            ProfileSources.Resolve(_jumpLandings);
 
         public float Gravity => _gravity;
 
@@ -96,7 +113,7 @@ namespace Strawhenge.Navigation.Unity
         public float FallDistance => _fallDistance;
 
         public ILandingProfile[] FallLandings =>
-            ProfileSources.Resolve(_fallLandings, landing => landing.Id, nameof(_fallLandings), this);
+            ProfileSources.Resolve(_fallLandings);
 
         public bool AllowAirborneRotation => _allowAirborneRotation;
 

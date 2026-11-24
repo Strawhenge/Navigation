@@ -112,9 +112,12 @@ namespace Strawhenge.Navigation.Unity.Tests
         }
 
         [Test]
-        public void Deactivating_cancels_a_deferred_jump_waiting_for_its_trigger()
+        public void Deactivating_cancels_a_jump_waiting_for_its_wind_up()
         {
-            var harness = new LocomotionControllerHarness(new FakeLocomotionSettings { DeferJumpTrigger = true });
+            var harness = new LocomotionControllerHarness(new FakeLocomotionSettings
+            {
+                Jumps = new IJumpProfile[] { new FakeJumpProfile(1, Any) }
+            });
             var jumpBegan = false;
             harness.Controller.JumpBegan += () => jumpBegan = true;
             harness.Controller.Jump();

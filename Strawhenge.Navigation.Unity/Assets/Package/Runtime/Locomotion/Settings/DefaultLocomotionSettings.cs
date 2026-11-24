@@ -44,7 +44,9 @@ namespace Strawhenge.Navigation.Unity
 
         float ILocomotionSettings.CoyoteTime => CoyoteTime;
 
-        bool ILocomotionSettings.DeferJumpTrigger => false;
+        IJumpProfile[] ILocomotionSettings.Jumps => Array.Empty<IJumpProfile>();
+
+        IStrafeJumpProfile[] ILocomotionSettings.StrafeJumps => Array.Empty<IStrafeJumpProfile>();
 
         ILandingProfile[] ILocomotionSettings.JumpLandings => Array.Empty<ILandingProfile>();
 

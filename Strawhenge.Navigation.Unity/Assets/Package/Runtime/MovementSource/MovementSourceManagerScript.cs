@@ -15,7 +15,7 @@ namespace Strawhenge.Navigation.Unity
         // Raised when a different movement source becomes the active one.
         public event Action ActiveSourceChanged;
 
-        public event Action JumpTriggerRequested;
+        public event Action<int> JumpTriggerRequested;
         public event Action JumpBegan;
         public event Action JumpEnded;
         public event Action<int> PivotRequested;
@@ -149,7 +149,7 @@ namespace Strawhenge.Navigation.Unity
             source.JumpTriggerCancelled -= OnJumpTriggerCancelled;
         }
 
-        void OnJumpTriggerRequested() => JumpTriggerRequested?.Invoke();
+        void OnJumpTriggerRequested(int jumpId) => JumpTriggerRequested?.Invoke(jumpId);
 
         void OnJumpBegan() => JumpBegan?.Invoke();
 
