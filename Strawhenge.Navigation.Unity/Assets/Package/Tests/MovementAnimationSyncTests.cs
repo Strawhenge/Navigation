@@ -202,6 +202,15 @@ namespace Strawhenge.Navigation.Unity.Tests
         }
 
         [Test]
+        public void Jump_id_is_set_with_the_jump_trigger()
+        {
+            _first.RequestJumpTrigger(5);
+
+            Assert.AreEqual(5, _animator.GetInteger(AnimatorParameters.JumpId.Id));
+            Assert.IsTrue(_animator.GetBool(AnimatorParameters.Jump.Id), "The Jump trigger should be set.");
+        }
+
+        [Test]
         public void Jump_trigger_is_reset_when_cancelled()
         {
             _first.RequestJumpTrigger(1);

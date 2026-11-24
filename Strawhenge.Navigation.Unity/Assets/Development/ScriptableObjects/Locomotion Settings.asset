@@ -70,7 +70,22 @@ MonoBehaviour:
     _type: 2
   _jumpHeight: 1
   _coyoteTime: 0.2
-  _deferJumpTrigger: 1
+  _jumps:
+  - _serialized:
+      _jump: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+    _scriptableObject: {fileID: 11400000, guid: 30039d7444fad2845b810adf0ab5b368, type: 2}
+    _type: 2
+  - _serialized:
+      _jump: {fileID: 0}
+      _speedRange:
+        _min: 0
+        _max: 0
+    _scriptableObject: {fileID: 11400000, guid: c95a9ada27e97804a9f3e3e4ab28e1ae, type: 2}
+    _type: 2
+  _strafeJumps: []
   _jumpLandings:
   - _serialized:
       _landing: {fileID: 0}

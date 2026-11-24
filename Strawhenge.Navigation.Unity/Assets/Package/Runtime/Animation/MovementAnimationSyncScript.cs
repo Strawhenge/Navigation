@@ -231,16 +231,17 @@ namespace Strawhenge.Navigation.Unity
             _movementSourceManager.ActiveSourceChanged -= OnActiveSourceChanged;
         }
 
+        // A jump profile matched: play its wind-up, which launches the jump from an animation event (OnJumpLaunch).
         void OnJumpTriggerRequested(int jumpId)
         {
-            // The jump normally launches from an animation event (OnJumpLaunch), which an Animator that's off
-            // can't play.
+            // An Animator that's off can't play the wind-up.
             if (!_animator.isActiveAndEnabled)
             {
                 _movementSourceManager.TriggerJump();
                 return;
             }
 
+            _animator.SetInteger(AnimatorParameters.JumpId, jumpId);
             _animator.SetTrigger(AnimatorParameters.Jump);
         }
 
