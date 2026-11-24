@@ -4,7 +4,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 {
     sealed class FakePivotProfile : IPivotProfile
     {
-        public FakePivotProfile(int id, ValueRange speedRange, params ValueRange[] angleRanges)
+        public FakePivotProfile(int? id, ValueRange speedRange, params ValueRange[] angleRanges)
         {
             Id = id;
             SpeedRange = speedRange;

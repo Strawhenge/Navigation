@@ -39,6 +39,22 @@ namespace Strawhenge.Navigation.Unity.Destination
             SerializedPivotProfile,
             PivotProfileScriptableObject>[] _movingPivots;
 
+        [Header("Jumps")]
+        [Tooltip("Jumps played across an off-mesh link while not strafing. The first that matches waits at the " +
+                 "start of the link for its wind-up animation to launch the jump; with no match, the jump " +
+                 "launches straight away.")]
+        [SerializeField] SerializedSource<
+            IJumpProfile,
+            SerializedJumpProfile,
+            JumpProfileScriptableObject>[] _jumps;
+
+        [Tooltip("Jumps played across an off-mesh link while strafing, matched on speed and the link's direction. " +
+                 "With no match, the jump launches straight away.")]
+        [SerializeField] SerializedSource<
+            IStrafeJumpProfile,
+            SerializedStrafeJumpProfile,
+            StrafeJumpProfileScriptableObject>[] _strafeJumps;
+
         [Header("Landings")]
         [Tooltip("Landings played after jumping across an off-mesh link.")]
         [SerializeField] SerializedSource<
@@ -74,16 +90,22 @@ namespace Strawhenge.Navigation.Unity.Destination
         // The profile lists are resolved on every read; DestinationController reads them through
         // CachedDestinationSettings.
         public IPivotProfile[] StationaryPivots =>
-            ProfileSources.Resolve(_stationaryPivots, pivot => pivot.Id, nameof(_stationaryPivots), this);
+            ProfileSources.Resolve(_stationaryPivots);
 
         public IPivotProfile[] MovingPivots =>
-            ProfileSources.Resolve(_movingPivots, pivot => pivot.Id, nameof(_movingPivots), this);
+            ProfileSources.Resolve(_movingPivots);
+
+        public IJumpProfile[] Jumps =>
+            ProfileSources.Resolve(_jumps);
+
+        public IStrafeJumpProfile[] StrafeJumps =>
+            ProfileSources.Resolve(_strafeJumps);
 
         public ILandingProfile[] JumpLandings =>
-            ProfileSources.Resolve(_jumpLandings, landing => landing.Id, nameof(_jumpLandings), this);
+            ProfileSources.Resolve(_jumpLandings);
 
         public ILandingProfile[] FallLandings =>
-            ProfileSources.Resolve(_fallLandings, landing => landing.Id, nameof(_fallLandings), this);
+            ProfileSources.Resolve(_fallLandings);
 
         public bool DeferJumpTrigger => _deferJumpTrigger;
 

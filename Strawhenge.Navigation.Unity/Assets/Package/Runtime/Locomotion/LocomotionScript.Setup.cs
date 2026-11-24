@@ -13,7 +13,7 @@ namespace Strawhenge.Navigation.Unity
         internal void SetSettings(ILocomotionSettings settings)
         {
             _settingsOverride = settings;
-            _controller?.SetSettings(new CachedLocomotionSettings(settings));
+            _controller?.SetSettings(new CachedLocomotionSettings(settings, _controllerLogger));
         }
 
         internal void SetLogger(ILogger logger) => _loggerOverride = logger;

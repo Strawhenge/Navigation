@@ -1,4 +1,5 @@
 using UnityEngine;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
@@ -8,16 +9,21 @@ namespace Strawhenge.Navigation.Unity.Destination
     sealed class CachedDestinationSettings : IDestinationSettings
     {
         readonly IDestinationSettings _settings;
+        readonly ILogger _logger;
 
         int _cachedVersion;
         IPivotProfile[] _stationaryPivots;
         IPivotProfile[] _movingPivots;
+        IJumpProfile[] _jumps;
+        IStrafeJumpProfile[] _strafeJumps;
         ILandingProfile[] _jumpLandings;
         ILandingProfile[] _fallLandings;
 
-        public CachedDestinationSettings(IDestinationSettings settings)
+        // logger: warns about profiles that are ignored because they can't be used.
+        public CachedDestinationSettings(IDestinationSettings settings, ILogger logger)
         {
             _settings = settings;
+            _logger = logger;
         }
 
         public float JumpSpeed => _settings.JumpSpeed;
@@ -52,6 +58,24 @@ namespace Strawhenge.Navigation.Unity.Destination
             }
         }
 
+        public IJumpProfile[] Jumps
+        {
+            get
+            {
+                RefreshLists();
+                return _jumps;
+            }
+        }
+
+        public IStrafeJumpProfile[] StrafeJumps
+        {
+            get
+            {
+                RefreshLists();
+                return _strafeJumps;
+            }
+        }
+
         public ILandingProfile[] JumpLandings
         {
             get
@@ -75,12 +99,20 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (_cachedVersion == ProfileCacheVersion.Current)
                 return;
 
-            _stationaryPivots = _settings.StationaryPivots;
-            _movingPivots = _settings.MovingPivots;
-            _jumpLandings = _settings.JumpLandings;
-            _fallLandings = _settings.FallLandings;
+            _stationaryPivots = ProfileSources.Filter(
+                _settings.StationaryPivots, PivotProfileExtensions.FindProblem, nameof(StationaryPivots), _logger);
+            _movingPivots = ProfileSources.Filter(
+                _settings.MovingPivots, PivotProfileExtensions.FindProblem, nameof(MovingPivots), _logger);
+            _jumps = ProfileSources.Filter(
+                _settings.Jumps, JumpProfileExtensions.FindProblem, nameof(Jumps), _logger);
+            _strafeJumps = ProfileSources.Filter(
+                _settings.StrafeJumps, StrafeJumpProfileExtensions.FindProblem, nameof(StrafeJumps), _logger);
+            _jumpLandings = ProfileSources.Filter(
+                _settings.JumpLandings, LandingProfileExtensions.FindProblem, nameof(JumpLandings), _logger);
+            _fallLandings = ProfileSources.Filter(
+                _settings.FallLandings, LandingProfileExtensions.FindProblem, nameof(FallLandings), _logger);
 
-            // Only once all four are built, so a failed build is retried rather than leaving lists missing.
+            // Only once all of them are built, so a failed build is retried rather than leaving lists missing.
             _cachedVersion = ProfileCacheVersion.Current;
         }
     }

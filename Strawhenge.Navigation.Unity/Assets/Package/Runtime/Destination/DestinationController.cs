@@ -41,7 +41,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _context = context;
             _agent = agent;
 
-            settings = new CachedDestinationSettings(settings ?? DefaultDestinationSettings.Instance);
+            settings = new CachedDestinationSettings(settings ?? DefaultDestinationSettings.Instance, logger);
 
             var targets = new TargetResolver(agent, settings);
 
