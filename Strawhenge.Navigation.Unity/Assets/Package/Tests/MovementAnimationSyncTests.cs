@@ -193,7 +193,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         [Test]
         public void Jump_trigger_is_reset_when_the_source_changes()
         {
-            _first.RequestJumpTrigger();
+            _first.RequestJumpTrigger(1);
             Assume(_animator.GetBool(AnimatorParameters.Jump.Id), "the Jump trigger should be set for a deferred jump");
 
             SwitchToSecondSource();
@@ -204,7 +204,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         [Test]
         public void Jump_trigger_is_reset_when_cancelled()
         {
-            _first.RequestJumpTrigger();
+            _first.RequestJumpTrigger(1);
             Assume(_animator.GetBool(AnimatorParameters.Jump.Id), "the Jump trigger should be set for a deferred jump");
 
             _first.CancelJumpTrigger();

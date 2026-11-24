@@ -36,8 +36,6 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public float ApproximateSearchDistance => _settings.ApproximateSearchDistance;
 
-        public bool DeferJumpTrigger => _settings.DeferJumpTrigger;
-
         public float AnimatorWaitTimeout => _settings.AnimatorWaitTimeout;
 
         public IPivotProfile[] StationaryPivots

@@ -11,7 +11,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         public event Action<int> PivotRequested;
         public event Action<int> LandingRequested;
-        public event Action JumpTriggerRequested;
+        public event Action<int> JumpTriggerRequested;
         public event Action JumpBegan;
         public event Action FallBegan;
         public event Action PivotCancelled;
@@ -58,7 +58,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         public void RequestLanding(int landingId) => LandingRequested?.Invoke(landingId);
 
-        public void RequestJumpTrigger() => JumpTriggerRequested?.Invoke();
+        public void RequestJumpTrigger(int jumpId) => JumpTriggerRequested?.Invoke(jumpId);
 
         public void BeginJump() => JumpBegan?.Invoke();
 

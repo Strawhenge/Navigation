@@ -181,7 +181,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         {
             _animator.enabled = false;
 
-            _source.RequestJumpTrigger();
+            _source.RequestJumpTrigger(1);
 
             Assert.AreEqual(1, _source.TriggeredJumps, "Nothing can launch the jump, so it should trigger straight away.");
         }

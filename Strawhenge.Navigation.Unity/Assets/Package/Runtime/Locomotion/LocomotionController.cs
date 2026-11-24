@@ -62,7 +62,10 @@ namespace Strawhenge.Navigation.Unity
         float _jumpTriggerWaitTime;
         readonly HashSet<int> _timedOutPivotIds = new();
         readonly HashSet<int> _timedOutLandingIds = new();
-        bool _jumpTriggerTimedOut;
+        readonly HashSet<int> _timedOutJumpIds = new();
+
+        // The jump profile whose wind-up is awaited (while _isAwaitingJumpTrigger).
+        int _jumpId;
 
         // settings: pass a CachedLocomotionSettings; the profile arrays are read every step.
         public LocomotionController(
@@ -77,7 +80,11 @@ namespace Strawhenge.Navigation.Unity
             _logger = logger;
         }
 
-        public event Action JumpTriggerRequested;
+        // A jump profile matched: its wind-up animation should play, and launch the jump (TriggerJump).
+        public event Action<int> JumpTriggerRequested;
+
+        // A requested jump wind-up timed out and the jump was cancelled, so nothing should launch it.
+        public event Action JumpTriggerCancelled;
 
         public event Action JumpBegan;
 
@@ -244,18 +251,27 @@ namespace Strawhenge.Navigation.Unity
             _input = input;
         }
 
+        // With a matching jump profile, waits for its wind-up animation to launch the jump (TriggerJump);
+        // otherwise jumps straight away. The profile is matched once, here: pressing again during the wind-up
+        // does nothing.
         public void Jump()
         {
-            if (_isJumping || _isPivoting || _isLanding || _timeSinceGrounded > _settings.CoyoteTime)
+            if (_isJumping || _isPivoting || _isLanding || _isAwaitingJumpTrigger ||
+                _timeSinceGrounded > _settings.CoyoteTime)
                 return;
 
             _isAwaitingJumpTrigger = true;
             _jumpTriggerWaitTime = 0f;
 
-            if (_settings.DeferJumpTrigger)
-                JumpTriggerRequested?.Invoke();
+            if (TryMatchJump(out var jumpId))
+            {
+                _jumpId = jumpId;
+                JumpTriggerRequested?.Invoke(jumpId);
+            }
             else
+            {
                 TriggerJump();
+            }
         }
 
         public void TriggerJump()
@@ -264,6 +280,25 @@ namespace Strawhenge.Navigation.Unity
             _isAwaitingJumpTrigger = false;
 
             _jump = true;
+        }
+
+        // Matched on the speed and, while strafing, the direction of movement relative to the facing. A wind-up
+        // only plays from the ground: already off it (coyote time), the character jumps straight away.
+        bool TryMatchJump(out int jumpId)
+        {
+            if (_timeSinceGrounded > 0f)
+            {
+                jumpId = default;
+                return false;
+            }
+
+            return JumpMatching.TryMatch(
+                _settings.Jumps,
+                _settings.StrafeJumps,
+                Strafe,
+                _horizontalSpeed,
+                JumpMatching.GetDirection(_motor.Rotation, _momentum),
+                out jumpId);
         }
 
         // Root motion has turned the character while the pivot played, so there's nothing left to apply.
@@ -332,16 +367,16 @@ namespace Strawhenge.Navigation.Unity
 
                 if (_jumpTriggerWaitTime > _animatorWaitTimeout)
                 {
-                    if (!_jumpTriggerTimedOut)
+                    if (_timedOutJumpIds.Add(_jumpId))
                     {
-                        _jumpTriggerTimedOut = true;
                         _logger.LogWarning(
-                            $"Deferred jump wasn't launched within {_animatorWaitTimeout} s - cancelling it. " +
-                            "Check the jump animation calls MovementAnimationSyncScript.OnJumpLaunch.");
+                            $"Jump ID {_jumpId} wasn't launched within {_animatorWaitTimeout} s - cancelling it. " +
+                            $"Check the jump animation calls {nameof(MovementAnimationSyncScript)}.OnJumpLaunch.");
                     }
 
                     // Cancelled rather than launched: a jump this long after the button press would be unexpected.
                     _isAwaitingJumpTrigger = false;
+                    JumpTriggerCancelled?.Invoke();
                 }
             }
         }

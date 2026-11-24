@@ -17,7 +17,6 @@ namespace Strawhenge.Navigation.Unity.Tests
         public IStrafeJumpProfile[] StrafeJumps { get; set; } = Array.Empty<IStrafeJumpProfile>();
         public ILandingProfile[] JumpLandings { get; set; } = Array.Empty<ILandingProfile>();
         public ILandingProfile[] FallLandings { get; set; } = Array.Empty<ILandingProfile>();
-        public bool DeferJumpTrigger { get; set; }
         public float AnimatorWaitTimeout { get; set; } = DefaultDestinationSettings.AnimatorWaitTimeout;
     }
 }

@@ -31,7 +31,6 @@ namespace Strawhenge.Navigation.Unity
         [Header("Jumping")]
         [SerializeField] float _jumpHeight = DefaultLocomotionSettings.JumpHeight;
         [SerializeField] float _coyoteTime = DefaultLocomotionSettings.CoyoteTime;
-        [SerializeField] bool _deferJumpTrigger;
 
         [Tooltip("Jumps played while not strafing. The first that matches plays its wind-up animation, which " +
                  "launches the jump; with no match, the character jumps straight away.")]
@@ -97,8 +96,6 @@ namespace Strawhenge.Navigation.Unity
         public float JumpHeight => _jumpHeight;
 
         public float CoyoteTime => _coyoteTime;
-
-        public bool DeferJumpTrigger => _deferJumpTrigger;
 
         public IJumpProfile[] Jumps =>
             ProfileSources.Resolve(_jumps);

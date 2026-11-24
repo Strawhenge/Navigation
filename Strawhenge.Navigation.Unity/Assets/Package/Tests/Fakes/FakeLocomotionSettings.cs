@@ -14,7 +14,6 @@ namespace Strawhenge.Navigation.Unity.Tests
         public IPivotProfile[] MovingPivots { get; set; } = Array.Empty<IPivotProfile>();
         public float JumpHeight { get; set; } = DefaultLocomotionSettings.JumpHeight;
         public float CoyoteTime { get; set; } = DefaultLocomotionSettings.CoyoteTime;
-        public bool DeferJumpTrigger { get; set; }
         public IJumpProfile[] Jumps { get; set; } = Array.Empty<IJumpProfile>();
         public IStrafeJumpProfile[] StrafeJumps { get; set; } = Array.Empty<IStrafeJumpProfile>();
         public ILandingProfile[] JumpLandings { get; set; } = Array.Empty<ILandingProfile>();

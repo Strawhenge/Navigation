@@ -42,11 +42,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         // Landings played after dropping down an off-mesh link.
         ILandingProfile[] FallLandings { get; }
 
-        // If set, a jump waits at the start of its off-mesh link until the jump animation launches it
-        // (MovementAnimationSyncScript.OnJumpLaunch).
-        bool DeferJumpTrigger { get; }
-
-        // Longest wait for a pivot or landing to be completed, or a deferred jump to be launched, before
+        // Longest wait for a pivot or landing to be completed, or a jump's wind-up to launch it, before
         // carrying on without it. Must be longer than the longest pivot or landing animation.
         float AnimatorWaitTimeout { get; }
     }

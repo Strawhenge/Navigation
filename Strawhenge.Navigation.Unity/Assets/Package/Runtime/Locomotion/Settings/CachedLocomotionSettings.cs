@@ -44,8 +44,6 @@ namespace Strawhenge.Navigation.Unity
 
         public float CoyoteTime => _settings.CoyoteTime;
 
-        public bool DeferJumpTrigger => _settings.DeferJumpTrigger;
-
         public float Gravity => _settings.Gravity;
 
         public float FallStartSpeed => _settings.FallStartSpeed;

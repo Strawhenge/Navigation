@@ -231,7 +231,7 @@ namespace Strawhenge.Navigation.Unity
             _movementSourceManager.ActiveSourceChanged -= OnActiveSourceChanged;
         }
 
-        void OnJumpTriggerRequested()
+        void OnJumpTriggerRequested(int jumpId)
         {
             // The jump normally launches from an animation event (OnJumpLaunch), which an Animator that's off
             // can't play.

@@ -11,7 +11,7 @@ namespace Strawhenge.Navigation.Unity
         {
         }
 
-        public event Action JumpTriggerRequested
+        public event Action<int> JumpTriggerRequested
         {
             add { }
             remove { }

@@ -5,7 +5,7 @@ namespace Strawhenge.Navigation.Unity
 {
     public interface IMovementSource
     {
-        event Action JumpTriggerRequested;
+        event Action<int> JumpTriggerRequested;
         event Action JumpBegan;
         event Action JumpEnded;
         event Action<int> PivotRequested;
