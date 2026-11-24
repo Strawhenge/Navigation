@@ -4,7 +4,7 @@ namespace Strawhenge.Navigation.Unity
     // direction to match on.
     public interface IJumpProfile
     {
-        // Null when the profile has no jump asset; such profiles are ignored when settings resolve them.
+        // Null when the profile has no jump asset; such profiles are ignored by the settings caches.
         int? Id { get; }
 
         ValueRange SpeedRange { get; }

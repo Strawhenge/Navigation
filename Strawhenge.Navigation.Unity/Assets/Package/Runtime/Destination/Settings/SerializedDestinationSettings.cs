@@ -91,24 +91,22 @@ namespace Strawhenge.Navigation.Unity.Destination
         // The profile lists are resolved on every read; DestinationController reads them through
         // CachedDestinationSettings.
         public IPivotProfile[] StationaryPivots =>
-            ProfileSources.Resolve(
-                _stationaryPivots, PivotProfileExtensions.FindProblem, nameof(_stationaryPivots), null);
+            ProfileSources.Resolve(_stationaryPivots);
 
         public IPivotProfile[] MovingPivots =>
-            ProfileSources.Resolve(_movingPivots, PivotProfileExtensions.FindProblem, nameof(_movingPivots), null);
+            ProfileSources.Resolve(_movingPivots);
 
         public IJumpProfile[] Jumps =>
-            ProfileSources.Resolve(_jumps, JumpProfileExtensions.FindProblem, nameof(_jumps), null);
+            ProfileSources.Resolve(_jumps);
 
         public IStrafeJumpProfile[] StrafeJumps =>
-            ProfileSources.Resolve(
-                _strafeJumps, StrafeJumpProfileExtensions.FindProblem, nameof(_strafeJumps), null);
+            ProfileSources.Resolve(_strafeJumps);
 
         public ILandingProfile[] JumpLandings =>
-            ProfileSources.Resolve(_jumpLandings, LandingProfileExtensions.FindProblem, nameof(_jumpLandings), null);
+            ProfileSources.Resolve(_jumpLandings);
 
         public ILandingProfile[] FallLandings =>
-            ProfileSources.Resolve(_fallLandings, LandingProfileExtensions.FindProblem, nameof(_fallLandings), null);
+            ProfileSources.Resolve(_fallLandings);
 
         public bool DeferJumpTrigger => _deferJumpTrigger;
 

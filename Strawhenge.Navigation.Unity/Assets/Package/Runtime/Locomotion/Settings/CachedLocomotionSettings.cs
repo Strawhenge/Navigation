@@ -1,3 +1,5 @@
+using ILogger = Strawhenge.Common.Logging.ILogger;
+
 namespace Strawhenge.Navigation.Unity
 {
     // How LocomotionScript reads its settings. Values are passed through, so inspector edits apply at once.
@@ -6,6 +8,7 @@ namespace Strawhenge.Navigation.Unity
     sealed class CachedLocomotionSettings : ILocomotionSettings
     {
         readonly ILocomotionSettings _settings;
+        readonly ILogger _logger;
 
         int _cachedVersion;
         IPivotProfile[] _stationaryPivots;
@@ -15,9 +18,11 @@ namespace Strawhenge.Navigation.Unity
         ILandingProfile[] _jumpLandings;
         ILandingProfile[] _fallLandings;
 
-        public CachedLocomotionSettings(ILocomotionSettings settings)
+        // logger: warns about profiles that are ignored because they can't be used.
+        public CachedLocomotionSettings(ILocomotionSettings settings, ILogger logger)
         {
             _settings = settings;
+            _logger = logger;
         }
 
         // Rebuilds every settings cache, destination ones included.
@@ -110,12 +115,18 @@ namespace Strawhenge.Navigation.Unity
             if (_cachedVersion == ProfileCacheVersion.Current)
                 return;
 
-            _stationaryPivots = _settings.StationaryPivots;
-            _movingPivots = _settings.MovingPivots;
-            _jumps = _settings.Jumps;
-            _strafeJumps = _settings.StrafeJumps;
-            _jumpLandings = _settings.JumpLandings;
-            _fallLandings = _settings.FallLandings;
+            _stationaryPivots = ProfileSources.Filter(
+                _settings.StationaryPivots, PivotProfileExtensions.FindProblem, nameof(StationaryPivots), _logger);
+            _movingPivots = ProfileSources.Filter(
+                _settings.MovingPivots, PivotProfileExtensions.FindProblem, nameof(MovingPivots), _logger);
+            _jumps = ProfileSources.Filter(
+                _settings.Jumps, JumpProfileExtensions.FindProblem, nameof(Jumps), _logger);
+            _strafeJumps = ProfileSources.Filter(
+                _settings.StrafeJumps, StrafeJumpProfileExtensions.FindProblem, nameof(StrafeJumps), _logger);
+            _jumpLandings = ProfileSources.Filter(
+                _settings.JumpLandings, LandingProfileExtensions.FindProblem, nameof(JumpLandings), _logger);
+            _fallLandings = ProfileSources.Filter(
+                _settings.FallLandings, LandingProfileExtensions.FindProblem, nameof(FallLandings), _logger);
 
             // Only once all of them are built, so a failed build is retried rather than leaving lists missing.
             _cachedVersion = ProfileCacheVersion.Current;

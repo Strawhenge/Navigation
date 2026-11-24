@@ -2,6 +2,7 @@ using Strawhenge.Common.Unity;
 using Strawhenge.Common.Unity.Helpers;
 using Strawhenge.Common.Unity.Serialization;
 using UnityEngine;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity
 {
@@ -25,6 +26,9 @@ namespace Strawhenge.Navigation.Unity
         LocomotionController _controller;
         MotorUpdateMode _updateMode;
 
+        // The controller's logger, also given to its settings caches. Set when the controller is created.
+        ILogger _controllerLogger;
+
         // Where consumers make requests and subscribe to events. Created on first use, so they can do that
         // before this Awake runs.
         public LocomotionController LocomotionController => _controller ??= Create();
@@ -41,7 +45,7 @@ namespace Strawhenge.Navigation.Unity
             CachedLocomotionSettings.Invalidate();
 
             if (Application.isPlaying && _controller != null && _settingsOverride == null)
-                _controller.SetSettings(new CachedLocomotionSettings(ResolveSettings()));
+                _controller.SetSettings(new CachedLocomotionSettings(ResolveSettings(), _controllerLogger));
         }
 
         void OnEnable()
@@ -75,15 +79,15 @@ namespace Strawhenge.Navigation.Unity
             var motor = ResolveMotor();
             _updateMode = motor.UpdateMode;
 
-            var logger = _loggerOverride ?? (_logger != null
+            _controllerLogger = _loggerOverride ?? (_logger != null
                 ? _logger.Logger
                 : new UnityLogger(gameObject));
 
             var controller = new LocomotionController(
                 motor,
-                new CachedLocomotionSettings(ResolveSettings()),
+                new CachedLocomotionSettings(ResolveSettings(), _controllerLogger),
                 _animatorWaitTimeout,
-                logger);
+                _controllerLogger);
 
             // A motor that steps itself (e.g. from a third-party controller's callbacks) calls BeginStep /
             // EndStep, so neither Update nor FixedUpdate steps for it.
