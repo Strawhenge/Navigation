@@ -62,7 +62,8 @@ namespace Strawhenge.Navigation.Unity.Tests
         {
             var controller = new AnimatorController { name = "Test Animator Controller" };
             controller.AddLayer("Base Layer");
-            controller.layers[0].stateMachine.AddState("Idle");
+            var root = controller.layers[0].stateMachine;
+            root.defaultState = root.AddState("Idle");
 
             AddParameter(controller, AnimatorParameters.MoveSpeed, AnimatorControllerParameterType.Float);
             AddParameter(controller, AnimatorParameters.Strafing, AnimatorControllerParameterType.Bool);
