@@ -1,25 +1,31 @@
 using UnityEngine;
 using Strawhenge.Common.Unity;
-using Strawhenge.Common.Unity.Helpers;
 using System.Collections.Generic;
 
 namespace Strawhenge.Navigation.Unity
 {
+    // Goes on the Animator's GameObject: PivotStateMachineBehaviour and LandingStateMachineBehaviour find it
+    // through their Animator.
+    [RequireComponent(typeof(Animator))]
     public partial class MovementAnimationSyncScript : MonoBehaviour
     {
-        [SerializeField] Animator _animator;
         [SerializeField] MovementSourceManagerScript _movementSourceManager;
         [SerializeField] float _dampeningTime = 0.1f;
 
         [Tooltip("How long a requested pivot or landing animation may take to start (enter its state machine) " +
-                 "before it's skipped, e.g. when the controller has no transition for its ID. Must be longer " +
-                 "than the transitions into the pivot and landing state machines take to start.")]
+                 "before it's skipped, e.g. when the controller has no transition for its ID, or no pivot or " +
+                 "landing behaviour. Only counts while the Animator is on. Must be longer than the transitions " +
+                 "into the pivot and landing state machines take to start.")]
         [SerializeField] float _animationStartTimeout = 0.3f;
 
+        Animator _animator;
         Transform _leftFoot;
         Transform _rightFoot;
-        PivotStateMachineBehaviour _pivotBehaviour;
-        LandingStateMachineBehaviour _landingBehaviour;
+
+        // What the movement source last said. Set on the Animator again every LateUpdate, as Unity resets its
+        // parameters when it's turned off and on.
+        bool _isJumping;
+        bool _isFalling;
 
         // A pivot or landing requested from the Animator that hasn't started yet.
         int? _pendingPivotId;
@@ -34,83 +40,36 @@ namespace Strawhenge.Navigation.Unity
         bool _isLandingPlaying;
         readonly HashSet<int> _unstartedLandingIds = new();
 
-        // Setup problems are warned about once here, and fall back to moving without that animation,
-        // so the character never waits for an animation that can't happen.
         void Awake()
         {
-            ComponentRefHelper.EnsureHierarchyComponent(ref _animator, nameof(_animator), this);
+            _animator = GetComponent<Animator>();
 
-            if (_animator == null)
+            // Foot bones only exist on humanoid rigs; without them 'Pivot Right Foot' stays false.
+            if (_animator.isHuman)
             {
-                Debug.LogWarning("No Animator - movement will play without animation.", this);
-            }
-            else
-            {
-                var controllerName = _animator.runtimeAnimatorController != null
-                    ? $"'{_animator.runtimeAnimatorController.name}'"
-                    : "The Animator (no controller assigned)";
-
-                if (_pivotBehaviour == null)
-                    _pivotBehaviour = _animator.GetBehaviour<PivotStateMachineBehaviour>();
-
-                if (_pivotBehaviour != null)
-                {
-                    _pivotBehaviour.Started += OnPivotStarted;
-                    _pivotBehaviour.Ended += OnPivotEnded;
-                }
-                else
-                    Debug.LogWarning(
-                        $"{controllerName} has no {nameof(PivotStateMachineBehaviour)} - pivots will be skipped.",
-                        this);
-
-                if (_landingBehaviour == null)
-                    _landingBehaviour = _animator.GetBehaviour<LandingStateMachineBehaviour>();
-
-                if (_landingBehaviour != null)
-                {
-                    _landingBehaviour.Started += OnLandingStarted;
-                    _landingBehaviour.Ended += OnLandingEnded;
-                }
-                else
-                    Debug.LogWarning(
-                        $"{controllerName} has no {nameof(LandingStateMachineBehaviour)} - landings will be skipped.",
-                        this);
-
-                // Foot bones only exist on humanoid rigs; without them 'Pivot Right Foot' stays false.
-                if (_animator.isHuman)
-                {
-                    _leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
-                    _rightFoot = _animator.GetBoneTransform(HumanBodyBones.RightFoot);
-                }
+                _leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+                _rightFoot = _animator.GetBoneTransform(HumanBodyBones.RightFoot);
             }
 
             SubscribeToMovement();
         }
 
-        void OnDestroy()
-        {
-            UnsubscribeFromMovement();
+        // The GameObject was deactivated (e.g. pooled), so Update stops too.
+        void OnDisable() => CompleteAnimatorRequests();
 
-            if (_pivotBehaviour != null)
-            {
-                _pivotBehaviour.Started -= OnPivotStarted;
-                _pivotBehaviour.Ended -= OnPivotEnded;
-            }
+        void OnDestroy() => UnsubscribeFromMovement();
 
-            if (_landingBehaviour != null)
-            {
-                _landingBehaviour.Started -= OnLandingStarted;
-                _landingBehaviour.Ended -= OnLandingEnded;
-            }
-        }
-
-        // Skips a pivot or landing whose animation never starts (usually no transition for its ID), and
-        // cleans up what it set on the Animator. Only counts while the Animator is updating; otherwise
-        // LocomotionScript's own, longer timeout still applies.
+        // Skips a pivot or landing whose animation never starts (usually no transition for its ID, or no pivot or
+        // landing behaviour), and cleans up what it set on the Animator.
         void Update()
         {
-            if (_animator == null || !_animator.isActiveAndEnabled)
+            // Turned off (e.g. ragdolled): nothing can play or finish a pivot or landing, and Unity resets the
+            // Animator when it's turned on again. Complete them now rather than leave them to the timeouts.
+            if (!_animator.isActiveAndEnabled)
+            {
+                CompleteAnimatorRequests();
                 return;
+            }
 
             var deltaTime = _animator.updateMode == AnimatorUpdateMode.UnscaledTime
                 ? Time.unscaledDeltaTime
@@ -124,7 +83,7 @@ namespace Strawhenge.Navigation.Unity
                 {
                     var pivotId = _pendingPivotId.Value;
                     AbandonPendingPivot();
-                    WarnNotStarted(_unstartedPivotIds, pivotId, "Pivot");
+                    WarnNotStarted(_unstartedPivotIds, pivotId, "Pivot", nameof(PivotStateMachineBehaviour));
 
                     _movementSourceManager?.CompletePivot();
                 }
@@ -138,7 +97,7 @@ namespace Strawhenge.Navigation.Unity
                 {
                     var landingId = _pendingLandingId.Value;
                     AbandonPendingLanding();
-                    WarnNotStarted(_unstartedLandingIds, landingId, "Landing");
+                    WarnNotStarted(_unstartedLandingIds, landingId, "Landing", nameof(LandingStateMachineBehaviour));
 
                     _movementSourceManager?.CompleteLanding();
                 }
@@ -152,8 +111,10 @@ namespace Strawhenge.Navigation.Unity
 
         void LateUpdate()
         {
-            if (_movementSourceManager == null || _animator == null)
+            if (_movementSourceManager == null || !_animator.isActiveAndEnabled)
                 return;
+
+            ApplyJumpingAndFalling();
 
             // Relative to the animated body, not transform.root, which is a container if the character has a parent.
             var velocity = _animator.transform.InverseTransformDirection(_movementSourceManager.CurrentVelocity);
@@ -189,6 +150,49 @@ namespace Strawhenge.Navigation.Unity
                 velocity.magnitude,
                 _dampeningTime,
                 Time.deltaTime);
+        }
+
+        // Called by PivotStateMachineBehaviour.
+        internal void OnPivotStarted()
+        {
+            _pendingPivotId = null;
+            _isPivotPlaying = true;
+        }
+
+        // Called by PivotStateMachineBehaviour.
+        internal void OnPivotEnded()
+        {
+            // Cancelled: the movement source has stopped waiting for it.
+            if (!_isPivotPlaying)
+                return;
+
+            _isPivotPlaying = false;
+            _pendingPivotId = null;
+
+            // Root motion has already turned the character: the movement source measures the turn itself.
+            _animator.applyRootMotion = false;
+
+            _movementSourceManager?.CompletePivot();
+        }
+
+        // Called by LandingStateMachineBehaviour.
+        internal void OnLandingStarted()
+        {
+            _pendingLandingId = null;
+            _isLandingPlaying = true;
+        }
+
+        // Called by LandingStateMachineBehaviour.
+        internal void OnLandingEnded()
+        {
+            // Cancelled: the movement source has stopped waiting for it.
+            if (!_isLandingPlaying)
+                return;
+
+            _isLandingPlaying = false;
+            _pendingLandingId = null;
+
+            _movementSourceManager?.CompleteLanding();
         }
 
         void SubscribeToMovement()
@@ -229,10 +233,11 @@ namespace Strawhenge.Navigation.Unity
 
         void OnJumpTriggerRequested()
         {
-            // The jump normally launches from an animation event (OnJumpLaunch).
-            if (_animator == null)
+            // The jump normally launches from an animation event (OnJumpLaunch), which an Animator that's off
+            // can't play.
+            if (!_animator.isActiveAndEnabled)
             {
-                _movementSourceManager?.TriggerJump();
+                _movementSourceManager.TriggerJump();
                 return;
             }
 
@@ -241,23 +246,35 @@ namespace Strawhenge.Navigation.Unity
 
         void OnJumpBegan()
         {
-            if (_animator != null)
-                _animator.SetBool(AnimatorParameters.Jumping, true);
+            _isJumping = true;
+            ApplyJumpingAndFalling();
         }
 
         void OnJumpEnded()
         {
-            if (_animator != null)
-                _animator.SetBool(AnimatorParameters.Jumping, false);
+            _isJumping = false;
+            ApplyJumpingAndFalling();
+        }
+
+        void OnFallBegan()
+        {
+            _isFalling = true;
+            ApplyJumpingAndFalling();
+        }
+
+        void OnFallEnded()
+        {
+            _isFalling = false;
+            ApplyJumpingAndFalling();
         }
 
         void OnPivotRequested(int pivotId)
         {
-            // Nothing would ever complete the pivot, so complete it now, without turning.
-            // LocomotionScript then turns normally instead.
-            if (_pivotBehaviour == null)
+            // An Animator that's off can't play the pivot, so complete it now, without turning.
+            // The movement source then turns normally instead.
+            if (!_animator.isActiveAndEnabled)
             {
-                _movementSourceManager?.CompletePivot();
+                _movementSourceManager.CompletePivot();
                 return;
             }
 
@@ -282,45 +299,12 @@ namespace Strawhenge.Navigation.Unity
             _pendingPivotTime = 0f;
         }
 
-        void OnPivotStarted()
-        {
-            _pendingPivotId = null;
-            _isPivotPlaying = true;
-        }
-
-        void OnPivotEnded()
-        {
-            // Cancelled: the movement source has stopped waiting for it.
-            if (!_isPivotPlaying)
-                return;
-
-            _isPivotPlaying = false;
-            _pendingPivotId = null;
-
-            // Root motion has already turned the character: the movement source measures the turn itself.
-            _animator.applyRootMotion = false;
-
-            _movementSourceManager?.CompletePivot();
-        }
-
-        void OnFallBegan()
-        {
-            if (_animator != null)
-                _animator.SetBool(AnimatorParameters.Falling, true);
-        }
-
-        void OnFallEnded()
-        {
-            if (_animator != null)
-                _animator.SetBool(AnimatorParameters.Falling, false);
-        }
-
         void OnLandingRequested(int landingId)
         {
-            // Nothing would ever complete the landing, so complete it now.
-            if (_landingBehaviour == null)
+            // An Animator that's off can't play the landing, so complete it now.
+            if (!_animator.isActiveAndEnabled)
             {
-                _movementSourceManager?.CompleteLanding();
+                _movementSourceManager.CompleteLanding();
                 return;
             }
 
@@ -331,40 +315,16 @@ namespace Strawhenge.Navigation.Unity
             _pendingLandingTime = 0f;
         }
 
-        void OnLandingStarted()
-        {
-            _pendingLandingId = null;
-            _isLandingPlaying = true;
-        }
-
-        void OnLandingEnded()
-        {
-            // Cancelled: the movement source has stopped waiting for it.
-            if (!_isLandingPlaying)
-                return;
-
-            _isLandingPlaying = false;
-            _pendingLandingId = null;
-
-            _movementSourceManager?.CompleteLanding();
-        }
-
         // The movement source no longer wants the pivot (e.g. the character can't navigate, or it timed out).
         // Undo what was set on the Animator for it, including root motion if the animation has started.
         void OnPivotCancelled()
         {
-            if (_animator == null)
-                return;
-
             _isPivotPlaying = false;
             AbandonPendingPivot();
         }
 
         void OnLandingCancelled()
         {
-            if (_animator == null)
-                return;
-
             _isLandingPlaying = false;
             AbandonPendingLanding();
         }
@@ -372,8 +332,7 @@ namespace Strawhenge.Navigation.Unity
         // A deferred jump abandoned before its animation launched it.
         void OnJumpTriggerCancelled()
         {
-            if (_animator != null)
-                _animator.ResetTrigger(AnimatorParameters.Jump.Id);
+            _animator.ResetTrigger(AnimatorParameters.Jump.Id);
         }
 
         // Another movement source took over. The old one has dropped its waits, and won't end a jump or fall
@@ -383,15 +342,51 @@ namespace Strawhenge.Navigation.Unity
         // root motion, and its end completes nothing.
         void OnActiveSourceChanged()
         {
-            if (_animator == null)
-                return;
-
             OnPivotCancelled();
             OnLandingCancelled();
             OnJumpTriggerCancelled();
 
-            _animator.SetBool(AnimatorParameters.Jumping, false);
-            _animator.SetBool(AnimatorParameters.Falling, false);
+            _isJumping = false;
+            _isFalling = false;
+            ApplyJumpingAndFalling();
+        }
+
+        // While the Animator is off there's nothing to set: Unity resets its parameters when it's turned on
+        // again, and LateUpdate sets these again from then on.
+        void ApplyJumpingAndFalling()
+        {
+            if (!_animator.isActiveAndEnabled)
+                return;
+
+            _animator.SetBool(AnimatorParameters.Jumping, _isJumping);
+            _animator.SetBool(AnimatorParameters.Falling, _isFalling);
+        }
+
+        // The Animator was turned off, or this GameObject deactivated. A pivot or landing that was waiting to
+        // start, or playing, will never finish, so complete it now (a pivot without turning). Unity resets the
+        // Animator's parameters when it's turned on again, so only root motion needs undoing.
+        void CompleteAnimatorRequests()
+        {
+            if (_pendingPivotId.HasValue || _isPivotPlaying)
+            {
+                _pendingPivotId = null;
+                _isPivotPlaying = false;
+
+                if (_animator != null)
+                    _animator.applyRootMotion = false;
+
+                if (_movementSourceManager != null)
+                    _movementSourceManager.CompletePivot();
+            }
+
+            if (_pendingLandingId.HasValue || _isLandingPlaying)
+            {
+                _pendingLandingId = null;
+                _isLandingPlaying = false;
+
+                if (_movementSourceManager != null)
+                    _movementSourceManager.CompleteLanding();
+            }
         }
 
         void AbandonPendingPivot()
@@ -407,14 +402,14 @@ namespace Strawhenge.Navigation.Unity
             _animator.ResetTrigger(AnimatorParameters.Land.Id);
         }
 
-        void WarnNotStarted(HashSet<int> unstartedIds, int id, string kind)
+        void WarnNotStarted(HashSet<int> unstartedIds, int id, string kind, string behaviourName)
         {
             if (!unstartedIds.Add(id))
                 return;
 
             Debug.LogWarning(
                 $"{kind} ID {id} didn't start within {_animationStartTimeout} s - skipping it. " +
-                $"Check the Animator controller has a transition for {kind} ID {id}.",
+                $"Check the Animator controller has a {behaviourName} and a transition for {kind} ID {id}.",
                 this);
         }
     }
