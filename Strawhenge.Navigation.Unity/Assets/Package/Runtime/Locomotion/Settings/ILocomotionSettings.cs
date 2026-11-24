@@ -22,8 +22,6 @@ namespace Strawhenge.Navigation.Unity
       
         float CoyoteTime { get; }
       
-        bool DeferJumpTrigger { get; }
-
         // Jumps played while not strafing. The first that matches plays its wind-up animation, which launches
         // the jump; with no match, the character jumps straight away.
         IJumpProfile[] Jumps { get; }

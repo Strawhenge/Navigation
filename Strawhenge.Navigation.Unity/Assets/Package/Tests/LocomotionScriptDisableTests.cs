@@ -139,11 +139,14 @@ namespace Strawhenge.Navigation.Unity.Tests
         [UnityTest]
         public IEnumerator Moves_after_being_disabled_while_awaiting_jump_trigger()
         {
-            CreateCharacter(new FakeLocomotionSettings { DeferJumpTrigger = true });
+            CreateCharacter(new FakeLocomotionSettings
+            {
+                Jumps = new IJumpProfile[] { new FakeJumpProfile(1, Any) }
+            });
             yield return Settle();
 
             var jumpTriggerRequested = false;
-            _locomotion.LocomotionController.JumpTriggerRequested += () => jumpTriggerRequested = true;
+            _locomotion.LocomotionController.JumpTriggerRequested += _ => jumpTriggerRequested = true;
 
             _locomotion.LocomotionController.Jump();
 

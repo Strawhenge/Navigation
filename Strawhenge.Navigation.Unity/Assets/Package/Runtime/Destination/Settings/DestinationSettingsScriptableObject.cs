@@ -69,11 +69,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             LandingProfileScriptableObject>[] _fallLandings;
 
         [Header("Animation")]
-        [Tooltip("If set, a jump waits at the start of its off-mesh link until the jump animation launches it " +
-                 "(MovementAnimationSyncScript.OnJumpLaunch).")]
-        [SerializeField] bool _deferJumpTrigger;
-
-        [Tooltip("Longest wait for a pivot or landing to be completed, or a deferred jump to be launched, " +
+        [Tooltip("Longest wait for a pivot or landing to be completed, or a jump's wind-up to launch it, " +
                  "before carrying on without it. Must be longer than the longest pivot or landing animation.")]
         [SerializeField] float _animatorWaitTimeout = DefaultDestinationSettings.AnimatorWaitTimeout;
 
@@ -106,8 +102,6 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         public ILandingProfile[] FallLandings =>
             ProfileSources.Resolve(_fallLandings);
-
-        public bool DeferJumpTrigger => _deferJumpTrigger;
 
         public float AnimatorWaitTimeout => _animatorWaitTimeout;
 

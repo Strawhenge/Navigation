@@ -1,22 +1,25 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity.Destination
 {
     // Moves the character along a jump-across off-mesh link by hand, then hands over to Landing if a jump
-    // landing matches. With DeferJumpTrigger, it first waits at the start of the link for the jump
-    // animation to launch it (TriggerJump), or for AnimatorWaitTimeout, after which it launches anyway:
-    // unlike LocomotionScript, it can't cancel the jump, as the agent is already on the link. Can't be
-    // interrupted: a new request or a cancel is called back straight away, but the jump always lands first.
+    // landing matches. If a jump profile matches, it first waits at the start of the link for the profile's
+    // wind-up animation to launch it (TriggerJump), or for AnimatorWaitTimeout, after which it launches
+    // anyway: unlike LocomotionScript, it can't cancel the jump, as the agent is already on the link. With no
+    // match it launches straight away. Can't be interrupted: a new request or a cancel is called back straight
+    // away, but the jump always lands first.
     class Jumping : Phase
     {
         readonly Agent _agent;
         readonly IDestinationSettings _settings;
         readonly Landing _landing;
         readonly ILogger _logger;
+        readonly HashSet<int> _timedOutJumpIds = new();
 
-        internal event Action JumpTriggerRequested;
+        internal event Action<int> JumpTriggerRequested;
         internal event Action JumpBegan;
         internal event Action JumpEnded;
 
@@ -30,7 +33,7 @@ namespace Strawhenge.Navigation.Unity.Destination
         bool _isJumpInProgress;
         bool _isAwaitingTrigger;
         float _triggerWaitTime;
-        bool _triggerTimeoutWarned;
+        int _jumpId;
         bool _agentUnavailable;
         Vector3 _startPosition;
         Vector3 _endPosition;
@@ -121,7 +124,7 @@ namespace Strawhenge.Navigation.Unity.Destination
             _agent.NavMeshAgent.updatePosition = false;
             _agent.NavMeshAgent.updateRotation = false;
 
-            if (!_settings.DeferJumpTrigger)
+            if (!TryMatchJump(out _jumpId))
             {
                 Launch();
                 return;
@@ -131,8 +134,19 @@ namespace Strawhenge.Navigation.Unity.Destination
             _triggerWaitTime = 0f;
 
             // Last: without an Animator, the jump is triggered straight away (OnJumpTriggered).
-            JumpTriggerRequested?.Invoke();
+            JumpTriggerRequested?.Invoke(_jumpId);
         }
+
+        // Matched on the request's speed going into the link, as landings are, and while strafing on the link's
+        // direction relative to the facing (a strafing character keeps it through the jump).
+        bool TryMatchJump(out int jumpId) =>
+            JumpMatching.TryMatch(
+                _settings.Jumps,
+                _settings.StrafeJumps,
+                _strafe,
+                _approachSpeed,
+                JumpMatching.GetDirection(_agent.NavMeshAgent.transform.rotation, _endPosition - _startPosition),
+                out jumpId);
 
         PhaseStep AwaitTrigger(float deltaTime)
         {
@@ -142,12 +156,11 @@ namespace Strawhenge.Navigation.Unity.Destination
             if (_triggerWaitTime <= _settings.AnimatorWaitTimeout)
                 return PhaseStep.Continue;
 
-            if (!_triggerTimeoutWarned)
+            if (_timedOutJumpIds.Add(_jumpId))
             {
-                _triggerTimeoutWarned = true;
                 _logger.LogWarning(
-                    $"Deferred jump wasn't launched within {_settings.AnimatorWaitTimeout} s - launching it anyway. " +
-                    $"Check the jump animation calls {nameof(MovementAnimationSyncScript)}.OnJumpLaunch.");
+                    $"Jump ID {_jumpId} wasn't launched within {_settings.AnimatorWaitTimeout} s - launching it " +
+                    $"anyway. Check the jump animation calls {nameof(MovementAnimationSyncScript)}.OnJumpLaunch.");
             }
 
             Launch();

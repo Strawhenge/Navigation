@@ -12,7 +12,7 @@ namespace Strawhenge.Navigation.Unity
             _locomotion = locomotion;
         }
         
-        public event Action JumpTriggerRequested
+        public event Action<int> JumpTriggerRequested
         {
             add => _locomotion.JumpTriggerRequested += value;
             remove => _locomotion.JumpTriggerRequested -= value;
@@ -54,8 +54,8 @@ namespace Strawhenge.Navigation.Unity
             remove => _locomotion.LandingRequested -= value;
         }
 
-        // Never raised: LocomotionController clears its own waits when it's deactivated, which also changes the
-        // active movement source.
+        // Never raised: LocomotionController completes pivots and landings that time out, and clears its own
+        // waits when it's deactivated, which also changes the active movement source.
         public event Action PivotCancelled
         {
             add { }
@@ -68,10 +68,11 @@ namespace Strawhenge.Navigation.Unity
             remove { }
         }
 
+        // A jump wind-up that timed out: unlike pivots and landings, the jump is cancelled, not completed.
         public event Action JumpTriggerCancelled
         {
-            add { }
-            remove { }
+            add => _locomotion.JumpTriggerCancelled += value;
+            remove => _locomotion.JumpTriggerCancelled -= value;
         }
 
         public event Action<bool> IsActiveChanged

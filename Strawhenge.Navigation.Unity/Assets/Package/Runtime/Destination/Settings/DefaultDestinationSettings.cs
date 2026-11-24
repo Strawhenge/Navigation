@@ -40,8 +40,6 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         ILandingProfile[] IDestinationSettings.FallLandings => Array.Empty<ILandingProfile>();
 
-        bool IDestinationSettings.DeferJumpTrigger => false;
-
         float IDestinationSettings.AnimatorWaitTimeout => AnimatorWaitTimeout;
     }
 }
