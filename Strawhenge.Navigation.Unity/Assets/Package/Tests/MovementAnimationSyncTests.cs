@@ -12,8 +12,9 @@ namespace Strawhenge.Navigation.Unity.Tests
     // already started used to keep going: a pivot left root motion on, and when either ended it completed
     // the new source's pivot or landing instead.
     // The Animator plays TestAnimatorController, which has the parameters but no pivot or landing states, so
-    // the tests play its part by calling the pivot and landing behaviours themselves. It has no transitions
-    // either, so nothing consumes a trigger: one stays set until MovementAnimationSyncScript resets it.
+    // the tests play its part by calling the pivot and landing behaviours themselves, with the Animator: they find
+    // the MovementAnimationSyncScript beside it, as in a scene. It has no transitions either, so nothing consumes
+    // a trigger: one stays set until MovementAnimationSyncScript resets it.
     public class MovementAnimationSyncTests
     {
         const int PivotId = 1;
@@ -55,9 +56,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             _created.Add(_landing);
 
             var sync = character.AddComponent<MovementAnimationSyncScript>();
-            sync.SetAnimator(_animator);
             sync.SetMovementSourceManager(_manager);
-            sync.SetBehaviours(_pivot, _landing);
 
             character.SetActive(true);
             _manager.ActiveSourceChanged += () => _activeSourceChangedCount++;
