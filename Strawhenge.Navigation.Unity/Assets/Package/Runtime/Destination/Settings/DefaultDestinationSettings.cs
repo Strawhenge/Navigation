@@ -32,6 +32,10 @@ namespace Strawhenge.Navigation.Unity.Destination
 
         IPivotProfile[] IDestinationSettings.MovingPivots => Array.Empty<IPivotProfile>();
 
+        IJumpProfile[] IDestinationSettings.Jumps => Array.Empty<IJumpProfile>();
+
+        IStrafeJumpProfile[] IDestinationSettings.StrafeJumps => Array.Empty<IStrafeJumpProfile>();
+
         ILandingProfile[] IDestinationSettings.JumpLandings => Array.Empty<ILandingProfile>();
 
         ILandingProfile[] IDestinationSettings.FallLandings => Array.Empty<ILandingProfile>();

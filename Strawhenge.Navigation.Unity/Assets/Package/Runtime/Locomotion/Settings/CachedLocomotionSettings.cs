@@ -10,6 +10,8 @@ namespace Strawhenge.Navigation.Unity
         int _cachedVersion;
         IPivotProfile[] _stationaryPivots;
         IPivotProfile[] _movingPivots;
+        IJumpProfile[] _jumps;
+        IStrafeJumpProfile[] _strafeJumps;
         ILandingProfile[] _jumpLandings;
         ILandingProfile[] _fallLandings;
 
@@ -67,6 +69,24 @@ namespace Strawhenge.Navigation.Unity
             }
         }
 
+        public IJumpProfile[] Jumps
+        {
+            get
+            {
+                RefreshLists();
+                return _jumps;
+            }
+        }
+
+        public IStrafeJumpProfile[] StrafeJumps
+        {
+            get
+            {
+                RefreshLists();
+                return _strafeJumps;
+            }
+        }
+
         public ILandingProfile[] JumpLandings
         {
             get
@@ -92,10 +112,12 @@ namespace Strawhenge.Navigation.Unity
 
             _stationaryPivots = _settings.StationaryPivots;
             _movingPivots = _settings.MovingPivots;
+            _jumps = _settings.Jumps;
+            _strafeJumps = _settings.StrafeJumps;
             _jumpLandings = _settings.JumpLandings;
             _fallLandings = _settings.FallLandings;
 
-            // Only once all four are built, so a failed build is retried rather than leaving lists missing.
+            // Only once all of them are built, so a failed build is retried rather than leaving lists missing.
             _cachedVersion = ProfileCacheVersion.Current;
         }
     }

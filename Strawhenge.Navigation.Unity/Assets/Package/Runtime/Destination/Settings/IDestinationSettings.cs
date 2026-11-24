@@ -27,6 +27,15 @@ namespace Strawhenge.Navigation.Unity.Destination
         // Pivots played instead of turning while following a path.
         IPivotProfile[] MovingPivots { get; }
 
+        // Jumps played across an off-mesh link while not strafing. The first that matches waits at the start
+        // of the link for its wind-up animation to launch the jump; with no match, the jump launches straight
+        // away.
+        IJumpProfile[] Jumps { get; }
+
+        // Jumps played across an off-mesh link while strafing, matched on speed and the link's direction. With
+        // no match, the jump launches straight away.
+        IStrafeJumpProfile[] StrafeJumps { get; }
+
         // Landings played after jumping across an off-mesh link.
         ILandingProfile[] JumpLandings { get; }
 

@@ -13,6 +13,8 @@ namespace Strawhenge.Navigation.Unity.Tests
         public float ApproximateSearchDistance { get; set; } = DefaultDestinationSettings.ApproximateSearchDistance;
         public IPivotProfile[] StationaryPivots { get; set; } = Array.Empty<IPivotProfile>();
         public IPivotProfile[] MovingPivots { get; set; } = Array.Empty<IPivotProfile>();
+        public IJumpProfile[] Jumps { get; set; } = Array.Empty<IJumpProfile>();
+        public IStrafeJumpProfile[] StrafeJumps { get; set; } = Array.Empty<IStrafeJumpProfile>();
         public ILandingProfile[] JumpLandings { get; set; } = Array.Empty<ILandingProfile>();
         public ILandingProfile[] FallLandings { get; set; } = Array.Empty<ILandingProfile>();
         public bool DeferJumpTrigger { get; set; }
