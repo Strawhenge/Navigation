@@ -166,5 +166,4 @@ PlayMode tests live in `Assets/Package/Tests/` (asmdef `Strawhenge.Navigation.Un
 - The Rigidbody motor's settings are serialized fields on its script, with no shareable asset (`SerializedSource`) yet. Its step-up teleports the body up, so a step can show a small pop with interpolation.
 - Locomotion measures fall distance from the last grounded height, which starts at 0 rather than the character's position, so a character that starts high in the air above the world origin doesn't count its first drop as a fall.
 - `AnimatorExtensions.SetFloat`, `AnimatorComponentCache` and `PrivateFieldInspector` are marked "move to Common". `PivotScriptableObject` is marked "remove from asset menu / generate via editor tool".
-- The reference controller has `Pivot Angle` / `Pivot Speed` parameters that the code doesn't use.
 - `ValueRange` has a TODO to move into Strawhenge Common in place of `FloatRange` / `SerializedFloatRange`, so other packages stop allocating too. Navigation then uses it from Common.
