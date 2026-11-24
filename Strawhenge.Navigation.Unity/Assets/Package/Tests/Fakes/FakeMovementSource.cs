@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Strawhenge.Navigation.Unity.Tests
 {
     // A movement source the test drives by hand: it makes requests, cancels them, begins jumps and falls, and
-    // records the completions it gets back.
+    // records the completions and jump triggers it gets back.
     class FakeMovementSource : IMovementSource
     {
         bool _isActive;
@@ -34,6 +34,8 @@ namespace Strawhenge.Navigation.Unity.Tests
         public int CompletedPivots { get; private set; }
 
         public int CompletedLandings { get; private set; }
+
+        public int TriggeredJumps { get; private set; }
 
         public Vector3 CurrentVelocity => Vector3.zero;
 
@@ -68,9 +70,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         public void CancelJumpTrigger() => JumpTriggerCancelled?.Invoke();
 
-        public void TriggerJump()
-        {
-        }
+        public void TriggerJump() => TriggeredJumps++;
 
         public void CompletePivot() => CompletedPivots++;
 
