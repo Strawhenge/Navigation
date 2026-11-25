@@ -707,7 +707,7 @@ namespace Strawhenge.Navigation.Unity
         // reversing slows to a stop, then speeds up the other way. Without input it all slows at Deceleration.
         void SteerInTheAir(float deltaTime)
         {
-            var target = _input * GetTargetSpeed();
+            var target = _input.normalized * GetTargetSpeed();
             var targetSpeed = target.magnitude;
             var direction = targetSpeed > 0.0001f ? target / targetSpeed : Vector3.zero;
 
@@ -760,15 +760,24 @@ namespace Strawhenge.Navigation.Unity
                 return _momentum;
 
             if (HasMoveInput)
-                return _input * _horizontalSpeed;
+                return _input.normalized * _horizontalSpeed;
 
             return rotation * Vector3.forward * _horizontalSpeed;
         }
 
+        // The selected speed scaled by how far the input goes (a stick part of the way; at most 1, see Move), so
+        // pivots, jumps and landings match on the speed the character really moves at. The velocity then follows
+        // the input's direction only (GetHorizontalVelocity, SteerInTheAir), so it isn't scaled twice.
         float GetTargetSpeed()
         {
             if (_input.sqrMagnitude < 0.001f)
                 return 0f;
+
+            return GetSelectedSpeed() * _input.magnitude;
+        }
+
+        float GetSelectedSpeed()
+        {
             if (Sprint)
                 return Strafe ? _settings.RunSpeed : _settings.SprintSpeed;
             if (Walk)
