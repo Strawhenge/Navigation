@@ -43,7 +43,7 @@ Navigation/                              <- git root
         ├── Scenes/Main.unity            <- test scene (terrain, ramps, steps, NavMesh)
         ├── Scripts/                     <- ControlsScript (Input System -> LocomotionController), ThirdPersonCameraScript,
         │                                   RagdollScript, DevelopmentDestinationContextScript, RagdollLocomotionConditionsScript,
-        │                                   CharacterSwitcherScript (Tab switches the controls and camera between characters)
+        │                                   CharacterSwitcherScript (Backspace switches the controls and camera between characters)
         ├── Editor/                      <- asmdef: Development.Editor (RagdollScriptEditor: Ragdoll On / Off buttons)
         ├── Character.controller         <- reference Animator Controller
         ├── ScriptableObjects/           <- example locomotion and destination settings, pivots, landings, agent modes
@@ -129,7 +129,7 @@ Follow the existing style. The ReSharper settings are in `Strawhenge.Navigation.
 - **One type per file**, named after the type (`FakePivotProfile.cs` holds `FakePivotProfile`). Don't put several classes, interfaces or enums in one file, and don't nest classes inside other classes. The only exceptions are partial-class files: a private implementation type kept in its own file, as `DestinationArgs.Builder.cs` does for `DestinationArgs.ArgsBuilder`, and a script's test hooks in `<Type>.Setup.cs` (see Testing).
 - Naming suffixes: `...Script` for MonoBehaviours, `...ScriptableObject` for ScriptableObjects, `Serialized...` for `[Serializable]` inline equivalents. Interfaces sit behind all three (`IPivotProfile`, `ILandingProfile`, `ILocomotionSettings`).
 - Null objects: `NullX` with `static Instance { get; } = new();` and a private ctor, used instead of null checks (`NullDestinationContext`, `NullMovementSource`). When "nothing" still has to return a value, use a fallback that keeps the existing behaviour instead (e.g. `FixedNavMeshAgentModes` with the agent's own area mask).
-- Resolve component references with `ComponentRefHelper.EnsureHierarchyComponent` / `EnsureRootHierarchyComponent` from Common. Warn with `Debug.LogWarning(..., this)` and fall back to defaults rather than throwing.
+- Resolve component references with `ComponentRefHelper.EnsureHierarchyComponent` / `EnsureRootHierarchyComponent` from Common. Warn through Common's `ILogger` (an optional `LoggerScript _logger`, else a `UnityLogger` on the GameObject), never `Debug.Log*`, and fall back to defaults rather than throwing. A few scripts still use `Debug.Log*` for setup warnings (see Known gaps).
 - Keep logic in plain C# classes and keep MonoBehaviours as thin wiring. Use `internal` for things only the package needs (e.g. `DestinationController.Update`).
 - Namespaces: `Strawhenge.Navigation.Unity` for most code, `Strawhenge.Navigation.Unity.Destination` for the Destination folder, `...Unity.Editor` for the editor. Folders below that level don't add namespace segments, so ignore the CheckNamespace warning.
 - Usings are not sorted System-first. The language level is the one Unity 2021.3 supports (C# 9: `new()`, `??=` and `is not` are fine; C# 10+ features like file-scoped namespaces and global usings are not).
@@ -145,6 +145,23 @@ Follow the existing style. The ReSharper settings are in `Strawhenge.Navigation.
 - Hand-edit YAML assets (`.unity`, `.controller`, `.asset`) only when you have to, and keep the change minimal.
 - Nothing can be compiled or run outside the Unity Editor here. After a change, ask the user to let Unity recompile, check the Console and run the tests (see Testing). For manual checks, use `Assets/Development/Scenes/Main.unity`. The `DestinationScript` inspector has play-mode buttons (GoToExactly / GoToApproximately / IsLocationAccessible / Cancel), and the `LocomotionScript` inspector shows its controller's private fields live. The `RagdollScript` inspector has Ragdoll On / Off buttons, and `DevelopmentDestinationContextScript` a Cannot Navigate checkbox, for testing `CanNavigate` pauses.
 - Package code must not reference anything in `Assets/Development`. Dependencies flow Development → Package only.
+
+### Dev scene controls
+
+`Input Actions.inputactions` has a `Keyboard&Mouse` and a `Gamepad` control scheme; `PlayerInput` (Invoke Unity Events, on the Controls object) switches between them on use.
+
+| | Keyboard & mouse | Gamepad |
+|---|---|---|
+| Move | WASD | Left stick |
+| Sprint (hold) | Left Shift | A / South |
+| Walk (toggle) | Tab | B / East |
+| Strafe (toggle) | Left Ctrl | Y / North |
+| Jump | Space | X / West |
+| Look | Mouse (click to lock the cursor, Escape to unlock) | Right stick |
+| Zoom | Mouse wheel | D-pad up / down |
+| Switch character | Backspace | Select / View |
+
+The camera (`ThirdPersonCameraScript`) takes the mouse and the wheel as per-frame deltas (`Look`, `Zoom`), applied once and then cleared, and the stick and d-pad as rates (`LookRate`, `ZoomRate`), held until they change, at `_lookRateSpeed` (°/s) and `_zoomRateSpeed` (m/s). Only mouse look waits for a locked cursor.
 
 ## Testing
 
@@ -169,4 +186,5 @@ PlayMode tests live in `Assets/Package/Tests/` (asmdef `Strawhenge.Navigation.Un
 - The Rigidbody motor's settings are serialized fields on its script, with no shareable asset (`SerializedSource`) yet. Its step-up teleports the body up, so a step can show a small pop with interpolation.
 - Locomotion measures fall distance from the last grounded height, which starts at 0 rather than the character's position, so a character that starts high in the air above the world origin doesn't count its first drop as a fall.
 - `AnimatorExtensions.SetFloat`, `AnimatorComponentCache` and `PrivateFieldInspector` are marked "move to Common". `PivotScriptableObject` and `JumpScriptableObject` are marked "remove from asset menu / generate via editor tool".
+- Setup warnings in `LocomotionScript`, `DestinationScript`, `MovementAnimationSyncScript`, `RigidbodyMotorScript` (an error) and the dev `RagdollScript` still use `Debug.Log*` rather than an `ILogger`.
 - `ValueRange` has a TODO to move into Strawhenge Common in place of `FloatRange` / `SerializedFloatRange`, so other packages stop allocating too. Navigation then uses it from Common.
