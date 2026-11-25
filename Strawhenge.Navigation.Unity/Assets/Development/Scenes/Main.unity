@@ -490,7 +490,7 @@ MonoBehaviour:
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 138225316}
-        m_TargetAssemblyTypeName: ControlsScript, Assembly-CSharp
+        m_TargetAssemblyTypeName: Development.ControlsScript, Development
         m_MethodName: Move
         m_Mode: 0
         m_Arguments:
@@ -502,7 +502,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: a235bdc5-4067-4bf5-ab4f-a9653891cd06
-    m_ActionName: Default/Move[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]
+    m_ActionName: Default/Move[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/Gamepad/leftStick]
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 138225316}
@@ -518,7 +518,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: a4042367-1962-47ae-9f12-7ed6148bd2b3
-    m_ActionName: Default/Walk[/Keyboard/tab]
+    m_ActionName: Default/Walk[/Keyboard/tab,/Gamepad/buttonEast]
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 138225316}
@@ -534,7 +534,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: a9cf3f59-9544-4cf5-b58a-97e481594a92
-    m_ActionName: Default/Sprint[/Keyboard/leftShift]
+    m_ActionName: Default/Sprint[/Keyboard/leftShift,/Gamepad/buttonSouth]
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 138225316}
@@ -550,7 +550,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: 468816c0-8d1f-4eb9-8a43-d50a527e1e90
-    m_ActionName: Default/Jump[/Keyboard/space]
+    m_ActionName: Default/Jump[/Keyboard/space,/Gamepad/buttonWest]
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 138225316}
@@ -566,7 +566,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: 2801d0be-a75a-427b-816b-b9c066d992d5
-    m_ActionName: Default/Strafe[/Keyboard/leftCtrl]
+    m_ActionName: Default/Strafe[/Keyboard/leftCtrl,/Gamepad/buttonNorth]
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 969177857}
@@ -598,7 +598,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: 58d67361-4fe6-4d0b-8ab0-9ba8448920e1
-    m_ActionName: Default/Switch Character[/Keyboard/tab]
+    m_ActionName: Default/Switch Character[/Keyboard/backspace,/Gamepad/select]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Default
