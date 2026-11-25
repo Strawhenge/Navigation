@@ -585,6 +585,54 @@ MonoBehaviour:
     m_ActionName: Default/Rotate Camera[/Mouse/delta]
   - m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 969177857}
+        m_TargetAssemblyTypeName: Development.ThirdPersonCameraScript, Development
+        m_MethodName: LookRate
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 561bcfd5-ea32-4b90-8947-526dec578749
+    m_ActionName: Default/Look Rate[/Gamepad/rightStick]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 969177857}
+        m_TargetAssemblyTypeName: Development.ThirdPersonCameraScript, Development
+        m_MethodName: Zoom
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 6d2f9eff-936b-43e0-8af6-cdf2a75bc0ba
+    m_ActionName: Default/Zoom[/Mouse/scroll/y]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 969177857}
+        m_TargetAssemblyTypeName: Development.ThirdPersonCameraScript, Development
+        m_MethodName: ZoomRate
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: a2e7719e-0eb9-4fc7-8a59-fb4158a2cd10
+    m_ActionName: Default/Zoom Rate[/Gamepad/dpad/down,/Gamepad/dpad/up]
+  - m_PersistentCalls:
+      m_Calls:
       - m_Target: {fileID: 138225318}
         m_TargetAssemblyTypeName: Development.CharacterSwitcherScript, Development
         m_MethodName: Switch
