@@ -21,11 +21,20 @@ namespace Strawhenge.Navigation.Unity
         // From this turn angle (degrees) on, the speed is limited to WalkSpeed straight away.
         float ReversalAngle { get; }
 
-        // A stationary pivot queued from standing is dropped once the character reaches this speed (metres per
-        // second): it's no longer a turn on the spot.
+        // Below this speed (metres per second) the character counts as standing, for stationary and start pivots.
         float StationaryPivotMaxSpeed { get; }
       
+        // Turns on the spot from standing, played when the input is released within StationaryPivotDecisionTime
+        // (a tap).
         IPivotProfile[] StationaryPivots { get; }
+
+        // Turns from standing that move off, played when the input is still held after StationaryPivotDecisionTime.
+        // With no match, the character turns and moves off normally.
+        IPivotProfile[] StartPivots { get; }
+
+        // How long (seconds) the character holds still from standing, towards a direction a stationary or start
+        // pivot covers, to tell a tap from a hold.
+        float StationaryPivotDecisionTime { get; }
         
         IPivotProfile[] MovingPivots { get; }
       
