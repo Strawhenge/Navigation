@@ -15,12 +15,6 @@ namespace Strawhenge.Navigation.Unity
     // through ILocomotionStepper.
     public sealed class LocomotionController : ILocomotionStepper
     {
-        // From this turn angle on, the speed is limited to RunSpeed, and the turn is remembered for pivots.
-        const float SharpTurnAngle = 40f;
-
-        // From this turn angle on, the speed is limited to WalkSpeed.
-        const float ReversalAngle = 120f;
-
         readonly ICharacterMotor _motor;
         readonly float _animatorWaitTimeout;
         readonly ILogger _logger;
@@ -429,7 +423,7 @@ namespace Strawhenge.Navigation.Unity
                 }
             }
 
-            if (_horizontalSpeed >= 1f)
+            if (_horizontalSpeed >= _settings.StationaryPivotMaxSpeed)
             {
                 _isAwaitingStationaryPivot = false;
                 _stationaryPivot = null;
@@ -507,7 +501,7 @@ namespace Strawhenge.Navigation.Unity
         // once the suppression ends.
         void TrackSharpTurn(Quaternion rotation, bool isAirborne)
         {
-            if (isAirborne || _suppressPivotsUntilTurned || Mathf.Abs(_turnAngle) < SharpTurnAngle)
+            if (isAirborne || _suppressPivotsUntilTurned || Mathf.Abs(_turnAngle) < _settings.SharpTurnAngle)
             {
                 _isSharpTurning = false;
                 return;
@@ -641,9 +635,9 @@ namespace Strawhenge.Navigation.Unity
                 targetSpeed,
                 acceleration * deltaTime);
 
-            if (Mathf.Abs(_turnAngle) >= ReversalAngle)
+            if (Mathf.Abs(_turnAngle) >= _settings.ReversalAngle)
                 speed = Mathf.Min(speed, _settings.WalkSpeed);
-            else if (Mathf.Abs(_turnAngle) >= SharpTurnAngle)
+            else if (Mathf.Abs(_turnAngle) >= _settings.SharpTurnAngle)
                 speed = Mathf.Min(speed, _settings.RunSpeed);
 
             _horizontalSpeed = speed;

@@ -18,6 +18,15 @@ namespace Strawhenge.Navigation.Unity
         [Header("Turning")]
         [SerializeField] float _turnSpeed = DefaultLocomotionSettings.TurnSpeed;
 
+        [Tooltip("From this turn angle (degrees) on, the speed is limited to the run speed straight away.")]
+        [SerializeField] float _sharpTurnAngle = DefaultLocomotionSettings.SharpTurnAngle;
+
+        [Tooltip("From this turn angle (degrees) on, the speed is limited to the walk speed straight away.")]
+        [SerializeField] float _reversalAngle = DefaultLocomotionSettings.ReversalAngle;
+
+        [Tooltip("A stationary pivot queued from standing is dropped once the character reaches this speed.")]
+        [SerializeField] float _stationaryPivotMaxSpeed = DefaultLocomotionSettings.StationaryPivotMaxSpeed;
+
         [SerializeField] SerializedSource<
             IPivotProfile,
             SerializedPivotProfile,
@@ -85,6 +94,12 @@ namespace Strawhenge.Navigation.Unity
         public float Deceleration => _deceleration;
 
         public float TurnSpeed => _turnSpeed;
+
+        public float SharpTurnAngle => _sharpTurnAngle;
+
+        public float ReversalAngle => _reversalAngle;
+
+        public float StationaryPivotMaxSpeed => _stationaryPivotMaxSpeed;
 
         // The profile lists are resolved on every read; LocomotionScript reads them through CachedLocomotionSettings.
         public IPivotProfile[] StationaryPivots =>

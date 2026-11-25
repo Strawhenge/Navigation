@@ -10,6 +10,9 @@ namespace Strawhenge.Navigation.Unity
         internal const float Acceleration = 10;
         internal const float Deceleration = 30;
         internal const float TurnSpeed = 360;
+        internal const float SharpTurnAngle = 40;
+        internal const float ReversalAngle = 120;
+        internal const float StationaryPivotMaxSpeed = 1;
         internal const float JumpHeight = 1;
         internal const float CoyoteTime = 0.2f;
         internal const float Gravity = -9.81f;
@@ -35,6 +38,12 @@ namespace Strawhenge.Navigation.Unity
         float ILocomotionSettings.Deceleration => Deceleration;
 
         float ILocomotionSettings.TurnSpeed => TurnSpeed;
+
+        float ILocomotionSettings.SharpTurnAngle => SharpTurnAngle;
+
+        float ILocomotionSettings.ReversalAngle => ReversalAngle;
+
+        float ILocomotionSettings.StationaryPivotMaxSpeed => StationaryPivotMaxSpeed;
 
         IPivotProfile[] ILocomotionSettings.StationaryPivots => Array.Empty<IPivotProfile>();
 

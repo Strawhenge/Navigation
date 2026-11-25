@@ -40,6 +40,12 @@ namespace Strawhenge.Navigation.Unity
 
         public float TurnSpeed => _settings.TurnSpeed;
 
+        public float SharpTurnAngle => _settings.SharpTurnAngle;
+
+        public float ReversalAngle => _settings.ReversalAngle;
+
+        public float StationaryPivotMaxSpeed => _settings.StationaryPivotMaxSpeed;
+
         public float JumpHeight => _settings.JumpHeight;
 
         public float CoyoteTime => _settings.CoyoteTime;

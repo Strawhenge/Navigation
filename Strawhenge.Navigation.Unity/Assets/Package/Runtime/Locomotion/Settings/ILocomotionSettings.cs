@@ -13,6 +13,17 @@ namespace Strawhenge.Navigation.Unity
         float Deceleration { get; }
      
         float TurnSpeed { get; }
+
+        // From this turn angle (degrees) on, the speed is limited to RunSpeed straight away, and the turn's start
+        // is remembered for matching moving pivots.
+        float SharpTurnAngle { get; }
+
+        // From this turn angle (degrees) on, the speed is limited to WalkSpeed straight away.
+        float ReversalAngle { get; }
+
+        // A stationary pivot queued from standing is dropped once the character reaches this speed (metres per
+        // second): it's no longer a turn on the spot.
+        float StationaryPivotMaxSpeed { get; }
       
         IPivotProfile[] StationaryPivots { get; }
         
