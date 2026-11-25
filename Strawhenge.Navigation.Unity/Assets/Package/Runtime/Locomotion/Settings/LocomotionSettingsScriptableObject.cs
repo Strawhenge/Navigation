@@ -18,10 +18,31 @@ namespace Strawhenge.Navigation.Unity
         [Header("Turning")]
         [SerializeField] float _turnSpeed = DefaultLocomotionSettings.TurnSpeed;
 
+        [Tooltip("From this turn angle (degrees) on, the speed is limited to the run speed straight away.")]
+        [SerializeField] float _sharpTurnAngle = DefaultLocomotionSettings.SharpTurnAngle;
+
+        [Tooltip("From this turn angle (degrees) on, the speed is limited to the walk speed straight away.")]
+        [SerializeField] float _reversalAngle = DefaultLocomotionSettings.ReversalAngle;
+
+        [Tooltip("Below this speed the character counts as standing, for stationary and start pivots.")]
+        [SerializeField] float _stationaryPivotMaxSpeed = DefaultLocomotionSettings.StationaryPivotMaxSpeed;
+
+        [Tooltip("How long the character holds still from standing, towards a direction a stationary or start " +
+                 "pivot covers, to tell a tap (stationary pivot) from a hold (start pivot).")]
+        [SerializeField] float _stationaryPivotDecisionTime = DefaultLocomotionSettings.StationaryPivotDecisionTime;
+
+        [Tooltip("Turns on the spot from standing, played when the input is released quickly (a tap).")]
         [SerializeField] SerializedSource<
             IPivotProfile,
             SerializedPivotProfile,
             PivotProfileScriptableObject>[] _stationaryPivots;
+
+        [Tooltip("Turns from standing that move off, played when the input is held. With no match, the " +
+                 "character turns and moves off normally.")]
+        [SerializeField] SerializedSource<
+            IPivotProfile,
+            SerializedPivotProfile,
+            PivotProfileScriptableObject>[] _startPivots;
 
         [SerializeField] SerializedSource<
             IPivotProfile,
@@ -86,9 +107,20 @@ namespace Strawhenge.Navigation.Unity
 
         public float TurnSpeed => _turnSpeed;
 
+        public float SharpTurnAngle => _sharpTurnAngle;
+
+        public float ReversalAngle => _reversalAngle;
+
+        public float StationaryPivotMaxSpeed => _stationaryPivotMaxSpeed;
+
+        public float StationaryPivotDecisionTime => _stationaryPivotDecisionTime;
+
         // The profile lists are resolved on every read; LocomotionScript reads them through CachedLocomotionSettings.
         public IPivotProfile[] StationaryPivots =>
             ProfileSources.Resolve(_stationaryPivots);
+
+        public IPivotProfile[] StartPivots =>
+            ProfileSources.Resolve(_startPivots);
 
         public IPivotProfile[] MovingPivots =>
             ProfileSources.Resolve(_movingPivots);
