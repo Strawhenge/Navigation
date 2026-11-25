@@ -490,7 +490,7 @@ MonoBehaviour:
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 138225316}
-        m_TargetAssemblyTypeName: ControlsScript, Assembly-CSharp
+        m_TargetAssemblyTypeName: Development.ControlsScript, Development
         m_MethodName: Move
         m_Mode: 0
         m_Arguments:
@@ -502,7 +502,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: a235bdc5-4067-4bf5-ab4f-a9653891cd06
-    m_ActionName: Default/Move[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]
+    m_ActionName: Default/Move[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/Gamepad/leftStick]
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 138225316}
@@ -518,7 +518,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: a4042367-1962-47ae-9f12-7ed6148bd2b3
-    m_ActionName: Default/Walk[/Keyboard/tab]
+    m_ActionName: Default/Walk[/Keyboard/tab,/Gamepad/buttonEast]
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 138225316}
@@ -534,7 +534,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: a9cf3f59-9544-4cf5-b58a-97e481594a92
-    m_ActionName: Default/Sprint[/Keyboard/leftShift]
+    m_ActionName: Default/Sprint[/Keyboard/leftShift,/Gamepad/buttonSouth]
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 138225316}
@@ -550,7 +550,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: 468816c0-8d1f-4eb9-8a43-d50a527e1e90
-    m_ActionName: Default/Jump[/Keyboard/space]
+    m_ActionName: Default/Jump[/Keyboard/space,/Gamepad/buttonWest]
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 138225316}
@@ -566,7 +566,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: 2801d0be-a75a-427b-816b-b9c066d992d5
-    m_ActionName: Default/Strafe[/Keyboard/leftCtrl]
+    m_ActionName: Default/Strafe[/Keyboard/leftCtrl,/Gamepad/buttonNorth]
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 969177857}
@@ -585,6 +585,54 @@ MonoBehaviour:
     m_ActionName: Default/Rotate Camera[/Mouse/delta]
   - m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 969177857}
+        m_TargetAssemblyTypeName: Development.ThirdPersonCameraScript, Development
+        m_MethodName: LookRate
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 561bcfd5-ea32-4b90-8947-526dec578749
+    m_ActionName: Default/Look Rate[/Gamepad/rightStick]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 969177857}
+        m_TargetAssemblyTypeName: Development.ThirdPersonCameraScript, Development
+        m_MethodName: Zoom
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 6d2f9eff-936b-43e0-8af6-cdf2a75bc0ba
+    m_ActionName: Default/Zoom[/Mouse/scroll/y]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 969177857}
+        m_TargetAssemblyTypeName: Development.ThirdPersonCameraScript, Development
+        m_MethodName: ZoomRate
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: a2e7719e-0eb9-4fc7-8a59-fb4158a2cd10
+    m_ActionName: Default/Zoom Rate[/Gamepad/dpad/down,/Gamepad/dpad/up]
+  - m_PersistentCalls:
+      m_Calls:
       - m_Target: {fileID: 138225318}
         m_TargetAssemblyTypeName: Development.CharacterSwitcherScript, Development
         m_MethodName: Switch
@@ -598,7 +646,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: 58d67361-4fe6-4d0b-8ab0-9ba8448920e1
-    m_ActionName: Default/Switch Character[/Keyboard/tab]
+    m_ActionName: Default/Switch Character[/Keyboard/backspace,/Gamepad/select]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Default
