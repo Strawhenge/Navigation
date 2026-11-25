@@ -10,7 +10,12 @@ namespace Strawhenge.Navigation.Unity.Tests
         public float Acceleration { get; set; } = DefaultLocomotionSettings.Acceleration;
         public float Deceleration { get; set; } = DefaultLocomotionSettings.Deceleration;
         public float TurnSpeed { get; set; } = DefaultLocomotionSettings.TurnSpeed;
+        public float SharpTurnAngle { get; set; } = DefaultLocomotionSettings.SharpTurnAngle;
+        public float ReversalAngle { get; set; } = DefaultLocomotionSettings.ReversalAngle;
+        public float StationaryPivotMaxSpeed { get; set; } = DefaultLocomotionSettings.StationaryPivotMaxSpeed;
+        public float StationaryPivotDecisionTime { get; set; } = DefaultLocomotionSettings.StationaryPivotDecisionTime;
         public IPivotProfile[] StationaryPivots { get; set; } = Array.Empty<IPivotProfile>();
+        public IPivotProfile[] StartPivots { get; set; } = Array.Empty<IPivotProfile>();
         public IPivotProfile[] MovingPivots { get; set; } = Array.Empty<IPivotProfile>();
         public float JumpHeight { get; set; } = DefaultLocomotionSettings.JumpHeight;
         public float CoyoteTime { get; set; } = DefaultLocomotionSettings.CoyoteTime;
