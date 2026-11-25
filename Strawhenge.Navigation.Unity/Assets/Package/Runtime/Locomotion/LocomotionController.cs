@@ -719,7 +719,14 @@ namespace Strawhenge.Navigation.Unity
             var rate = along >= 0f && along < targetSpeed
                 ? _settings.Acceleration
                 : _settings.Deceleration;
-            along = Mathf.MoveTowards(along, targetSpeed, rate * deltaTime);
+
+            // Keeping momentum, a smaller input the way it's going (a stick on its way back to the centre) doesn't
+            // slow it, just as no input doesn't: only steering across or against it does.
+            var keepsSpeedAlong = _settings.AirborneMovement == AirborneMovement.ControlledKeepsMomentum &&
+                                  along > targetSpeed;
+
+            if (!keepsSpeedAlong)
+                along = Mathf.MoveTowards(along, targetSpeed, rate * deltaTime);
 
             _momentum = across + direction * along;
             _horizontalSpeed = _momentum.magnitude;
