@@ -426,6 +426,7 @@ GameObject:
   - component: {fileID: 138225317}
   - component: {fileID: 138225316}
   - component: {fileID: 138225318}
+  - component: {fileID: 138225319}
   m_Layer: 0
   m_Name: Controls
   m_TagString: Untagged
@@ -670,6 +671,20 @@ MonoBehaviour:
   _controls: {fileID: 138225316}
   _camera: {fileID: 969177857}
   _showLabel: 1
+  _logger: {fileID: 0}
+--- !u!114 &138225319
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 138225314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ce9dd9a5adff9942a089cd18bc97f84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _timeScale: 1
 --- !u!1 &520618708
 GameObject:
   m_ObjectHideFlags: 0
@@ -1080,17 +1095,21 @@ MonoBehaviour:
   _distance: 3
   _minDistance: 1
   _maxDistance: 6
-  _zoomSpeed: 0.005
-  _lookSensitivity: 0.15
   _minPitch: -35
   _maxPitch: 70
+  _lookSensitivity: 0.15
   _invertY: 0
+  _zoomSpeed: 0.005
+  _lookRateSpeed: 180
+  _invertLookRateY: 0
+  _zoomRateSpeed: 4
   _collisionLayers:
     serializedVersion: 2
     m_Bits: 4294967295
   _collisionRadius: 0.2
   _collisionReturnSmoothTime: 0.25
   _lockCursor: 1
+  _logger: {fileID: 0}
 --- !u!1 &1093666944
 GameObject:
   m_ObjectHideFlags: 0
