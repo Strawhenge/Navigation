@@ -12,6 +12,7 @@ namespace Strawhenge.Navigation.Unity
 
         int _cachedVersion;
         IPivotProfile[] _stationaryPivots;
+        IPivotProfile[] _startPivots;
         IPivotProfile[] _movingPivots;
         IJumpProfile[] _jumps;
         IStrafeJumpProfile[] _strafeJumps;
@@ -46,6 +47,8 @@ namespace Strawhenge.Navigation.Unity
 
         public float StationaryPivotMaxSpeed => _settings.StationaryPivotMaxSpeed;
 
+        public float StationaryPivotDecisionTime => _settings.StationaryPivotDecisionTime;
+
         public float JumpHeight => _settings.JumpHeight;
 
         public float CoyoteTime => _settings.CoyoteTime;
@@ -66,6 +69,15 @@ namespace Strawhenge.Navigation.Unity
             {
                 RefreshLists();
                 return _stationaryPivots;
+            }
+        }
+
+        public IPivotProfile[] StartPivots
+        {
+            get
+            {
+                RefreshLists();
+                return _startPivots;
             }
         }
 
@@ -121,6 +133,8 @@ namespace Strawhenge.Navigation.Unity
 
             _stationaryPivots = ProfileSources.Filter(
                 _settings.StationaryPivots, PivotProfileExtensions.FindProblem, nameof(StationaryPivots), _logger);
+            _startPivots = ProfileSources.Filter(
+                _settings.StartPivots, PivotProfileExtensions.FindProblem, nameof(StartPivots), _logger);
             _movingPivots = ProfileSources.Filter(
                 _settings.MovingPivots, PivotProfileExtensions.FindProblem, nameof(MovingPivots), _logger);
             _jumps = ProfileSources.Filter(
