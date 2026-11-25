@@ -15,6 +15,12 @@ namespace Strawhenge.Navigation.Unity
     // through ILocomotionStepper.
     public sealed class LocomotionController : ILocomotionStepper
     {
+        // From this turn angle on, the speed is limited to RunSpeed, and the turn is remembered for pivots.
+        const float SharpTurnAngle = 40f;
+
+        // From this turn angle on, the speed is limited to WalkSpeed.
+        const float ReversalAngle = 120f;
+
         readonly ICharacterMotor _motor;
         readonly float _animatorWaitTimeout;
         readonly ILogger _logger;
@@ -54,6 +60,13 @@ namespace Strawhenge.Navigation.Unity
         bool _isAwaitingStationaryPivot;
         bool _suppressPivotsUntilTurned;
         IPivotProfile _stationaryPivot;
+
+        // Where a sharp turn began: the facing and speed before it slowed the character. A stick sweeps through
+        // the angles in between on its way round, limiting the speed and turning the character as it goes, so
+        // moving pivots match on these rather than on where the sweep has got to.
+        bool _isSharpTurning;
+        Quaternion _sharpTurnStartRotation;
+        float _sharpTurnStartSpeed;
 
         int _pivotId;
         float _pivotWaitTime;
@@ -327,6 +340,7 @@ namespace Strawhenge.Navigation.Unity
             _isAwaitingStationaryPivot = false;
             _stationaryPivot = null;
             _suppressPivotsUntilTurned = false;
+            _isSharpTurning = false;
 
             _isLanding = false;
 
@@ -404,6 +418,7 @@ namespace Strawhenge.Navigation.Unity
                 // Pivots are turns on the ground, so none in the air, and one queued on the ground is dropped.
                 _isAwaitingStationaryPivot = false;
                 _stationaryPivot = null;
+                _isSharpTurning = false;
 
                 if (!_settings.AllowAirborneRotation)
                 {
@@ -424,6 +439,7 @@ namespace Strawhenge.Navigation.Unity
             {
                 _turnAngle = 0;
                 _targetRotation = rotation;
+                _isSharpTurning = false;
                 return rotation;
             }
 
@@ -432,6 +448,8 @@ namespace Strawhenge.Navigation.Unity
                 _input.normalized,
                 Vector3.up
             );
+
+            TrackSharpTurn(rotation, isAirborne);
 
             // No pivots in the air (see above): the character turns normally.
             if (!isAirborne && HandlePivots())
@@ -484,6 +502,24 @@ namespace Strawhenge.Navigation.Unity
             return false;
         }
 
+        // Called before the step's speed is worked out, so _horizontalSpeed is still the speed coming into the turn.
+        // Not in the air (no pivots there), nor while pivots are suppressed, which would match the same pivot again
+        // once the suppression ends.
+        void TrackSharpTurn(Quaternion rotation, bool isAirborne)
+        {
+            if (isAirborne || _suppressPivotsUntilTurned || Mathf.Abs(_turnAngle) < SharpTurnAngle)
+            {
+                _isSharpTurning = false;
+                return;
+            }
+
+            if (_isSharpTurning) return;
+
+            _isSharpTurning = true;
+            _sharpTurnStartRotation = rotation;
+            _sharpTurnStartSpeed = _horizontalSpeed;
+        }
+
         bool CheckForStationaryPivots(out IPivotProfile matchingPivot)
         {
             foreach (var pivot in _settings.StationaryPivots)
@@ -507,9 +543,21 @@ namespace Strawhenge.Navigation.Unity
                 return false;
             }
 
+            var speed = _horizontalSpeed;
+            var turnAngle = _turnAngle;
+
+            if (_isSharpTurning)
+            {
+                speed = _sharpTurnStartSpeed;
+                turnAngle = Vector3.SignedAngle(
+                    _sharpTurnStartRotation * Vector3.forward,
+                    _input.normalized,
+                    Vector3.up);
+            }
+
             foreach (var pivot in _settings.MovingPivots)
             {
-                if (pivot.Matches(_horizontalSpeed, _turnAngle))
+                if (pivot.Matches(speed, turnAngle))
                 {
                     matchingPivot = pivot;
                     return true;
@@ -593,9 +641,9 @@ namespace Strawhenge.Navigation.Unity
                 targetSpeed,
                 acceleration * deltaTime);
 
-            if (Mathf.Abs(_turnAngle) >= 120f)
+            if (Mathf.Abs(_turnAngle) >= ReversalAngle)
                 speed = Mathf.Min(speed, _settings.WalkSpeed);
-            else if (Mathf.Abs(_turnAngle) >= 40f)
+            else if (Mathf.Abs(_turnAngle) >= SharpTurnAngle)
                 speed = Mathf.Min(speed, _settings.RunSpeed);
 
             _horizontalSpeed = speed;
@@ -738,6 +786,7 @@ namespace Strawhenge.Navigation.Unity
         void Pivot(int pivotId)
         {
             _isPivoting = true;
+            _isSharpTurning = false;
             _pivotStartRotation = _motor.Rotation;
             _pivotId = pivotId;
             _pivotWaitTime = 0f;
