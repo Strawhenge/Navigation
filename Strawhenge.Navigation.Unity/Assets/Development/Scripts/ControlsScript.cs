@@ -1,5 +1,4 @@
 using Strawhenge.Navigation.Unity;
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -18,8 +17,12 @@ namespace Development
             if (_player == null)
                 _player = FindObjectOfType<LocomotionScript>();
 
+            // Unity's == null, not ??, which would miss a destroyed camera.
             if (_camera == null)
-                _camera = Camera.main ?? FindObjectOfType<Camera>();
+                _camera = Camera.main;
+
+            if (_camera == null)
+                _camera = FindObjectOfType<Camera>();
         }
 
         // Releases the previous character, so it doesn't carry on with the last input, and hands the held
