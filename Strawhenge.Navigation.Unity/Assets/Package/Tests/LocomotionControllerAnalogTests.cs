@@ -108,11 +108,52 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.AreEqual(HalfRunSpeed, harness.LastRequestedSpeed, SpeedTolerance);
         }
 
-        static LocomotionControllerHarness RunForward(float stick, bool withJumps = true)
+        // Releasing a stick passes through smaller inputs on its way to the centre. Keeping momentum, those don't
+        // slow the character: only no input holds the speed, and a smaller input the same way mustn't take it away.
+        [Test]
+        public void Keeps_the_speed_in_the_air_while_releasing_the_stick_when_keeping_momentum()
+        {
+            var harness = RunForward(1f, withJumps: false, AirborneMovement.ControlledKeepsMomentum);
+            var jumpBegan = false;
+            harness.Controller.JumpBegan += () => jumpBegan = true;
+            harness.Controller.Jump();
+            harness.Step();
+            Assert.IsTrue(jumpBegan, "Setup failed: the character didn't jump.");
+
+            foreach (var stick in new[] { 0.8f, 0.6f, 0.4f, 0.2f, 0f })
+            {
+                harness.Controller.Move(Vector3.forward * stick);
+                harness.Step();
+            }
+
+            Assert.IsFalse(harness.Motor.IsGrounded, "Setup failed: the character has already landed.");
+            Assert.AreEqual(DefaultLocomotionSettings.RunSpeed, harness.LastRequestedSpeed, SpeedTolerance);
+        }
+
+        // Baseline: steering against the movement still slows it.
+        [Test]
+        public void Slows_in_the_air_when_steering_back_when_keeping_momentum()
+        {
+            var harness = RunForward(1f, withJumps: false, AirborneMovement.ControlledKeepsMomentum);
+            harness.Controller.Jump();
+            harness.Step();
+
+            harness.Controller.Move(Vector3.back);
+            harness.StepFor(0.1f);
+
+            Assert.IsFalse(harness.Motor.IsGrounded, "Setup failed: the character has already landed.");
+            Assert.Less(harness.LastRequestedSpeed, DefaultLocomotionSettings.RunSpeed - 1f);
+        }
+
+        static LocomotionControllerHarness RunForward(
+            float stick,
+            bool withJumps = true,
+            AirborneMovement airborneMovement = DefaultLocomotionSettings.AirborneMovement)
         {
             var settings = new FakeLocomotionSettings
             {
-                MovingPivots = new[] { RunningPivot, JoggingPivot }
+                MovingPivots = new[] { RunningPivot, JoggingPivot },
+                AirborneMovement = airborneMovement
             };
 
             if (withJumps)
