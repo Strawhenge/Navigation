@@ -15,12 +15,6 @@ namespace Strawhenge.Navigation.Unity
     // through ILocomotionStepper.
     public sealed class LocomotionController : ILocomotionStepper
     {
-        // From this turn angle on, the speed is limited to RunSpeed, and the turn is remembered for pivots.
-        const float SharpTurnAngle = 40f;
-
-        // From this turn angle on, the speed is limited to WalkSpeed.
-        const float ReversalAngle = 120f;
-
         readonly ICharacterMotor _motor;
         readonly float _animatorWaitTimeout;
         readonly ILogger _logger;
@@ -57,9 +51,25 @@ namespace Strawhenge.Navigation.Unity
         float _turnAngle;
         bool _isPivoting;
         Quaternion _pivotStartRotation;
-        bool _isAwaitingStationaryPivot;
         bool _suppressPivotsUntilTurned;
-        IPivotProfile _stationaryPivot;
+
+        // From standing, towards a direction a stationary or start pivot covers, the character holds still for
+        // StationaryPivotDecisionTime to see whether the input is a tap or a hold: released, the stationary pivot
+        // (turn on the spot) plays; still held, the start pivot (turn and move off), or with none, it turns and
+        // moves off normally. Held still, the turn is measured from the facing it started with, however a stick
+        // ramps up or wavers on its way.
+        bool _isDecidingStationaryPivot;
+        float _stationaryPivotDecisionTime;
+        float _stationaryPivotDecisionSpeed;
+
+        // The last direction given, kept through a release, and whether one was given since the last step, so a
+        // tap given and released between two steps still counts.
+        Vector3 _lastInputDirection;
+        bool _hadInputSinceLastStep;
+
+        // A hold has been decided: no other decision starts until the input is released, or the character, turning
+        // and speeding up from standing, would be held still again on the next step.
+        bool _isStationaryPivotDecisionSpent;
 
         // Where a sharp turn began: the facing and speed before it slowed the character. A stick sweeps through
         // the angles in between on its way round, limiting the speed and turning the character as it goes, so
@@ -234,31 +244,11 @@ namespace Strawhenge.Navigation.Unity
             if (input.sqrMagnitude > 0.001f)
                 _targetRotation = Quaternion.LookRotation(input);
 
-            // Queued on the ground, but pivots don't play in the air.
-            if (_isAwaitingStationaryPivot && IsAirborne)
+            // HasMoveInput's threshold.
+            if (input.sqrMagnitude > 0.01f)
             {
-                _isAwaitingStationaryPivot = false;
-                _stationaryPivot = null;
-            }
-
-            if (_isAwaitingStationaryPivot)
-            {
-                if (_input.sqrMagnitude < 0.000001f)
-                {
-                    _isAwaitingStationaryPivot = false;
-
-                    // Held since it matched, so its pivot asset may have been cleared meanwhile:
-                    // then there's no pivot, and the character turns normally.
-                    if (_stationaryPivot.Id is int stationaryPivotId)
-                        Pivot(stationaryPivotId);
-
-                    _stationaryPivot = null;
-                }
-                else if (input.sqrMagnitude > _input.sqrMagnitude)
-                {
-                    _isAwaitingStationaryPivot = false;
-                    _stationaryPivot = null;
-                }
+                _lastInputDirection = input.normalized;
+                _hadInputSinceLastStep = true;
             }
 
             _input = input;
@@ -272,6 +262,9 @@ namespace Strawhenge.Navigation.Unity
             if (_isJumping || _isPivoting || _isLanding || _isAwaitingJumpTrigger ||
                 _timeSinceGrounded > _settings.CoyoteTime)
                 return;
+
+            // Jumping isn't a turn on the spot: the character jumps, and turns normally.
+            _isDecidingStationaryPivot = false;
 
             _isAwaitingJumpTrigger = true;
             _jumpTriggerWaitTime = 0f;
@@ -337,8 +330,9 @@ namespace Strawhenge.Navigation.Unity
         void CancelAnimatorWaits()
         {
             _isPivoting = false;
-            _isAwaitingStationaryPivot = false;
-            _stationaryPivot = null;
+            _isDecidingStationaryPivot = false;
+            _hadInputSinceLastStep = false;
+            _isStationaryPivotDecisionSpent = false;
             _suppressPivotsUntilTurned = false;
             _isSharpTurning = false;
 
@@ -410,14 +404,19 @@ namespace Strawhenge.Navigation.Unity
         {
             var rotation = _motor.Rotation;
 
+            var hadInput = _hadInputSinceLastStep;
+            _hadInputSinceLastStep = false;
+
+            if (!hadInput && !HasMoveInput)
+                _isStationaryPivotDecisionSpent = false;
+
             if (_isPivoting || _isLanding) return rotation;
 
             var isAirborne = IsAirborne;
             if (isAirborne)
             {
-                // Pivots are turns on the ground, so none in the air, and one queued on the ground is dropped.
-                _isAwaitingStationaryPivot = false;
-                _stationaryPivot = null;
+                // Pivots are turns on the ground, so none in the air, and a stationary pivot being decided is dropped.
+                _isDecidingStationaryPivot = false;
                 _isSharpTurning = false;
 
                 if (!_settings.AllowAirborneRotation)
@@ -429,17 +428,12 @@ namespace Strawhenge.Navigation.Unity
                 }
             }
 
-            if (_horizontalSpeed >= 1f)
-            {
-                _isAwaitingStationaryPivot = false;
-                _stationaryPivot = null;
-            }
-
             if (Strafe)
             {
                 _turnAngle = 0;
                 _targetRotation = rotation;
                 _isSharpTurning = false;
+                _isDecidingStationaryPivot = false;
                 return rotation;
             }
 
@@ -452,7 +446,7 @@ namespace Strawhenge.Navigation.Unity
             TrackSharpTurn(rotation, isAirborne);
 
             // No pivots in the air (see above): the character turns normally.
-            if (!isAirborne && HandlePivots())
+            if (!isAirborne && HandlePivots(rotation, hadInput, deltaTime))
                 return rotation;
 
             return Quaternion.RotateTowards(
@@ -461,22 +455,25 @@ namespace Strawhenge.Navigation.Unity
                 _settings.TurnSpeed * deltaTime);
         }
 
-        // Queues a stationary pivot, or starts a moving one. Returns true when a moving pivot starts.
-        bool HandlePivots()
+        // Decides a stationary pivot, or starts a moving one. Returns true when the rotation is held this step:
+        // a pivot started, or a stationary pivot is being decided.
+        bool HandlePivots(Quaternion rotation, bool hadInput, float deltaTime)
         {
             if (_suppressPivotsUntilTurned)
             {
+                _isDecidingStationaryPivot = false;
+
                 if (!IsInAnyPivotAngleRange())
                     _suppressPivotsUntilTurned = false;
 
                 return false;
             }
 
-            if (CheckForStationaryPivots(out var stationaryPivot))
-            {
-                _isAwaitingStationaryPivot = true;
-                _stationaryPivot = stationaryPivot;
-            }
+            if (_isDecidingStationaryPivot)
+                return DecideStationaryPivot(rotation, deltaTime);
+
+            if (TryBeginStationaryPivotDecision(rotation, hadInput))
+                return DecideStationaryPivot(rotation, 0f);
 
             if (CheckForMovingPivots(out var movingPivot) && movingPivot.Id is int movingPivotId)
             {
@@ -487,8 +484,80 @@ namespace Strawhenge.Navigation.Unity
             return false;
         }
 
+        // From standing (below StationaryPivotMaxSpeed), when the input given since the last step points where a
+        // stationary or start pivot could play.
+        bool TryBeginStationaryPivotDecision(Quaternion rotation, bool hadInput)
+        {
+            if (_isStationaryPivotDecisionSpent || !hadInput ||
+                _horizontalSpeed >= _settings.StationaryPivotMaxSpeed)
+                return false;
+
+            var turnAngle = GetStationaryTurnAngle(rotation);
+
+            if (!AnyPivotMatches(_settings.StationaryPivots, _horizontalSpeed, turnAngle) &&
+                !AnyPivotMatches(_settings.StartPivots, _horizontalSpeed, turnAngle))
+                return false;
+
+            _isDecidingStationaryPivot = true;
+            _stationaryPivotDecisionTime = 0f;
+            _stationaryPivotDecisionSpeed = _horizontalSpeed;
+            return true;
+        }
+
+        // Released: the stationary pivot for the last direction given. Held past StationaryPivotDecisionTime: the
+        // start pivot for it. With no match either way, the decision ends and the character turns normally (returns
+        // false); otherwise it holds still (returns true).
+        bool DecideStationaryPivot(Quaternion rotation, float deltaTime)
+        {
+            var turnAngle = GetStationaryTurnAngle(rotation);
+
+            if (!HasMoveInput)
+            {
+                _isDecidingStationaryPivot = false;
+                return TryPivot(_settings.StationaryPivots, _stationaryPivotDecisionSpeed, turnAngle);
+            }
+
+            _stationaryPivotDecisionTime += deltaTime;
+            if (_stationaryPivotDecisionTime < _settings.StationaryPivotDecisionTime)
+                return true;
+
+            _isDecidingStationaryPivot = false;
+            _isStationaryPivotDecisionSpent = true;
+            return TryPivot(_settings.StartPivots, _stationaryPivotDecisionSpeed, turnAngle);
+        }
+
+        // To the last direction given, which outlasts the input being released.
+        float GetStationaryTurnAngle(Quaternion rotation) =>
+            Vector3.SignedAngle(rotation * Vector3.forward, _lastInputDirection, Vector3.up);
+
+        bool TryPivot(IPivotProfile[] pivots, float speed, float turnAngle)
+        {
+            foreach (var pivot in pivots)
+            {
+                if (pivot.Matches(speed, turnAngle) && pivot.Id is int pivotId)
+                {
+                    Pivot(pivotId);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static bool AnyPivotMatches(IPivotProfile[] pivots, float speed, float turnAngle)
+        {
+            foreach (var pivot in pivots)
+            {
+                if (pivot.Matches(speed, turnAngle))
+                    return true;
+            }
+
+            return false;
+        }
+
         bool IsInAnyPivotAngleRange() =>
             IsInAngleRange(_settings.StationaryPivots) ||
+            IsInAngleRange(_settings.StartPivots) ||
             IsInAngleRange(_settings.MovingPivots);
 
         bool IsInAngleRange(IPivotProfile[] pivots)
@@ -507,7 +576,7 @@ namespace Strawhenge.Navigation.Unity
         // once the suppression ends.
         void TrackSharpTurn(Quaternion rotation, bool isAirborne)
         {
-            if (isAirborne || _suppressPivotsUntilTurned || Mathf.Abs(_turnAngle) < SharpTurnAngle)
+            if (isAirborne || _suppressPivotsUntilTurned || Mathf.Abs(_turnAngle) < _settings.SharpTurnAngle)
             {
                 _isSharpTurning = false;
                 return;
@@ -520,29 +589,8 @@ namespace Strawhenge.Navigation.Unity
             _sharpTurnStartSpeed = _horizontalSpeed;
         }
 
-        bool CheckForStationaryPivots(out IPivotProfile matchingPivot)
-        {
-            foreach (var pivot in _settings.StationaryPivots)
-            {
-                if (pivot.Matches(_horizontalSpeed, _turnAngle))
-                {
-                    matchingPivot = pivot;
-                    return true;
-                }
-            }
-
-            matchingPivot = null;
-            return false;
-        }
-
         bool CheckForMovingPivots(out IPivotProfile matchingPivot)
         {
-            if (_isAwaitingStationaryPivot)
-            {
-                matchingPivot = null;
-                return false;
-            }
-
             var speed = _horizontalSpeed;
             var turnAngle = _turnAngle;
 
@@ -627,7 +675,8 @@ namespace Strawhenge.Navigation.Unity
                 return;
             }
 
-            if (_isLanding)
+            // Held still while landing, and while deciding a stationary pivot, so it turns from where it stands.
+            if (_isLanding || _isDecidingStationaryPivot)
             {
                 _horizontalSpeed = 0;
                 return;
@@ -641,9 +690,9 @@ namespace Strawhenge.Navigation.Unity
                 targetSpeed,
                 acceleration * deltaTime);
 
-            if (Mathf.Abs(_turnAngle) >= ReversalAngle)
+            if (Mathf.Abs(_turnAngle) >= _settings.ReversalAngle)
                 speed = Mathf.Min(speed, _settings.WalkSpeed);
-            else if (Mathf.Abs(_turnAngle) >= SharpTurnAngle)
+            else if (Mathf.Abs(_turnAngle) >= _settings.SharpTurnAngle)
                 speed = Mathf.Min(speed, _settings.RunSpeed);
 
             _horizontalSpeed = speed;
@@ -707,7 +756,7 @@ namespace Strawhenge.Navigation.Unity
         // reversing slows to a stop, then speeds up the other way. Without input it all slows at Deceleration.
         void SteerInTheAir(float deltaTime)
         {
-            var target = _input * GetTargetSpeed();
+            var target = _input.normalized * GetTargetSpeed();
             var targetSpeed = target.magnitude;
             var direction = targetSpeed > 0.0001f ? target / targetSpeed : Vector3.zero;
 
@@ -719,7 +768,14 @@ namespace Strawhenge.Navigation.Unity
             var rate = along >= 0f && along < targetSpeed
                 ? _settings.Acceleration
                 : _settings.Deceleration;
-            along = Mathf.MoveTowards(along, targetSpeed, rate * deltaTime);
+
+            // Keeping momentum, a smaller input the way it's going (a stick on its way back to the centre) doesn't
+            // slow it, just as no input doesn't: only steering across or against it does.
+            var keepsSpeedAlong = _settings.AirborneMovement == AirborneMovement.ControlledKeepsMomentum &&
+                                  along > targetSpeed;
+
+            if (!keepsSpeedAlong)
+                along = Mathf.MoveTowards(along, targetSpeed, rate * deltaTime);
 
             _momentum = across + direction * along;
             _horizontalSpeed = _momentum.magnitude;
@@ -760,15 +816,24 @@ namespace Strawhenge.Navigation.Unity
                 return _momentum;
 
             if (HasMoveInput)
-                return _input * _horizontalSpeed;
+                return _input.normalized * _horizontalSpeed;
 
             return rotation * Vector3.forward * _horizontalSpeed;
         }
 
+        // The selected speed scaled by how far the input goes (a stick part of the way; at most 1, see Move), so
+        // pivots, jumps and landings match on the speed the character really moves at. The velocity then follows
+        // the input's direction only (GetHorizontalVelocity, SteerInTheAir), so it isn't scaled twice.
         float GetTargetSpeed()
         {
             if (_input.sqrMagnitude < 0.001f)
                 return 0f;
+
+            return GetSelectedSpeed() * _input.magnitude;
+        }
+
+        float GetSelectedSpeed()
+        {
             if (Sprint)
                 return Strafe ? _settings.RunSpeed : _settings.SprintSpeed;
             if (Walk)
