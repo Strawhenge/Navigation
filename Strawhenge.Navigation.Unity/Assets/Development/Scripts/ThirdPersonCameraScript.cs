@@ -1,8 +1,13 @@
+using Strawhenge.Common.Unity;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Development
 {
+    // Orbits a target with the mouse (Look, a per-frame delta) or a stick (Look Rate, held), and zooms with the
+    // mouse wheel (Zoom, a per-frame delta) or the d-pad (Zoom Rate, held). Mouse look waits for a locked cursor;
+    // the stick and zoom always work, so a controller never loses the camera after Escape.
     public class ThirdPersonCameraScript : MonoBehaviour
     {
         const int MaxCollisionHits = 16;
@@ -16,11 +21,20 @@ namespace Development
         [SerializeField] float _distance = 3f;
         [SerializeField] float _minDistance = 1f;
         [SerializeField] float _maxDistance = 6f;
-        [SerializeField] float _zoomSpeed = 0.005f;
-        [SerializeField] float _lookSensitivity = 0.15f;
         [SerializeField] float _minPitch = -35f;
         [SerializeField] float _maxPitch = 70f;
+
+        [Header("Mouse")]
+        [SerializeField] float _lookSensitivity = 0.15f;
         [SerializeField] bool _invertY;
+        [SerializeField] float _zoomSpeed = 0.005f;
+
+        [Header("Stick")]
+        [Tooltip("Degrees per second with the stick pushed all the way.")]
+        [SerializeField] float _lookRateSpeed = 180f;
+        [SerializeField] bool _invertLookRateY;
+        [Tooltip("Metres per second with the d-pad held.")]
+        [SerializeField] float _zoomRateSpeed = 4f;
 
         [Header("Collision")]
         [SerializeField] LayerMask _collisionLayers = ~0;
@@ -30,9 +44,15 @@ namespace Development
         [Header("Cursor")]
         [SerializeField] bool _lockCursor = true;
 
+        // Optional: without one, warnings go through a UnityLogger on this GameObject.
+        [SerializeField] LoggerScript _logger;
+
         readonly RaycastHit[] _hits = new RaycastHit[MaxCollisionHits];
 
         Vector2 _lookInput;
+        Vector2 _lookRateInput;
+        float _zoomInput;
+        float _zoomRateInput;
         float _yaw;
         float _pitch;
         Vector3 _pivot;
@@ -42,9 +62,28 @@ namespace Development
 
         bool IsCursorLocked => !_lockCursor || Cursor.lockState == CursorLockMode.Locked;
 
+        // Mouse delta: accumulated per frame, so it's applied once and then consumed.
         public void Look(InputAction.CallbackContext context)
         {
             _lookInput = context.ReadValue<Vector2>();
+        }
+
+        // Stick: a rate, held until it changes (callbacks only come on a change).
+        public void LookRate(InputAction.CallbackContext context)
+        {
+            _lookRateInput = context.ReadValue<Vector2>();
+        }
+
+        // Mouse wheel: a per-frame delta, like Look.
+        public void Zoom(InputAction.CallbackContext context)
+        {
+            _zoomInput = context.ReadValue<float>();
+        }
+
+        // D-pad: a rate, like LookRate.
+        public void ZoomRate(InputAction.CallbackContext context)
+        {
+            _zoomRateInput = context.ReadValue<float>();
         }
 
         // Snaps to the new target rather than gliding across the scene; the orbit (yaw, pitch, zoom) is kept.
@@ -66,7 +105,7 @@ namespace Development
         {
             if (_target == null)
             {
-                Debug.LogWarning("Camera has no target.", this);
+                GetLogger().LogWarning("Camera has no target.");
                 enabled = false;
                 return;
             }
@@ -104,13 +143,14 @@ namespace Development
         void LateUpdate()
         {
             if (IsCursorLocked)
-            {
-                ApplyLook();
-                ApplyZoom();
-            }
+                ApplyMouseLook();
 
-            // Mouse delta is already accumulated per frame; consume it so it's never applied twice.
+            ApplyStickLook(Time.deltaTime);
+            ApplyZoom(Time.deltaTime);
+
+            // The deltas are consumed so they're never applied twice; the rates are held.
             _lookInput = Vector2.zero;
+            _zoomInput = 0f;
 
             _pivot = Vector3.SmoothDamp(_pivot, GetTargetPivot(), ref _pivotVelocity, _followSmoothTime);
 
@@ -127,23 +167,23 @@ namespace Development
             transform.SetPositionAndRotation(_pivot + direction * _currentDistance, rotation);
         }
 
-        void ApplyLook()
-        {
-            _yaw = Mathf.Repeat(_yaw + _lookInput.x * _lookSensitivity, 360f);
+        void ApplyMouseLook() => Rotate(_lookInput * _lookSensitivity, _invertY);
 
-            var pitchDelta = _lookInput.y * _lookSensitivity;
-            _pitch = Mathf.Clamp(_pitch + (_invertY ? pitchDelta : -pitchDelta), _minPitch, _maxPitch);
+        void ApplyStickLook(float deltaTime) => Rotate(_lookRateInput * (_lookRateSpeed * deltaTime), _invertLookRateY);
+
+        // Up (positive y) looks up, unless inverted.
+        void Rotate(Vector2 degrees, bool invertY)
+        {
+            _yaw = Mathf.Repeat(_yaw + degrees.x, 360f);
+            _pitch = Mathf.Clamp(_pitch + (invertY ? degrees.y : -degrees.y), _minPitch, _maxPitch);
         }
 
-        void ApplyZoom()
+        void ApplyZoom(float deltaTime)
         {
-            var mouse = Mouse.current;
-            if (mouse == null)
-                return;
+            var change = _zoomInput * _zoomSpeed + _zoomRateInput * _zoomRateSpeed * deltaTime;
 
-            var scroll = mouse.scroll.ReadValue().y;
-            if (scroll != 0f)
-                _distance = Mathf.Clamp(_distance - scroll * _zoomSpeed, _minDistance, _maxDistance);
+            if (change != 0f)
+                _distance = Mathf.Clamp(_distance - change, _minDistance, _maxDistance);
         }
 
         float GetUnobstructedDistance(Vector3 direction, float desiredDistance)
@@ -176,6 +216,8 @@ namespace Development
         }
 
         Vector3 GetTargetPivot() => _target.position + Vector3.up * _pivotHeight;
+
+        ILogger GetLogger() => _logger != null ? _logger.Logger : new UnityLogger(gameObject);
 
         static float NormalizeAngle(float angle) => angle > 180f ? angle - 360f : angle;
 

@@ -1,3 +1,4 @@
+using Strawhenge.Common.Unity;
 using Strawhenge.Navigation.Unity;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -5,13 +6,16 @@ using UnityEngine.InputSystem;
 namespace Development
 {
     // Switches the controls and camera between characters (one per motor, say). Bind the PlayerInput's
-    // Switch Character action (Tab) to Switch.
+    // Switch Character action (Backspace, or Select on a gamepad) to Switch.
     public class CharacterSwitcherScript : MonoBehaviour
     {
         [SerializeField] LocomotionScript[] _characters;
         [SerializeField] ControlsScript _controls;
         [SerializeField] ThirdPersonCameraScript _camera;
         [SerializeField] bool _showLabel = true;
+
+        // Optional: without one, warnings go through a UnityLogger on this GameObject.
+        [SerializeField] LoggerScript _logger;
 
         int _index;
 
@@ -26,7 +30,8 @@ namespace Development
 
             if (_characters == null || _characters.Length == 0)
             {
-                Debug.LogWarning($"No '{nameof(_characters)}' to switch between.", this);
+                var logger = _logger != null ? _logger.Logger : new UnityLogger(gameObject);
+                logger.LogWarning($"No '{nameof(_characters)}' to switch between.");
                 enabled = false;
                 return;
             }
