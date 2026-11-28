@@ -232,6 +232,34 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.AreEqual(1, _logger.Warnings.Count, "A warning should say the pivot didn't start.");
         }
 
+        // MovementAnimationSyncScript's defaults: the walk clip moves at 1.5 m/s, and plays no slower than half speed.
+        [UnityTest]
+        public IEnumerator Move_animation_speed_is_normal_at_walk_speed_and_above()
+        {
+            _first.CurrentVelocity = new Vector3(0f, 0f, 3f);
+            yield return new WaitForSeconds(0.5f);
+
+            Assert.AreEqual(1f, _animator.GetFloat(AnimatorParameters.MoveAnimationSpeed.Id), 0.01f);
+        }
+
+        [UnityTest]
+        public IEnumerator Move_animation_speed_slows_in_proportion_below_walk_speed()
+        {
+            _first.CurrentVelocity = new Vector3(0f, 0f, 1f);
+            yield return new WaitForSeconds(0.5f);
+
+            Assert.AreEqual(1f / 1.5f, _animator.GetFloat(AnimatorParameters.MoveAnimationSpeed.Id), 0.02f);
+        }
+
+        [UnityTest]
+        public IEnumerator Move_animation_speed_does_not_go_below_its_minimum()
+        {
+            _first.CurrentVelocity = new Vector3(0f, 0f, 0.2f);
+            yield return new WaitForSeconds(0.5f);
+
+            Assert.AreEqual(0.5f, _animator.GetFloat(AnimatorParameters.MoveAnimationSpeed.Id), 0.01f);
+        }
+
         [Test]
         public void Jumping_is_cleared_when_the_source_changes()
         {
