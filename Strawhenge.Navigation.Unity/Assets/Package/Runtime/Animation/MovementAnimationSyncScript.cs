@@ -1,6 +1,7 @@
 using UnityEngine;
 using Strawhenge.Common.Unity;
 using System.Collections.Generic;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity
 {
@@ -17,6 +18,11 @@ namespace Strawhenge.Navigation.Unity
                  "landing behaviour. Only counts while the Animator is on. Must be longer than the transitions " +
                  "into the pivot and landing state machines take to start.")]
         [SerializeField] float _animationStartTimeout = 0.3f;
+
+        // Optional: without one, warnings go through a UnityLogger on this GameObject.
+        [SerializeField] LoggerScript _logger;
+
+        ILogger _warningLogger;
 
         Animator _animator;
         Transform _leftFoot;
@@ -43,6 +49,10 @@ namespace Strawhenge.Navigation.Unity
         void Awake()
         {
             _animator = GetComponent<Animator>();
+
+            _warningLogger = _loggerOverride ?? (_logger != null
+                ? _logger.Logger
+                : new UnityLogger(gameObject));
 
             // Foot bones only exist on humanoid rigs; without them 'Pivot Right Foot' stays false.
             if (_animator.isHuman)
@@ -413,10 +423,9 @@ namespace Strawhenge.Navigation.Unity
             if (!unstartedIds.Add(id))
                 return;
 
-            Debug.LogWarning(
+            _warningLogger.LogWarning(
                 $"{kind} ID {id} didn't start within {_animationStartTimeout} s - skipping it. " +
-                $"Check the Animator controller has a {behaviourName} and a transition for {kind} ID {id}.",
-                this);
+                $"Check the Animator controller has a {behaviourName} and a transition for {kind} ID {id}.");
         }
     }
 }

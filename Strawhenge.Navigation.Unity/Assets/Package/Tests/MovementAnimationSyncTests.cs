@@ -28,6 +28,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         PivotStateMachineBehaviour _pivot;
         LandingStateMachineBehaviour _landing;
         MovementSourceManagerScript _manager;
+        FakeLogger _logger;
         int _activeSourceChangedCount;
 
         [UnitySetUp]
@@ -55,8 +56,10 @@ namespace Strawhenge.Navigation.Unity.Tests
             _created.Add(_pivot);
             _created.Add(_landing);
 
+            _logger = new FakeLogger();
             var sync = character.AddComponent<MovementAnimationSyncScript>();
             sync.SetMovementSourceManager(_manager);
+            sync.SetLogger(_logger);
 
             character.SetActive(true);
             _manager.ActiveSourceChanged += () => _activeSourceChangedCount++;
@@ -226,6 +229,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             yield return new WaitForSeconds(0.5f);
 
             Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivoting.Id));
+            Assert.AreEqual(1, _logger.Warnings.Count, "A warning should say the pivot didn't start.");
         }
 
         [Test]
