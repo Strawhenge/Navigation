@@ -232,16 +232,16 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.AreEqual(1, _logger.Warnings.Count, "A warning should say the pivot didn't start.");
         }
 
-        // The test Animator isn't humanoid, so there are no foot bones to tell which foot is planted.
-        [Test]
-        public void Pivot_right_foot_planted_is_cleared_on_a_rig_without_feet()
+        // Set every frame, for any state that picks a clip or its mirrored copy by the planted foot. The test Animator
+        // isn't humanoid, so there are no foot bones, and it stays false.
+        [UnityTest]
+        public IEnumerator Right_foot_planted_is_set_every_frame_and_false_on_a_rig_without_feet()
         {
-            _animator.SetBool(AnimatorParameters.PivotRightFootPlanted.Id, true);
+            _animator.SetBool(AnimatorParameters.RightFootPlanted.Id, true);
 
-            _first.RequestPivot(PivotId);
+            yield return null;
 
-            Assert.IsFalse(_animator.GetBool(AnimatorParameters.PivotRightFootPlanted.Id),
-                "A pivot request should set Pivot Right Foot Planted, which stays false without foot bones.");
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.RightFootPlanted.Id));
         }
 
         // MovementAnimationSyncScript's defaults: the walk clip moves at 1.5 m/s, and plays no slower than 0.33 of normal.

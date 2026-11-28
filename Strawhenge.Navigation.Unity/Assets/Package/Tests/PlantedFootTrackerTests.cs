@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace Strawhenge.Navigation.Unity.Tests
 {
-    // MovementAnimationSyncScript sets 'Pivot Right Foot Planted' from this, so a pivot plays the clip for the foot
-    // that's planted. It used to pick the foot further forward, which is the wrong one once that foot has landed
-    // and the other is swinging past it.
+    // MovementAnimationSyncScript sets 'Right Foot Planted' from this, so a pivot or running jump plays the clip for
+    // the foot that's planted. Pivots used to pick the foot further forward, which is the wrong one once that foot
+    // has landed and the other is swinging past it.
     public class PlantedFootTrackerTests
     {
         const float Margin = 0.1f;

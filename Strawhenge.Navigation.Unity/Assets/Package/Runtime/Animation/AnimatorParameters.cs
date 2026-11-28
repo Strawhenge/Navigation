@@ -16,7 +16,7 @@ namespace Strawhenge.Navigation.Unity
         internal static readonly AnimatorParameter JumpId = new("Jump ID");
         internal static readonly AnimatorParameter Jumping = new("Jumping");
         internal static readonly AnimatorParameter PivotId = new("Pivot ID");
-        internal static readonly AnimatorParameter PivotRightFootPlanted = new("Pivot Right Foot Planted");
+        internal static readonly AnimatorParameter RightFootPlanted = new("Right Foot Planted");
         internal static readonly AnimatorParameter Pivoting = new("Pivoting");
         internal static readonly AnimatorParameter LandingId = new("Landing ID");
         internal static readonly AnimatorParameter Land = new("Land");
