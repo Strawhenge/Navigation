@@ -13,6 +13,15 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] MovementSourceManagerScript _movementSourceManager;
         [SerializeField] float _dampeningTime = 0.1f;
 
+        [Tooltip("How fast the walk clip in the controller's Locomotion state moves the character (m/s). Below this " +
+                 "speed the state plays slower (Move Animation Speed), so the feet keep pace with the ground rather " +
+                 "than sliding. 0 turns it off.")]
+        [SerializeField] float _walkAnimationSpeed = 1.5f;
+
+        [Tooltip("The slowest the walk clip plays, as a fraction of normal. Slower than the speed this gives " +
+                 "(Walk Animation Speed x this), the controller blends the walk into idle instead.")]
+        [SerializeField, Range(0.1f, 1f)] float _minimumWalkAnimationSpeed = 0.33f;
+
         [Tooltip("How long a requested pivot or landing animation may take to start (enter its state machine) " +
                  "before it's skipped, e.g. when the controller has no transition for its ID, or no pivot or " +
                  "landing behaviour. Only counts while the Animator is on. Must be longer than the transitions " +
@@ -134,6 +143,7 @@ namespace Strawhenge.Navigation.Unity
             {
                 _animator.SetBool(AnimatorParameters.Strafing, true);
                 _animator.SetFloat(AnimatorParameters.MoveSpeed, 0);
+                _animator.SetFloat(AnimatorParameters.MoveAnimationSpeed, 1f);
 
                 _animator
                     .SetFloat(
@@ -160,6 +170,21 @@ namespace Strawhenge.Navigation.Unity
                 velocity.magnitude,
                 _dampeningTime,
                 Time.deltaTime);
+
+            // From the damped speed the blend tree uses, so the two stay in step.
+            var moveSpeed = _animator.GetFloat(AnimatorParameters.MoveSpeed.Id);
+            _animator.SetFloat(AnimatorParameters.MoveAnimationSpeed, GetMoveAnimationSpeed(moveSpeed));
+        }
+
+        // Below walk speed the walk clip plays slower, in proportion, rather than blending with idle at its full step
+        // rate, which slides the feet. It doesn't go below _minimumWalkAnimationSpeed: slower than that, the
+        // controller blends into idle. Above walk speed the blend tree's own clips set the pace.
+        float GetMoveAnimationSpeed(float moveSpeed)
+        {
+            if (_walkAnimationSpeed <= 0f || moveSpeed >= _walkAnimationSpeed)
+                return 1f;
+
+            return Mathf.Max(_minimumWalkAnimationSpeed, moveSpeed / _walkAnimationSpeed);
         }
 
         // Called by PivotStateMachineBehaviour.
