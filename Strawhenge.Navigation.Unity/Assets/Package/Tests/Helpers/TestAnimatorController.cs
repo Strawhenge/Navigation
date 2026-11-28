@@ -83,7 +83,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             AddParameter(controller, AnimatorParameters.JumpId, AnimatorControllerParameterType.Int);
             AddParameter(controller, AnimatorParameters.Jumping, AnimatorControllerParameterType.Bool);
             AddParameter(controller, AnimatorParameters.PivotId, AnimatorControllerParameterType.Int);
-            AddParameter(controller, AnimatorParameters.PivotRightFootPlanted, AnimatorControllerParameterType.Bool);
+            AddParameter(controller, AnimatorParameters.RightFootPlanted, AnimatorControllerParameterType.Bool);
             AddParameter(controller, AnimatorParameters.Pivoting, AnimatorControllerParameterType.Bool);
             AddParameter(controller, AnimatorParameters.LandingId, AnimatorControllerParameterType.Int);
             AddParameter(controller, AnimatorParameters.Land, AnimatorControllerParameterType.Trigger);

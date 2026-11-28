@@ -29,7 +29,7 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _animationStartTimeout = 0.3f;
 
         [Tooltip("How much slower over the ground (m/s) one foot must move than the other to count as the " +
-                 "planted one, for 'Pivot Right Foot Planted'. Below it, the foot that was planted stays planted, " +
+                 "planted one, for 'Right Foot Planted'. Below it, the foot that was planted stays planted, " +
                  "so standing still keeps the foot that last landed.")]
         [SerializeField] float _plantedFootMargin = 0.1f;
 
@@ -71,7 +71,7 @@ namespace Strawhenge.Navigation.Unity
 
             _plantedFoot = new PlantedFootTracker(_plantedFootMargin);
 
-            // Foot bones only exist on humanoid rigs; without them 'Pivot Right Foot Planted' stays false.
+            // Foot bones only exist on humanoid rigs; without them 'Right Foot Planted' stays false.
             if (_animator.isHuman)
             {
                 _leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
@@ -146,11 +146,10 @@ namespace Strawhenge.Navigation.Unity
                 return;
             }
 
-            TrackPlantedFoot();
-
             if (_movementSourceManager == null)
                 return;
 
+            TrackPlantedFoot();
             ApplyJumpingAndFalling();
 
             // Relative to the animated body, not transform.root, which is a container if the character has a parent.
@@ -194,13 +193,14 @@ namespace Strawhenge.Navigation.Unity
             _animator.SetFloat(AnimatorParameters.MoveAnimationSpeed, GetMoveAnimationSpeed(moveSpeed));
         }
 
-        // After the Animator has posed the skeleton this frame.
+        // After the Animator has posed the skeleton this frame. Set every frame, so any state can choose a clip or
+        // its mirrored copy by the planted foot (pivots and running jumps in the reference controller).
         void TrackPlantedFoot()
         {
-            if (_leftFoot == null || _rightFoot == null)
-                return;
+            if (_leftFoot != null && _rightFoot != null)
+                _plantedFoot.Update(_leftFoot.position, _rightFoot.position, GetDeltaTime());
 
-            _plantedFoot.Update(_leftFoot.position, _rightFoot.position, GetDeltaTime());
+            _animator.SetBool(AnimatorParameters.RightFootPlanted, _plantedFoot.IsRightFootPlanted);
         }
 
         float GetDeltaTime() =>
@@ -348,9 +348,6 @@ namespace Strawhenge.Navigation.Unity
             }
 
             _animator.SetInteger(AnimatorParameters.PivotId, pivotId);
-
-            // The controller plays the pivot clip for the foot it starts planted on, or its mirrored copy.
-            _animator.SetBool(AnimatorParameters.PivotRightFootPlanted, _plantedFoot.IsRightFootPlanted);
 
             _animator.applyRootMotion = true;
 
