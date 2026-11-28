@@ -44,6 +44,9 @@ namespace Strawhenge.Navigation.Unity
         bool _isFalling;
         float _timeSinceGrounded;
         float _fallDistance;
+        // The height falls and landings count from: where the character last stood, raised while it's off the ground
+        // and not jumping to the highest it has been since (lifted, knocked up, teleported), and reset to where it
+        // is when locomotion is turned on. A jump's counts from its take-off height.
         float _groundedY;
         float _landingDrop;
         bool _isLanding;
@@ -168,6 +171,10 @@ namespace Strawhenge.Navigation.Unity
             _targetRotation = _motor.Rotation;
 
             _motor.SetActive(true);
+
+            // Something else may have moved the character while locomotion was off: a fall counts from here.
+            _groundedY = _motor.Position.y;
+
             IsActiveChanged?.Invoke(true);
         }
 
@@ -646,13 +653,15 @@ namespace Strawhenge.Navigation.Unity
                 ? 0f
                 : _timeSinceGrounded + deltaTime;
 
-            // How far below the last grounded height the character is, measured before landing resets that
-            // height: what fall and jump landings match on. Like the destination's landings, it's the drop from
-            // where the character left the ground to where it landed.
+            // How far below _groundedY the character is, measured before landing resets it: what fall and jump
+            // landings match on. Like the destination's landings, it's the drop from where the character left the
+            // ground (or the highest it has been since, outside a jump) to where it landed.
             _landingDrop = Mathf.Max(0f, _groundedY - positionY);
 
             if (isGrounded)
                 _groundedY = positionY;
+            else if (!_isJumping)
+                _groundedY = Mathf.Max(_groundedY, positionY);
 
             _fallDistance = Mathf.Max(0f, _groundedY - positionY);
 
