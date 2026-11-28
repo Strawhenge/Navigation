@@ -113,6 +113,105 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.Greater(harness.Motor.Position.z, 0.1f, "The character should move again after the timeout.");
         }
 
+        // Lifted without jumping (teleported, knocked up, carried by a lift), the character's fall counts from the
+        // highest it has been since it left the ground. It used to count from the ground it last stood on, so a
+        // fall that ended back at that height was never a fall at all.
+        [Test]
+        public void Fall_begins_after_being_lifted_off_the_ground_without_jumping()
+        {
+            var harness = new LocomotionControllerHarness(new FakeLocomotionSettings { FallDistance = FallDistance });
+            var fallBegan = false;
+            harness.Controller.FallBegan += () => fallBegan = true;
+            harness.Step();
+            Assert.IsTrue(harness.Motor.IsGrounded, "Setup failed: the character isn't on the ground.");
+
+            harness.Motor.Position = new Vector3(0f, 10f, 0f);
+
+            Assert.IsTrue(harness.StepUntil(() => fallBegan), "The fall should have begun.");
+            Assert.LessOrEqual(harness.Motor.Position.y, 10f - FallDistance, "The fall began before dropping FallDistance.");
+        }
+
+        [Test]
+        public void Landing_after_being_lifted_matches_on_the_drop_from_where_it_was_lifted_to()
+        {
+            var harness = Create(landingFallDistance: new ValueRange(4f, 6f));
+            int? landingId = null;
+            harness.Controller.LandingRequested += id => landingId = id;
+            harness.Step();
+            Assert.IsTrue(harness.Motor.IsGrounded, "Setup failed: the character isn't on the ground.");
+
+            harness.Motor.Position = new Vector3(0f, 5f, 0f);
+            harness.StepFor(2f);
+
+            Assert.IsTrue(harness.Motor.IsGrounded, "Setup failed: the character never landed.");
+            Assert.AreEqual(LandingId, landingId, "A 5 m fall should match the 4 to 6 m landing.");
+        }
+
+        // The known gap this closes: the reference height started at 0, whatever the character's height.
+        [Test]
+        public void Fall_begins_for_a_character_that_starts_in_the_air()
+        {
+            var harness = new LocomotionControllerHarness(new FakeLocomotionSettings { FallDistance = FallDistance });
+            var fallBegan = false;
+            harness.Controller.FallBegan += () => fallBegan = true;
+
+            harness.Motor.Position = new Vector3(0f, 5f, 0f);
+
+            Assert.IsTrue(harness.StepUntil(() => fallBegan), "The fall should have begun.");
+        }
+
+        // Moved while locomotion was off (by the destination controller, say), the character's last grounded height
+        // is out of date: its fall counts from where locomotion took over again.
+        [Test]
+        public void Landing_after_being_moved_while_inactive_matches_on_the_drop_from_where_locomotion_took_over()
+        {
+            var harness = Create(landingFallDistance: new ValueRange(4f, 6f));
+            int? landingId = null;
+            harness.Controller.LandingRequested += id => landingId = id;
+            harness.Step();
+            Assert.IsTrue(harness.Motor.IsGrounded, "Setup failed: the character isn't on the ground.");
+
+            harness.Controller.Deactivate();
+            harness.Motor.GroundHeight = -10f;
+            harness.Motor.Position = new Vector3(0f, -5f, 0f);
+            harness.Controller.Activate();
+            harness.StepFor(2f);
+
+            Assert.IsTrue(harness.Motor.IsGrounded, "Setup failed: the character never landed.");
+            Assert.AreEqual(LandingId, landingId, "A 5 m fall should match the 4 to 6 m landing, not count 10 m.");
+        }
+
+        // A jump's fall still counts from where it took off, not from the top of the jump: otherwise an ordinary jump
+        // on flat ground would count as a fall.
+        [Test]
+        public void Jump_on_flat_ground_is_not_a_fall()
+        {
+            var harness = new LocomotionControllerHarness(new FakeLocomotionSettings
+            {
+                FallDistance = 0.5f,
+                JumpHeight = 1f,
+                FallLandings = new ILandingProfile[] { new FakeLandingProfile(LandingId, Any, Any) }
+            });
+
+            var jumpBegan = false;
+            var jumpEnded = false;
+            var fallBegan = false;
+            var landingRequested = false;
+            harness.Controller.JumpBegan += () => jumpBegan = true;
+            harness.Controller.JumpEnded += () => jumpEnded = true;
+            harness.Controller.FallBegan += () => fallBegan = true;
+            harness.Controller.LandingRequested += _ => landingRequested = true;
+            harness.Step();
+
+            harness.Controller.Jump();
+            Assert.IsTrue(harness.StepUntil(() => jumpBegan), "Setup failed: the jump never began.");
+            Assert.IsTrue(harness.StepUntil(() => jumpEnded), "Setup failed: the jump never ended.");
+            harness.Step();
+
+            Assert.IsFalse(fallBegan, "A jump on flat ground shouldn't count as a fall.");
+            Assert.IsFalse(landingRequested, "A jump on flat ground shouldn't request a fall landing.");
+        }
+
         static LocomotionControllerHarness Create(ValueRange landingFallDistance) =>
             new(new FakeLocomotionSettings
             {
