@@ -73,6 +73,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             root.defaultState = root.AddState("Idle");
 
             AddParameter(controller, AnimatorParameters.MoveSpeed, AnimatorControllerParameterType.Float);
+            AddParameter(controller, AnimatorParameters.MoveAnimationSpeed, AnimatorControllerParameterType.Float);
             AddParameter(controller, AnimatorParameters.Strafing, AnimatorControllerParameterType.Bool);
             AddParameter(controller, AnimatorParameters.StrafeX, AnimatorControllerParameterType.Float);
             AddParameter(controller, AnimatorParameters.StrafeY, AnimatorControllerParameterType.Float);

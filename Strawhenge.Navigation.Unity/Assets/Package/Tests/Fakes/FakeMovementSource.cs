@@ -37,7 +37,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         public int TriggeredJumps { get; private set; }
 
-        public Vector3 CurrentVelocity => Vector3.zero;
+        public Vector3 CurrentVelocity { get; set; }
 
         public bool IsStrafing => false;
 

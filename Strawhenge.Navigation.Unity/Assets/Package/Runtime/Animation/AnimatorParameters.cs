@@ -6,6 +6,7 @@ namespace Strawhenge.Navigation.Unity
     static class AnimatorParameters
     {
         internal static readonly AnimatorParameter MoveSpeed = new("Move Speed");
+        internal static readonly AnimatorParameter MoveAnimationSpeed = new("Move Animation Speed");
         internal static readonly AnimatorParameter Strafing = new("Strafing");
         internal static readonly AnimatorParameter StrafeX = new("Strafe X");
         internal static readonly AnimatorParameter StrafeY = new("Strafe Y");
