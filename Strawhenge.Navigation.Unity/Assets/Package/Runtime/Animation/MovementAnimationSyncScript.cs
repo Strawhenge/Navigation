@@ -168,6 +168,7 @@ namespace Strawhenge.Navigation.Unity
 
             _isPivotPlaying = false;
             _pendingPivotId = null;
+            _animator.SetBool(AnimatorParameters.Pivoting, false);
 
             // Root motion has already turned the character: the movement source measures the turn itself.
             _animator.applyRootMotion = false;
@@ -280,6 +281,10 @@ namespace Strawhenge.Navigation.Unity
             }
 
             _animator.SetInteger(AnimatorParameters.PivotId, pivotId);
+
+            // Cleared once the pivot is no longer wanted (ended, cancelled, skipped or dropped), so the controller
+            // can leave a pivot state straight away rather than play the clip to its end.
+            _animator.SetBool(AnimatorParameters.Pivoting, true);
 
             if (_leftFoot != null && _rightFoot != null)
             {
@@ -394,6 +399,7 @@ namespace Strawhenge.Navigation.Unity
         {
             _pendingPivotId = null;
             _animator.ResetTrigger(AnimatorParameters.Pivot.Id);
+            _animator.SetBool(AnimatorParameters.Pivoting, false);
             _animator.applyRootMotion = false;
         }
 
