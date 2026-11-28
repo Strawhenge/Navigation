@@ -100,7 +100,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: Pivot
+    m_ConditionEvent: Pivoting
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
@@ -202,7 +202,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: Pivot
+    m_ConditionEvent: Pivoting
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
@@ -230,7 +230,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: Pivot
+    m_ConditionEvent: Pivoting
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
@@ -579,7 +579,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: Pivot
+    m_ConditionEvent: Pivoting
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
@@ -729,7 +729,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: Pivot
+    m_ConditionEvent: Pivoting
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
@@ -911,12 +911,6 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
-  - m_Name: Pivot
-    m_Type: 9
-    m_DefaultFloat: 0
-    m_DefaultInt: 0
-    m_DefaultBool: 0
-    m_Controller: {fileID: 9100000}
   - m_Name: Pivot Right Foot
     m_Type: 4
     m_DefaultFloat: 0
@@ -1088,7 +1082,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: Pivot
+    m_ConditionEvent: Pivoting
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
@@ -1220,7 +1214,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: Pivot
+    m_ConditionEvent: Pivoting
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
@@ -1410,7 +1404,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: Pivot
+    m_ConditionEvent: Pivoting
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID

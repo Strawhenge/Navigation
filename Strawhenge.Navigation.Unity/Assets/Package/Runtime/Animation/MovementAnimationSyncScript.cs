@@ -282,10 +282,6 @@ namespace Strawhenge.Navigation.Unity
 
             _animator.SetInteger(AnimatorParameters.PivotId, pivotId);
 
-            // Cleared once the pivot is no longer wanted (ended, cancelled, skipped or dropped), so the controller
-            // can leave a pivot state straight away rather than play the clip to its end.
-            _animator.SetBool(AnimatorParameters.Pivoting, true);
-
             if (_leftFoot != null && _rightFoot != null)
             {
                 var body = _animator.transform;
@@ -299,7 +295,11 @@ namespace Strawhenge.Navigation.Unity
             }
 
             _animator.applyRootMotion = true;
-            _animator.SetTrigger(AnimatorParameters.Pivot);
+
+            // The controller plays a pivot while Pivoting is set: cleared once it's no longer wanted (ended,
+            // cancelled, skipped or dropped), a pivot can't start late, and one playing stops straight away rather
+            // than play its clip to the end.
+            _animator.SetBool(AnimatorParameters.Pivoting, true);
 
             _pendingPivotId = pivotId;
             _pendingPivotTime = 0f;
@@ -344,8 +344,8 @@ namespace Strawhenge.Navigation.Unity
         // Another movement source took over. The old one has dropped its waits, and won't end a jump or fall
         // it was in the middle of, so drop everything set on the Animator for it, as if it had cancelled
         // them: a pivot or landing (started or not), a deferred jump's trigger, and the Jumping and Falling
-        // flags. The new source sets what it needs. An animation already playing carries on, but without
-        // root motion, and its end completes nothing.
+        // flags. The new source sets what it needs. A pivot playing stops (Pivoting is cleared); a landing already
+        // playing carries on, and its end completes nothing.
         void OnActiveSourceChanged()
         {
             OnPivotCancelled();
@@ -398,7 +398,6 @@ namespace Strawhenge.Navigation.Unity
         void AbandonPendingPivot()
         {
             _pendingPivotId = null;
-            _animator.ResetTrigger(AnimatorParameters.Pivot.Id);
             _animator.SetBool(AnimatorParameters.Pivoting, false);
             _animator.applyRootMotion = false;
         }
