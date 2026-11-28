@@ -24,6 +24,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         GameObject _character;
         Animator _animator;
         FakeMovementSource _source;
+        FakeLogger _logger;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -45,8 +46,10 @@ namespace Strawhenge.Navigation.Unity.Tests
             var manager = _character.AddComponent<MovementSourceManagerScript>();
             manager.SetMovementSources(sourceScript);
 
+            _logger = new FakeLogger();
             var sync = _character.AddComponent<MovementAnimationSyncScript>();
             sync.SetMovementSourceManager(manager);
+            sync.SetLogger(_logger);
 
             _character.SetActive(true);
 
@@ -260,8 +263,12 @@ namespace Strawhenge.Navigation.Unity.Tests
             }
         }
 
-        void AssertNoWarnings() =>
+        // Unity's own warnings, and MovementAnimationSyncScript's through its logger.
+        void AssertNoWarnings()
+        {
             Assert.IsEmpty(_warnings, "Nothing should have been logged: " + string.Join(" | ", _warnings));
+            Assert.IsEmpty(_logger.Warnings, "Nothing should have been logged: " + string.Join(" | ", _logger.Warnings));
+        }
 
         void OnLogMessageReceived(string message, string stackTrace, LogType type)
         {

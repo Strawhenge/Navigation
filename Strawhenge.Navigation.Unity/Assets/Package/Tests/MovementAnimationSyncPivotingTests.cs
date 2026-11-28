@@ -42,6 +42,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 
             var sync = character.AddComponent<MovementAnimationSyncScript>();
             sync.SetMovementSourceManager(manager);
+            sync.SetLogger(new FakeLogger());
 
             character.SetActive(true);
             yield return null;
