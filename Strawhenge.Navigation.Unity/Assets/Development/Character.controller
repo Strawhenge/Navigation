@@ -70,7 +70,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Walking Turn Left Foot
+  m_Name: Walking Turn Right Planted
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -105,8 +105,8 @@ AnimatorStateTransition:
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
     m_EventTreshold: 2
-  - m_ConditionMode: 2
-    m_ConditionEvent: Pivot Right Foot
+  - m_ConditionMode: 1
+    m_ConditionEvent: Pivot Right Foot Planted
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -8040791530849696951}
@@ -235,8 +235,8 @@ AnimatorStateTransition:
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
     m_EventTreshold: 2
-  - m_ConditionMode: 1
-    m_ConditionEvent: Pivot Right Foot
+  - m_ConditionMode: 2
+    m_ConditionEvent: Pivot Right Foot Planted
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 7247250255783412468}
@@ -494,7 +494,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Running Turn Left Foot
+  m_Name: Running Turn Right Planted
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -549,7 +549,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Running Turn Right Foot
+  m_Name: Running Turn Left Planted
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -875,6 +875,12 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
+  - m_Name: Locomotion Cycle Offset
+    m_Type: 1
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
   - m_Name: Strafing
     m_Type: 4
     m_DefaultFloat: 0
@@ -917,7 +923,7 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
-  - m_Name: Pivot Right Foot
+  - m_Name: Pivot Right Foot Planted
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -1093,8 +1099,8 @@ AnimatorStateTransition:
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
     m_EventTreshold: 1
-  - m_ConditionMode: 2
-    m_ConditionEvent: Pivot Right Foot
+  - m_ConditionMode: 1
+    m_ConditionEvent: Pivot Right Foot Planted
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -3583235886112539602}
@@ -1225,8 +1231,8 @@ AnimatorStateTransition:
   - m_ConditionMode: 6
     m_ConditionEvent: Pivot ID
     m_EventTreshold: 1
-  - m_ConditionMode: 1
-    m_ConditionEvent: Pivot Right Foot
+  - m_ConditionMode: 2
+    m_ConditionEvent: Pivot Right Foot Planted
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -3419251459259867745}
@@ -1721,7 +1727,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Walking Turn Right Foot
+  m_Name: Walking Turn Left Planted
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -1773,13 +1779,13 @@ AnimatorState:
   m_Mirror: 0
   m_SpeedParameterActive: 1
   m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
+  m_CycleOffsetParameterActive: 1
   m_TimeParameterActive: 0
   m_Motion: {fileID: 4927517443099086984}
   m_Tag: 
   m_SpeedParameter: Move Animation Speed
   m_MirrorParameter: 
-  m_CycleOffsetParameter: 
+  m_CycleOffsetParameter: Locomotion Cycle Offset
   m_TimeParameter: 
 --- !u!1107 &7367679367280071975
 AnimatorStateMachine:

@@ -28,6 +28,11 @@ namespace Strawhenge.Navigation.Unity
                  "into the pivot and landing state machines take to start.")]
         [SerializeField] float _animationStartTimeout = 0.3f;
 
+        [Tooltip("How much slower over the ground (m/s) one foot must move than the other to count as the " +
+                 "planted one, for 'Pivot Right Foot Planted'. Below it, the foot that was planted stays planted, " +
+                 "so standing still keeps the foot that last landed.")]
+        [SerializeField] float _plantedFootMargin = 0.1f;
+
         // Optional: without one, warnings go through a UnityLogger on this GameObject.
         [SerializeField] LoggerScript _logger;
 
@@ -36,6 +41,7 @@ namespace Strawhenge.Navigation.Unity
         Animator _animator;
         Transform _leftFoot;
         Transform _rightFoot;
+        PlantedFootTracker _plantedFoot;
 
         // What the movement source last said. Set on the Animator again every LateUpdate, as Unity resets its
         // parameters when it's turned off and on.
@@ -63,7 +69,9 @@ namespace Strawhenge.Navigation.Unity
                 ? _logger.Logger
                 : new UnityLogger(gameObject));
 
-            // Foot bones only exist on humanoid rigs; without them 'Pivot Right Foot' stays false.
+            _plantedFoot = new PlantedFootTracker(_plantedFootMargin);
+
+            // Foot bones only exist on humanoid rigs; without them 'Pivot Right Foot Planted' stays false.
             if (_animator.isHuman)
             {
                 _leftFoot = _animator.GetBoneTransform(HumanBodyBones.LeftFoot);
@@ -74,7 +82,11 @@ namespace Strawhenge.Navigation.Unity
         }
 
         // The GameObject was deactivated (e.g. pooled), so Update stops too.
-        void OnDisable() => CompleteAnimatorRequests();
+        void OnDisable()
+        {
+            CompleteAnimatorRequests();
+            _plantedFoot.Reset();
+        }
 
         void OnDestroy() => UnsubscribeFromMovement();
 
@@ -90,9 +102,7 @@ namespace Strawhenge.Navigation.Unity
                 return;
             }
 
-            var deltaTime = _animator.updateMode == AnimatorUpdateMode.UnscaledTime
-                ? Time.unscaledDeltaTime
-                : Time.deltaTime;
+            var deltaTime = GetDeltaTime();
 
             if (_pendingPivotId.HasValue)
             {
@@ -130,7 +140,15 @@ namespace Strawhenge.Navigation.Unity
 
         void LateUpdate()
         {
-            if (_movementSourceManager == null || !_animator.isActiveAndEnabled)
+            if (!_animator.isActiveAndEnabled)
+            {
+                _plantedFoot.Reset();
+                return;
+            }
+
+            TrackPlantedFoot();
+
+            if (_movementSourceManager == null)
                 return;
 
             ApplyJumpingAndFalling();
@@ -175,6 +193,20 @@ namespace Strawhenge.Navigation.Unity
             var moveSpeed = _animator.GetFloat(AnimatorParameters.MoveSpeed.Id);
             _animator.SetFloat(AnimatorParameters.MoveAnimationSpeed, GetMoveAnimationSpeed(moveSpeed));
         }
+
+        // After the Animator has posed the skeleton this frame.
+        void TrackPlantedFoot()
+        {
+            if (_leftFoot == null || _rightFoot == null)
+                return;
+
+            _plantedFoot.Update(_leftFoot.position, _rightFoot.position, GetDeltaTime());
+        }
+
+        float GetDeltaTime() =>
+            _animator.updateMode == AnimatorUpdateMode.UnscaledTime
+                ? Time.unscaledDeltaTime
+                : Time.deltaTime;
 
         // Below walk speed the walk clip plays slower, in proportion, rather than blending with idle at its full step
         // rate, which slides the feet. It doesn't go below _minimumWalkAnimationSpeed: slower than that, the
@@ -317,17 +349,8 @@ namespace Strawhenge.Navigation.Unity
 
             _animator.SetInteger(AnimatorParameters.PivotId, pivotId);
 
-            if (_leftFoot != null && _rightFoot != null)
-            {
-                var body = _animator.transform;
-                var leftOffset = _leftFoot.position - body.position;
-                var rightOffset = _rightFoot.position - body.position;
-
-                var leftForward = Vector3.Dot(leftOffset, body.forward);
-                var rightForward = Vector3.Dot(rightOffset, body.forward);
-
-                _animator.SetBool(AnimatorParameters.PivotRightFoot, rightForward > leftForward);
-            }
+            // The controller plays the pivot clip for the foot it starts planted on, or its mirrored copy.
+            _animator.SetBool(AnimatorParameters.PivotRightFootPlanted, _plantedFoot.IsRightFootPlanted);
 
             _animator.applyRootMotion = true;
 
