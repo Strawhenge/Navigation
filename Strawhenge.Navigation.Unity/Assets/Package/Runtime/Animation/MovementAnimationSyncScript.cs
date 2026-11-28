@@ -20,7 +20,7 @@ namespace Strawhenge.Navigation.Unity
 
         [Tooltip("The slowest the walk clip plays, as a fraction of normal. Slower than the speed this gives " +
                  "(Walk Animation Speed x this), the controller blends the walk into idle instead.")]
-        [SerializeField, Range(0.1f, 1f)] float _minimumWalkAnimationSpeed = 0.5f;
+        [SerializeField, Range(0.1f, 1f)] float _minimumWalkAnimationSpeed = 0.33f;
 
         [Tooltip("How long a requested pivot or landing animation may take to start (enter its state machine) " +
                  "before it's skipped, e.g. when the controller has no transition for its ID, or no pivot or " +
