@@ -7,6 +7,7 @@ namespace Strawhenge.Navigation.Unity
         internal const float WalkSpeed = 1.5f;
         internal const float RunSpeed = 5;
         internal const float SprintSpeed = 8;
+        internal const float MinimumMoveSpeed = 0;
         internal const float Acceleration = 10;
         internal const float Deceleration = 30;
         internal const float TurnSpeed = 360;
@@ -33,6 +34,8 @@ namespace Strawhenge.Navigation.Unity
         float ILocomotionSettings.RunSpeed => RunSpeed;
 
         float ILocomotionSettings.SprintSpeed => SprintSpeed;
+
+        float ILocomotionSettings.MinimumMoveSpeed => MinimumMoveSpeed;
 
         float ILocomotionSettings.Acceleration => Acceleration;
 

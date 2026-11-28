@@ -7,6 +7,11 @@ namespace Strawhenge.Navigation.Unity
         float RunSpeed { get; }
       
         float SprintSpeed { get; }
+
+        // The slowest the character moves while there's move input (metres per second), however little a stick is
+        // pushed, so it doesn't hold speeds its walk animation can't keep pace with. Never more than the selected
+        // speed (walk, run or sprint). 0 for none.
+        float MinimumMoveSpeed { get; }
       
         float Acceleration { get; }
       

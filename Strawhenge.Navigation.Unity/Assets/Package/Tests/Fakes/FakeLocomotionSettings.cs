@@ -7,6 +7,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         public float WalkSpeed { get; set; } = DefaultLocomotionSettings.WalkSpeed;
         public float RunSpeed { get; set; } = DefaultLocomotionSettings.RunSpeed;
         public float SprintSpeed { get; set; } = DefaultLocomotionSettings.SprintSpeed;
+        public float MinimumMoveSpeed { get; set; } = DefaultLocomotionSettings.MinimumMoveSpeed;
         public float Acceleration { get; set; } = DefaultLocomotionSettings.Acceleration;
         public float Deceleration { get; set; } = DefaultLocomotionSettings.Deceleration;
         public float TurnSpeed { get; set; } = DefaultLocomotionSettings.TurnSpeed;

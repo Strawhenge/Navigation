@@ -11,6 +11,11 @@ namespace Strawhenge.Navigation.Unity
         [SerializeField] float _runSpeed = DefaultLocomotionSettings.RunSpeed;
         [SerializeField] float _sprintSpeed = DefaultLocomotionSettings.SprintSpeed;
 
+        [Tooltip("The slowest the character moves while there's move input (m/s), however little a stick is pushed, " +
+                 "so it doesn't hold speeds its walk animation can't keep pace with. Never more than the selected " +
+                 "speed. 0 for none.")]
+        [SerializeField] float _minimumMoveSpeed = DefaultLocomotionSettings.MinimumMoveSpeed;
+
         [Header("Acceleration")]
         [SerializeField] float _acceleration = DefaultLocomotionSettings.Acceleration;
         [SerializeField] float _deceleration = DefaultLocomotionSettings.Deceleration;
@@ -100,6 +105,8 @@ namespace Strawhenge.Navigation.Unity
         public float RunSpeed => _runSpeed;
 
         public float SprintSpeed => _sprintSpeed;
+
+        public float MinimumMoveSpeed => _minimumMoveSpeed;
 
         public float Acceleration => _acceleration;
 

@@ -15,6 +15,7 @@ MonoBehaviour:
   _walkSpeed: 1.5
   _runSpeed: 5
   _sprintSpeed: 8
+  _minimumMoveSpeed: 0.5
   _acceleration: 10
   _deceleration: 30
   _turnSpeed: 360

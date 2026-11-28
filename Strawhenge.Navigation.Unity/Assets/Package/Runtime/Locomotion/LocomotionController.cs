@@ -857,7 +857,12 @@ namespace Strawhenge.Navigation.Unity
             if (_input.sqrMagnitude < 0.001f)
                 return 0f;
 
-            return GetSelectedSpeed() * _input.magnitude;
+            // However little a stick is pushed, not slower than MinimumMoveSpeed (nor faster than the selected
+            // speed for it), so the character doesn't hold speeds its walk animation can't keep pace with.
+            var selectedSpeed = GetSelectedSpeed();
+            var minimumSpeed = Mathf.Min(_settings.MinimumMoveSpeed, selectedSpeed);
+
+            return Mathf.Max(selectedSpeed * _input.magnitude, minimumSpeed);
         }
 
         float GetSelectedSpeed()
