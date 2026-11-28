@@ -145,6 +145,41 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.Less(harness.LastRequestedSpeed, DefaultLocomotionSettings.RunSpeed - 1f);
         }
 
+        // Baseline for the tests below.
+        [Test]
+        public void A_small_stick_moves_slowly_with_no_minimum_move_speed()
+        {
+            var harness = new LocomotionControllerHarness();
+
+            harness.Controller.Move(Vector3.forward * 0.15f);
+            harness.StepFor(1f);
+
+            Assert.AreEqual(DefaultLocomotionSettings.RunSpeed * 0.15f, harness.LastRequestedSpeed, SpeedTolerance);
+        }
+
+        [Test]
+        public void A_small_stick_moves_at_the_minimum_move_speed()
+        {
+            var harness = new LocomotionControllerHarness(new FakeLocomotionSettings { MinimumMoveSpeed = 1f });
+
+            harness.Controller.Move(Vector3.forward * 0.15f); // 0.75 m/s at run speed.
+            harness.StepFor(1f);
+
+            Assert.AreEqual(1f, harness.LastRequestedSpeed, SpeedTolerance);
+        }
+
+        [Test]
+        public void The_minimum_move_speed_is_never_more_than_the_selected_speed()
+        {
+            var harness = new LocomotionControllerHarness(new FakeLocomotionSettings { MinimumMoveSpeed = 3f });
+            harness.Controller.Walk = true;
+
+            harness.Controller.Move(Vector3.forward * 0.15f);
+            harness.StepFor(1f);
+
+            Assert.AreEqual(DefaultLocomotionSettings.WalkSpeed, harness.LastRequestedSpeed, SpeedTolerance);
+        }
+
         static LocomotionControllerHarness RunForward(
             float stick,
             bool withJumps = true,

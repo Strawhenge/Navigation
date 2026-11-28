@@ -35,6 +35,8 @@ namespace Strawhenge.Navigation.Unity
 
         public float SprintSpeed => _settings.SprintSpeed;
 
+        public float MinimumMoveSpeed => _settings.MinimumMoveSpeed;
+
         public float Acceleration => _settings.Acceleration;
 
         public float Deceleration => _settings.Deceleration;
