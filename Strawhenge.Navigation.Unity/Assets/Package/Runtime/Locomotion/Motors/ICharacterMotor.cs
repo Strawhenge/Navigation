@@ -14,7 +14,9 @@ namespace Strawhenge.Navigation.Unity
         // character isn't moved: the controller keeps it through pivots.
         Vector3 Velocity { get; }
 
-        // Whether the character was on the ground after the last move.
+        // Whether the character is on the ground: as of the last move, or where something else has moved it since.
+        // A pivot's root motion moves it while no steps move (often without pushing into the ground), and
+        // locomotion gives up a pivot that carries the character off a ledge.
         bool IsGrounded { get; }
 
         // When LocomotionScript steps the controller. External: the motor steps it itself, through the
