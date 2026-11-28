@@ -148,6 +148,76 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.Greater(harness.Motor.Moves.Count, moves, "The motor should move again after the timeout.");
         }
 
+        // Nothing lets the character fall while a pivot holds it still, so a pivot whose root motion carries it off
+        // a ledge is given up.
+        [Test]
+        public void Pivot_is_cancelled_when_it_carries_the_character_off_the_ground()
+        {
+            var harness = RunAndTurnAround();
+            var pivotRequested = false;
+            var pivotCancelled = false;
+            harness.Controller.PivotRequested += _ => pivotRequested = true;
+            harness.Controller.PivotCancelled += () => pivotCancelled = true;
+            harness.Step();
+            Assert.IsTrue(pivotRequested, "Setup failed: no pivot was requested.");
+
+            harness.Motor.GroundHeight = null; // Root motion carried it over a ledge.
+            harness.Step();
+
+            Assert.IsTrue(pivotCancelled);
+        }
+
+        // Baseline for the test above.
+        [Test]
+        public void Pivot_is_not_cancelled_while_the_character_stays_on_the_ground()
+        {
+            var harness = RunAndTurnAround();
+            var pivotRequested = false;
+            var pivotCancelled = false;
+            harness.Controller.PivotRequested += _ => pivotRequested = true;
+            harness.Controller.PivotCancelled += () => pivotCancelled = true;
+            harness.Step();
+            Assert.IsTrue(pivotRequested, "Setup failed: no pivot was requested.");
+
+            harness.StepFor(0.5f);
+
+            Assert.IsFalse(pivotCancelled);
+        }
+
+        [Test]
+        public void Character_falls_straight_away_when_a_pivot_carries_it_off_the_ground()
+        {
+            var harness = RunAndTurnAround();
+            var pivotRequested = false;
+            harness.Controller.PivotRequested += _ => pivotRequested = true;
+            harness.Step();
+            Assert.IsTrue(pivotRequested, "Setup failed: no pivot was requested.");
+            var moves = harness.Motor.Moves.Count;
+
+            harness.Motor.GroundHeight = null;
+            harness.StepFor(0.2f);
+
+            Assert.Greater(harness.Motor.Moves.Count, moves, "The motor should move again once the pivot is given up.");
+            Assert.Less(harness.Motor.Position.y, -0.1f, "The character should be falling.");
+        }
+
+        // It isn't airborne until it has dropped FallDistance, so that alone wouldn't stop the same pivot matching
+        // again straight away.
+        [Test]
+        public void Pivot_is_not_requested_again_after_it_carried_the_character_off_the_ground()
+        {
+            var harness = RunAndTurnAround();
+            var pivotsRequested = 0;
+            harness.Controller.PivotRequested += _ => pivotsRequested++;
+            harness.Step();
+            Assert.AreEqual(1, pivotsRequested, "Setup failed: no pivot was requested.");
+
+            harness.Motor.GroundHeight = null;
+            harness.StepFor(0.3f);
+
+            Assert.AreEqual(1, pivotsRequested);
+        }
+
         [Test]
         public void Never_pivots_while_strafing()
         {

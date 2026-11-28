@@ -118,6 +118,10 @@ namespace Strawhenge.Navigation.Unity
 
         public event Action<int> PivotRequested;
 
+        // A requested pivot was given up before it was completed, as it carried the character off the ground (its
+        // root motion over a ledge), so whatever plays it should drop it.
+        public event Action PivotCancelled;
+
         public event Action FallBegan;
 
         public event Action FallEnded;
@@ -215,6 +219,7 @@ namespace Strawhenge.Navigation.Unity
 
             HandleAnimatorWaitTimeouts(deltaTime);
             HandleFalling(deltaTime);
+            CancelPivotOffTheGround();
 
             var rotation = HandleRotation(deltaTime);
 
@@ -326,6 +331,20 @@ namespace Strawhenge.Navigation.Unity
             // and stop the character ever turning. Turn normally until out of every pivot's angle range.
             if (!PivotTurn.DidTurn(_pivotStartRotation, _motor.Rotation))
                 _suppressPivotsUntilTurned = true;
+        }
+
+        // A pivot holds the character still, so nothing would let it fall: one whose root motion has carried it off
+        // the ground (over a ledge) is given up, and the character falls straight away. It isn't airborne until it
+        // has dropped FallDistance, so pivots wait until it has turned out of their angle ranges, as after a pivot
+        // that didn't turn it; otherwise the same pivot would match again on the next step.
+        void CancelPivotOffTheGround()
+        {
+            if (!_isPivoting || _isGrounded)
+                return;
+
+            _isPivoting = false;
+            _suppressPivotsUntilTurned = true;
+            PivotCancelled?.Invoke();
         }
 
         public void CompleteLanding()

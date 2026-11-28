@@ -28,6 +28,7 @@ namespace Strawhenge.Navigation.Unity.Tests
         PivotStateMachineBehaviour _pivot;
         LandingStateMachineBehaviour _landing;
         MovementSourceManagerScript _manager;
+        FakeLogger _logger;
         int _activeSourceChangedCount;
 
         [UnitySetUp]
@@ -55,8 +56,10 @@ namespace Strawhenge.Navigation.Unity.Tests
             _created.Add(_pivot);
             _created.Add(_landing);
 
+            _logger = new FakeLogger();
             var sync = character.AddComponent<MovementAnimationSyncScript>();
             sync.SetMovementSourceManager(_manager);
+            sync.SetLogger(_logger);
 
             character.SetActive(true);
             _manager.ActiveSourceChanged += () => _activeSourceChangedCount++;
@@ -168,6 +171,67 @@ namespace Strawhenge.Navigation.Unity.Tests
             Assert.AreEqual(0, _first.CompletedPivots, "A cancelled pivot shouldn't complete.");
         }
 
+        // Pivoting says a pivot is still wanted, so the controller can leave a pivot state as soon as it isn't
+        // (cancelled off a ledge, or the source changed), rather than play the clip to its end.
+        [Test]
+        public void Pivoting_is_set_while_a_pivot_is_wanted()
+        {
+            _first.RequestPivot(PivotId);
+            Assert.IsTrue(_animator.GetBool(AnimatorParameters.Pivoting.Id), "Pivoting should be set once requested.");
+
+            StartPivot();
+            Assert.IsTrue(_animator.GetBool(AnimatorParameters.Pivoting.Id), "Pivoting should stay set while it plays.");
+        }
+
+        [Test]
+        public void Pivoting_is_cleared_when_the_pivot_ends()
+        {
+            _first.RequestPivot(PivotId);
+            StartPivot();
+            Assume(_animator.GetBool(AnimatorParameters.Pivoting.Id), "Pivoting should be set while the pivot plays");
+
+            EndPivot();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivoting.Id));
+        }
+
+        [Test]
+        public void Pivoting_is_cleared_when_the_pivot_is_cancelled()
+        {
+            _first.RequestPivot(PivotId);
+            StartPivot();
+            Assume(_animator.GetBool(AnimatorParameters.Pivoting.Id), "Pivoting should be set while the pivot plays");
+
+            _first.CancelPivot();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivoting.Id));
+        }
+
+        [Test]
+        public void Pivoting_is_cleared_when_the_source_changes()
+        {
+            _first.RequestPivot(PivotId);
+            StartPivot();
+            Assume(_animator.GetBool(AnimatorParameters.Pivoting.Id), "Pivoting should be set while the pivot plays");
+
+            SwitchToSecondSource();
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivoting.Id));
+        }
+
+        [UnityTest]
+        public IEnumerator Pivoting_is_cleared_when_the_pivot_never_starts()
+        {
+            _first.RequestPivot(PivotId);
+            Assume(_animator.GetBool(AnimatorParameters.Pivoting.Id), "Pivoting should be set once requested");
+
+            // Past MovementAnimationSyncScript's start timeout.
+            yield return new WaitForSeconds(0.5f);
+
+            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivoting.Id));
+            Assert.AreEqual(1, _logger.Warnings.Count, "A warning should say the pivot didn't start.");
+        }
+
         [Test]
         public void Jumping_is_cleared_when_the_source_changes()
         {
@@ -219,28 +283,6 @@ namespace Strawhenge.Navigation.Unity.Tests
             _first.CancelJumpTrigger();
 
             Assert.IsFalse(_animator.GetBool(AnimatorParameters.Jump.Id), "A cancelled jump trigger should be reset.");
-        }
-
-        [Test]
-        public void Pivot_trigger_is_reset_when_the_source_changes()
-        {
-            _first.RequestPivot(PivotId);
-            Assume(_animator.GetBool(AnimatorParameters.Pivot.Id), "the Pivot trigger should be set for the pivot");
-
-            SwitchToSecondSource();
-
-            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivot.Id), "The old source's pivot trigger should be reset.");
-        }
-
-        [Test]
-        public void Pivot_trigger_is_reset_when_cancelled()
-        {
-            _first.RequestPivot(PivotId);
-            Assume(_animator.GetBool(AnimatorParameters.Pivot.Id), "the Pivot trigger should be set for the pivot");
-
-            _first.CancelPivot();
-
-            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivot.Id), "A cancelled pivot's trigger should be reset.");
         }
 
         [Test]

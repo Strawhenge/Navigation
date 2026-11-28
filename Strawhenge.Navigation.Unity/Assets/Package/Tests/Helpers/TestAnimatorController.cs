@@ -36,8 +36,9 @@ namespace Strawhenge.Navigation.Unity.Tests
 
         // As Create, plus Pivot and Landing sub-state machines carrying the real behaviours, as in a consumer's
         // controller, so the Animator plays the pivot and landing itself. Each has one state, for PivotId /
-        // LandingId, entered from Idle on the trigger and the ID, which plays for ClipLength and then exits
-        // back to Idle.
+        // LandingId, which plays for ClipLength and then exits back to Idle. The pivot state is entered from Idle
+        // while Pivoting is set and on the ID, and exits as soon as Pivoting is cleared; the landing state is
+        // entered on the Land trigger and the ID.
         public static RuntimeAnimatorController CreateWithPivotAndLandingStates()
         {
 #if UNITY_EDITOR
@@ -45,8 +46,14 @@ namespace Strawhenge.Navigation.Unity.Tests
             var root = controller.layers[0].stateMachine;
             var idle = root.defaultState;
 
-            AddRequestedState<PivotStateMachineBehaviour>(
-                root, idle, PivotTag, AnimatorParameters.Pivot, AnimatorParameters.PivotId, PivotId);
+            var pivot = AddRequestedState<PivotStateMachineBehaviour>(
+                root, idle, PivotTag, AnimatorParameters.Pivoting, AnimatorParameters.PivotId, PivotId);
+
+            var stopPivot = pivot.AddExitTransition();
+            stopPivot.hasExitTime = false;
+            stopPivot.hasFixedDuration = true;
+            stopPivot.duration = 0;
+            stopPivot.AddCondition(AnimatorConditionMode.IfNot, 0, AnimatorParameters.Pivoting.Name);
 
             AddRequestedState<LandingStateMachineBehaviour>(
                 root, idle, LandingTag, AnimatorParameters.Land, AnimatorParameters.LandingId, LandingId);
@@ -73,9 +80,9 @@ namespace Strawhenge.Navigation.Unity.Tests
             AddParameter(controller, AnimatorParameters.Jump, AnimatorControllerParameterType.Trigger);
             AddParameter(controller, AnimatorParameters.JumpId, AnimatorControllerParameterType.Int);
             AddParameter(controller, AnimatorParameters.Jumping, AnimatorControllerParameterType.Bool);
-            AddParameter(controller, AnimatorParameters.Pivot, AnimatorControllerParameterType.Trigger);
             AddParameter(controller, AnimatorParameters.PivotId, AnimatorControllerParameterType.Int);
             AddParameter(controller, AnimatorParameters.PivotRightFoot, AnimatorControllerParameterType.Bool);
+            AddParameter(controller, AnimatorParameters.Pivoting, AnimatorControllerParameterType.Bool);
             AddParameter(controller, AnimatorParameters.LandingId, AnimatorControllerParameterType.Int);
             AddParameter(controller, AnimatorParameters.Land, AnimatorControllerParameterType.Trigger);
 
@@ -88,11 +95,12 @@ namespace Strawhenge.Navigation.Unity.Tests
             AnimatorControllerParameterType type) =>
             controller.AddParameter(parameter.Name, type);
 
-        static void AddRequestedState<T>(
+        // Entered from Idle when condition (a trigger, or a bool that's set) holds and on the ID.
+        static AnimatorState AddRequestedState<T>(
             AnimatorStateMachine root,
             AnimatorState idle,
             string name,
-            AnimatorParameter trigger,
+            AnimatorParameter condition,
             AnimatorParameter idParameter,
             int id)
             where T : StateMachineBehaviour
@@ -108,7 +116,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             enter.hasExitTime = false;
             enter.hasFixedDuration = true;
             enter.duration = 0;
-            enter.AddCondition(AnimatorConditionMode.If, 0, trigger.Name);
+            enter.AddCondition(AnimatorConditionMode.If, 0, condition.Name);
             enter.AddCondition(AnimatorConditionMode.Equals, id, idParameter.Name);
 
             var exit = state.AddExitTransition();
@@ -118,6 +126,8 @@ namespace Strawhenge.Navigation.Unity.Tests
             exit.duration = 0;
 
             root.AddStateMachineTransition(stateMachine, idle);
+
+            return state;
         }
 
         // A clip that lasts ClipLength and animates nothing: its curve is bound to a child that doesn't exist.

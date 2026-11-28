@@ -1,6 +1,7 @@
 using UnityEngine;
 using Strawhenge.Common.Unity;
 using System.Collections.Generic;
+using ILogger = Strawhenge.Common.Logging.ILogger;
 
 namespace Strawhenge.Navigation.Unity
 {
@@ -17,6 +18,11 @@ namespace Strawhenge.Navigation.Unity
                  "landing behaviour. Only counts while the Animator is on. Must be longer than the transitions " +
                  "into the pivot and landing state machines take to start.")]
         [SerializeField] float _animationStartTimeout = 0.3f;
+
+        // Optional: without one, warnings go through a UnityLogger on this GameObject.
+        [SerializeField] LoggerScript _logger;
+
+        ILogger _warningLogger;
 
         Animator _animator;
         Transform _leftFoot;
@@ -43,6 +49,10 @@ namespace Strawhenge.Navigation.Unity
         void Awake()
         {
             _animator = GetComponent<Animator>();
+
+            _warningLogger = _loggerOverride ?? (_logger != null
+                ? _logger.Logger
+                : new UnityLogger(gameObject));
 
             // Foot bones only exist on humanoid rigs; without them 'Pivot Right Foot' stays false.
             if (_animator.isHuman)
@@ -168,6 +178,7 @@ namespace Strawhenge.Navigation.Unity
 
             _isPivotPlaying = false;
             _pendingPivotId = null;
+            _animator.SetBool(AnimatorParameters.Pivoting, false);
 
             // Root motion has already turned the character: the movement source measures the turn itself.
             _animator.applyRootMotion = false;
@@ -294,7 +305,11 @@ namespace Strawhenge.Navigation.Unity
             }
 
             _animator.applyRootMotion = true;
-            _animator.SetTrigger(AnimatorParameters.Pivot);
+
+            // The controller plays a pivot while Pivoting is set: cleared once it's no longer wanted (ended,
+            // cancelled, skipped or dropped), a pivot can't start late, and one playing stops straight away rather
+            // than play its clip to the end.
+            _animator.SetBool(AnimatorParameters.Pivoting, true);
 
             _pendingPivotId = pivotId;
             _pendingPivotTime = 0f;
@@ -339,8 +354,8 @@ namespace Strawhenge.Navigation.Unity
         // Another movement source took over. The old one has dropped its waits, and won't end a jump or fall
         // it was in the middle of, so drop everything set on the Animator for it, as if it had cancelled
         // them: a pivot or landing (started or not), a deferred jump's trigger, and the Jumping and Falling
-        // flags. The new source sets what it needs. An animation already playing carries on, but without
-        // root motion, and its end completes nothing.
+        // flags. The new source sets what it needs. A pivot playing stops (Pivoting is cleared); a landing already
+        // playing carries on, and its end completes nothing.
         void OnActiveSourceChanged()
         {
             OnPivotCancelled();
@@ -393,7 +408,7 @@ namespace Strawhenge.Navigation.Unity
         void AbandonPendingPivot()
         {
             _pendingPivotId = null;
-            _animator.ResetTrigger(AnimatorParameters.Pivot.Id);
+            _animator.SetBool(AnimatorParameters.Pivoting, false);
             _animator.applyRootMotion = false;
         }
 
@@ -408,10 +423,9 @@ namespace Strawhenge.Navigation.Unity
             if (!unstartedIds.Add(id))
                 return;
 
-            Debug.LogWarning(
+            _warningLogger.LogWarning(
                 $"{kind} ID {id} didn't start within {_animationStartTimeout} s - skipping it. " +
-                $"Check the Animator controller has a {behaviourName} and a transition for {kind} ID {id}.",
-                this);
+                $"Check the Animator controller has a {behaviourName} and a transition for {kind} ID {id}.");
         }
     }
 }
