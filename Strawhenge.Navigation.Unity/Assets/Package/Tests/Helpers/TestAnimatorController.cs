@@ -74,6 +74,7 @@ namespace Strawhenge.Navigation.Unity.Tests
 
             AddParameter(controller, AnimatorParameters.MoveSpeed, AnimatorControllerParameterType.Float);
             AddParameter(controller, AnimatorParameters.MoveAnimationSpeed, AnimatorControllerParameterType.Float);
+            AddParameter(controller, AnimatorParameters.LocomotionCycleOffset, AnimatorControllerParameterType.Float);
             AddParameter(controller, AnimatorParameters.Strafing, AnimatorControllerParameterType.Bool);
             AddParameter(controller, AnimatorParameters.StrafeX, AnimatorControllerParameterType.Float);
             AddParameter(controller, AnimatorParameters.StrafeY, AnimatorControllerParameterType.Float);
@@ -82,7 +83,7 @@ namespace Strawhenge.Navigation.Unity.Tests
             AddParameter(controller, AnimatorParameters.JumpId, AnimatorControllerParameterType.Int);
             AddParameter(controller, AnimatorParameters.Jumping, AnimatorControllerParameterType.Bool);
             AddParameter(controller, AnimatorParameters.PivotId, AnimatorControllerParameterType.Int);
-            AddParameter(controller, AnimatorParameters.PivotRightFoot, AnimatorControllerParameterType.Bool);
+            AddParameter(controller, AnimatorParameters.PivotRightFootPlanted, AnimatorControllerParameterType.Bool);
             AddParameter(controller, AnimatorParameters.Pivoting, AnimatorControllerParameterType.Bool);
             AddParameter(controller, AnimatorParameters.LandingId, AnimatorControllerParameterType.Int);
             AddParameter(controller, AnimatorParameters.Land, AnimatorControllerParameterType.Trigger);
