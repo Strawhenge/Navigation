@@ -115,6 +115,10 @@ namespace Strawhenge.Navigation.Unity
 
         public event Action<int> PivotRequested;
 
+        // A requested pivot was given up before it was completed, as it carried the character off the ground (its
+        // root motion over a ledge), so whatever plays it should drop it.
+        public event Action PivotCancelled;
+
         public event Action FallBegan;
 
         public event Action FallEnded;

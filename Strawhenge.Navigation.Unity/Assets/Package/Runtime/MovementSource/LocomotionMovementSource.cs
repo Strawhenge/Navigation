@@ -54,14 +54,15 @@ namespace Strawhenge.Navigation.Unity
             remove => _locomotion.LandingRequested -= value;
         }
 
-        // Never raised: LocomotionController completes pivots and landings that time out, and clears its own
-        // waits when it's deactivated, which also changes the active movement source.
+        // A pivot that carried the character off the ground. LocomotionController completes pivots that time out,
+        // and clears its own waits when it's deactivated, which also changes the active movement source.
         public event Action PivotCancelled
         {
-            add { }
-            remove { }
+            add => _locomotion.PivotCancelled += value;
+            remove => _locomotion.PivotCancelled -= value;
         }
 
+        // Never raised: LocomotionController completes landings that time out (see PivotCancelled).
         public event Action LandingCancelled
         {
             add { }
