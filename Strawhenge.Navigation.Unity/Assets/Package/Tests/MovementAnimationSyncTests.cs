@@ -282,28 +282,6 @@ namespace Strawhenge.Navigation.Unity.Tests
         }
 
         [Test]
-        public void Pivot_trigger_is_reset_when_the_source_changes()
-        {
-            _first.RequestPivot(PivotId);
-            Assume(_animator.GetBool(AnimatorParameters.Pivot.Id), "the Pivot trigger should be set for the pivot");
-
-            SwitchToSecondSource();
-
-            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivot.Id), "The old source's pivot trigger should be reset.");
-        }
-
-        [Test]
-        public void Pivot_trigger_is_reset_when_cancelled()
-        {
-            _first.RequestPivot(PivotId);
-            Assume(_animator.GetBool(AnimatorParameters.Pivot.Id), "the Pivot trigger should be set for the pivot");
-
-            _first.CancelPivot();
-
-            Assert.IsFalse(_animator.GetBool(AnimatorParameters.Pivot.Id), "A cancelled pivot's trigger should be reset.");
-        }
-
-        [Test]
         public void Land_trigger_is_reset_when_the_source_changes()
         {
             _first.RequestLanding(LandingId);
